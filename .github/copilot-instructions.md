@@ -2,7 +2,12 @@
 
 ## Current tooling
 
-The application has not yet been scaffolded: there is no `package.json`, lockfile, test runner, linter, or build command. Do not invent or run npm commands until Phase 0 of `docs/implementation-plan.md` adds the Vite React TypeScript project. Once scaffolded, use the scripts declared in `package.json`; document the full-suite and single-test commands in this file under a new ## Test commands section when they exist.
+Use the scripts declared in `package.json`.
+
+## Test commands
+
+- Full suite: `npm test`
+- Single test file: `npm test -- src/domain/categoryTree.test.ts`
 
 ## Architecture baseline
 
