@@ -1,4 +1,4 @@
-# 2026-08-05 ADR: Enforce Branch Coverage for Application Source
+# 2026-08-05 ADR: Enforce Complete Coverage for Application Source
 
 **Status:** Accepted
 **Date:** 2026-08-05
@@ -13,24 +13,24 @@ needed for all application source rather than relying only on the count of passi
 
 ## Considered Options
 
-- Use Vitest's V8 coverage provider with a 90% global branch-coverage threshold for application
-  source.
+- Use Vitest's V8 coverage provider with 100% global thresholds for statements, branches, functions,
+  and lines in application source.
 - Use Vitest's Istanbul coverage provider with the same threshold.
 - Continue with passing-test requirements without an enforced coverage threshold.
 
 ## Decision Outcome
 
-Chosen option: "use Vitest's V8 coverage provider with a 90% global branch-coverage threshold for
-application source", because it integrates with the existing Vitest 3 suite, uses native V8
-instrumentation, and makes missed conditional behaviour visible without adopting a second test
-framework.
+Chosen option: "use Vitest's V8 coverage provider with 100% global thresholds for statements,
+branches, functions, and lines in application source", because it integrates with the existing
+Vitest 3 suite, uses native V8 instrumentation, and requires every executable application path to
+be covered without adopting a second test framework.
 
 ### Consequences
 
-- Good, because pull requests cannot silently lower branch coverage below the agreed confidence
-  floor.
-- Good, because test reports identify unexercised conditionals in the domain, application, and UI
-  layers.
+- Good, because pull requests cannot silently lower any configured coverage metric below the agreed
+  confidence floor.
+- Good, because test reports identify unexercised statements, functions, and conditionals in the
+  domain, application, and UI layers.
 - Bad, because changes may require additional tests or deliberate refactoring before they can merge.
 - Bad, because coverage metrics cannot establish that the reviewed food guidance is medically
   correct; editorial review and the existing validation checks remain required.
@@ -51,7 +51,7 @@ framework.
 
 - Good, because it is Vitest's native coverage integration and avoids Istanbul source
   instrumentation.
-- Good, because it reports the required branch metric and can fail the existing test command.
+- Good, because it reports every required coverage metric and can fail the existing test command.
 - Bad, because it adds a development dependency and must be configured with explicit source
   inclusion/exclusion rules.
 
@@ -73,31 +73,32 @@ framework.
   `docs/implementation-plan.md`, and `docs/features/*.md`.
 - **Pattern to follow:** Add and lock `@vitest/coverage-v8` at a version compatible with the existing
   Vitest 3 installation. Configure Vitest coverage to include application files in `src/` and exclude
-  `src/**/*.test.*`, `src/test/**`, `src/main.tsx`, and `src/vite-env.d.ts`. Configure a global
-  `branches: 90` threshold that fails the coverage command when unmet. Add an `npm` script that runs
-  the full suite with coverage; do not lower the threshold, exclude application modules, or use
-  coverage output as a substitute for meaningful behavioural tests.
+  `src/**/*.test.*`, `src/test/**`, `src/main.tsx`, and `src/vite-env.d.ts`. Configure global
+  `statements`, `branches`, `functions`, and `lines` thresholds of `100` that fail the coverage
+  command when unmet. Add an `npm` script that runs the full suite with coverage; do not lower a
+  threshold, exclude application modules, or use coverage output as a substitute for meaningful
+  behavioural tests.
 - **Tests:** Run the coverage script after application or content changes. It must exit successfully
-  only when the complete suite passes and reports at least 90% branch coverage for the configured
-  application source.
+  only when the complete suite passes and reports 100% statements, branches, functions, and lines
+  for the configured application source.
 
 ## Confirmation
 
 - [x] `@vitest/coverage-v8` is locked in the development dependencies at a version compatible with
   Vitest 3.
-- [x] A documented `npm` coverage command runs the complete suite and produces a branch-coverage
-  report.
+- [x] A documented `npm` coverage command runs the complete suite and produces a report for
+  statements, branches, functions, and lines.
 - [x] The configured scope includes all application source in `src/` and excludes only tests,
   `src/main.tsx`, and `src/vite-env.d.ts`.
-- [x] The command fails when global branch coverage is below 90%.
-- [x] The current repository meets or exceeds 90% branch coverage before the policy is marked
-  Accepted.
+- [x] The command fails when any global coverage metric is below 100%.
+- [x] The current repository meets 100% statements, branches, functions, and lines before the
+  policy is marked Accepted.
 - [x] Feature plans and the repository quality gates require this command for application or content
   changes.
 
 ## More Information
 
-This proposed decision strengthens the validation expectations in
+This Accepted decision strengthens the validation expectations in
 [`docs/implementation-plan.md`](../implementation-plan.md) and applies alongside the Accepted ADRs
 for the static React SPA and version-controlled reviewed content. It does not supersede those
 decisions.

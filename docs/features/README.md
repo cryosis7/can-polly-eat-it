@@ -18,7 +18,6 @@ pregnancy experience and content contract are proven.
 
 ## Test confidence
 
-Once the proposed branch-coverage ADR is Accepted and implemented, every feature that changes
-application or content code must retain at least 90% global branch coverage for application source
-under `src/`. This does not replace the feature-specific acceptance examples or human editorial
-review.
+Every feature that changes application or content code must retain 100% global statements, branches,
+functions, and lines for application source under `src/`. This does not replace the feature-specific
+acceptance examples or human editorial review.

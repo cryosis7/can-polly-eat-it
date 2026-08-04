@@ -35,8 +35,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
     content.guidanceLists,
     new Set(categoryBySlug.keys()),
   )
-  const guidanceList = content.guidanceLists.find((list) => list.slug === queryState.displayListSlug)
-    ?? content.guidanceLists[0]
+  const guidanceList = content.guidanceLists.find((list) => list.slug === queryState.displayListSlug)!
   const statusIdsByGuidanceListId = Object.fromEntries(
     Object.entries(queryState.statusSlugsByListSlug).map(([listSlug, statusSlugs]) => {
       const list = content.guidanceLists.find((candidate) => candidate.slug === listSlug)!

@@ -67,4 +67,62 @@ describe('CataloguePage', () => {
     expect(screen.getByText('5 foods in the guide')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Clear filters' })).toBeDisabled()
   })
+
+  it('updates, removes, and clears search, category, and status filters through the controls', () => {
+    const { container } = render(
+      <MemoryRouter>
+        <CataloguePage content={content} />
+      </MemoryRouter>,
+    )
+
+    fireEvent.submit(container.querySelector('form')!)
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search foods' }), { target: { value: 'cheddar' } })
+    expect(screen.getByRole('button', { name: 'Search: cheddar' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Search: cheddar' }))
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Category' }), { target: { value: 'dairy' } })
+    expect(screen.getByRole('button', { name: 'Category: Dairy' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Category: Dairy' }))
+    fireEvent.change(screen.getByRole('combobox', { name: 'Category' }), { target: { value: '' } })
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Guidance list' }), {
+      target: { value: 'pregnancy-food-safety' },
+    })
+
+    const avoidCheckbox = screen.getByRole('checkbox', { name: 'Avoid' })
+    fireEvent.click(avoidCheckbox)
+    expect(screen.getByRole('button', { name: 'pregnancy-food-safety: Avoid' })).toBeInTheDocument()
+    fireEvent.click(avoidCheckbox)
+    expect(screen.queryByRole('button', { name: 'pregnancy-food-safety: Avoid' })).not.toBeInTheDocument()
+
+    fireEvent.click(avoidCheckbox)
+    fireEvent.click(screen.getByRole('button', { name: 'pregnancy-food-safety: Avoid' }))
+    expect(screen.getByRole('button', { name: 'Clear filters' })).toBeDisabled()
+  })
+
+  it('removes one status chip without removing another guidance list selection', () => {
+    const secondList = {
+      ...content.guidanceLists[0],
+      id: 'second-guidance-list',
+      slug: 'second-guidance-list',
+      title: 'Second guidance list',
+      unassessedStatusId: 'second-pregnancy-not-assessed',
+      outOfCoverageStatusId: 'second-pregnancy-outside-coverage',
+      statuses: content.guidanceLists[0].statuses.map((status) => ({
+        ...status,
+        id: `second-${status.id}`,
+      })),
+    }
+
+    render(
+      <MemoryRouter initialEntries={['/?v=1&status.pregnancy-food-safety=avoid&status.second-guidance-list=avoid']}>
+        <CataloguePage content={{ ...content, guidanceLists: [...content.guidanceLists, secondList] }} />
+      </MemoryRouter>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'pregnancy-food-safety: Avoid' }))
+
+    expect(screen.queryByRole('button', { name: 'pregnancy-food-safety: Avoid' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'second-guidance-list: Avoid' })).toBeInTheDocument()
+  })
 })

@@ -38,4 +38,21 @@ describe('category tree', () => {
     expect(groupedFoods.get('root')?.map((food) => food.id)).toEqual(['root-food'])
     expect(groupedFoods.get('child')?.map((food) => food.id)).toEqual(['child-food'])
   })
+
+  it('sorts equal editorial positions alphabetically and handles a tree without roots', () => {
+    const categories: Category[] = [
+      { id: 'beta', slug: 'beta', name: 'Beta', parentId: 'missing', aliases: [], sortOrder: 1 },
+      { id: 'alpha', slug: 'alpha', name: 'Alpha', parentId: 'missing', aliases: [], sortOrder: 1 },
+    ]
+    const foods: Food[] = [
+      { id: 'beta-food', slug: 'beta-food', name: 'Beta food', aliases: [], primaryCategoryId: 'beta', tags: [], sortOrder: 1 },
+      { id: 'alpha-food', slug: 'alpha-food', name: 'Alpha food', aliases: [], primaryCategoryId: 'alpha', tags: [], sortOrder: 1 },
+    ]
+
+    const tree = buildCategoryTree(categories)
+
+    expect(tree.childIdsByParentId.get('missing')).toEqual(['alpha', 'beta'])
+    expect(flattenCategoryRows(tree)).toEqual([])
+    expect(foodsByCategoryId(foods).get('beta')?.map((food) => food.name)).toEqual(['Beta food'])
+  })
 })

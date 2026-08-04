@@ -42,4 +42,23 @@ describe('catalogue query', () => {
       },
     })
   })
+
+  it('removes unknown and empty status values while retaining distinct valid selections', () => {
+    const parsed = parseCatalogueQuery(
+      new URLSearchParams('list=pregnancy-food-safety&status.pregnancy-food-safety=avoid,unknown,avoid,,'),
+      guidanceLists,
+      new Set(categories.map((category) => category.slug)),
+    )
+
+    expect(parsed).toEqual({
+      state: {
+        displayListSlug: 'pregnancy-food-safety',
+        query: '',
+        statusSlugsByListSlug: {
+          'pregnancy-food-safety': ['avoid'],
+        },
+      },
+      unavailableFiltersRemoved: true,
+    })
+  })
 })

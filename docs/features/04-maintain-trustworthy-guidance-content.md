@@ -47,5 +47,5 @@ and locator in each published record.
 
 ## Test confidence
 
-Tests for this feature must retain the repository-wide 90% global branch-coverage threshold for
-application source once the coverage policy is implemented.
+Tests for this feature must retain the repository-wide 100% global statements, branches, functions,
+and lines coverage thresholds for application source.
