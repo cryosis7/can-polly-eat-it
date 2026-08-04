@@ -44,3 +44,8 @@ and locator in each published record.
 - Automated ingestion from PDFs or web pages.
 - Treating a citation as proof without a human content review.
 - Silently extending a list's coverage because a food appears in the catalogue.
+
+## Test confidence
+
+Tests for this feature must retain the repository-wide 90% global branch-coverage threshold for
+application source once the coverage policy is implemented.

@@ -35,6 +35,11 @@ the selected guidance list.
 - Content editing in the browser.
 - Personalised advice or saved favourites.
 
+## Test confidence
+
+Tests for this feature must retain the repository-wide 90% global branch-coverage threshold for
+application source once the coverage policy is implemented.
+
 ## Acceptance examples
 
 - A food attached beneath a 1,000-level test hierarchy can be derived by the domain layer without a

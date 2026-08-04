@@ -36,6 +36,11 @@ only a red, amber, or green badge.
 - Medical triage, portion planning, or automated source summarisation.
 - Editing content from the application.
 
+## Test confidence
+
+Tests for this feature must retain the repository-wide 90% global branch-coverage threshold for
+application source once the coverage policy is implemented.
+
 ## Acceptance examples
 
 - A conditional cheese item can show alternative preparation/storage scenarios without suggesting

@@ -24,4 +24,55 @@ describe('guide content validation', () => {
     expect(resolveAssessment(yoghurt, list, content.assessments, content.categories).status.label).toBe('Not assessed')
     expect(resolveAssessment(kombucha, list, content.assessments, content.categories).status.label).toBe('Outside current coverage')
   })
+
+  it('rejects invalid category relationships and food category references', () => {
+    expect(() => validateContent({
+      ...content,
+      categories: content.categories.map((category) => category.id === 'dairy'
+        ? { ...category, parentId: 'dairy' }
+        : category),
+    })).toThrow('cannot be its own parent')
+
+    expect(() => validateContent({
+      ...content,
+      foods: [...content.foods, { ...content.foods[0], id: 'unknown-category-food', slug: 'unknown-category-food', primaryCategoryId: 'unknown-category' }],
+    })).toThrow('unknown primary category')
+  })
+
+  it('rejects invalid guidance-list coverage and fallback status definitions', () => {
+    expect(() => validateContent({
+      ...content,
+      guidanceLists: content.guidanceLists.map((list) => ({
+        ...list,
+        unassessedStatusId: list.outOfCoverageStatusId,
+      })),
+    })).toThrow('distinct fallback statuses')
+
+    expect(() => validateContent({
+      ...content,
+      guidanceLists: content.guidanceLists.map((list) => ({
+        ...list,
+        coverage: { ...list.coverage, categoryIds: ['unknown-category'] },
+      })),
+    })).toThrow('covers an unknown category')
+  })
+
+  it('rejects invalid assessment references and fallback statuses', () => {
+    expect(() => validateContent({
+      ...content,
+      assessments: [...content.assessments, {
+        ...content.assessments[0],
+        id: 'unknown-food-assessment',
+        foodId: 'unknown-food',
+      }],
+    })).toThrow('references an unknown food')
+
+    expect(() => validateContent({
+      ...content,
+      assessments: content.assessments.map((assessment) => ({
+        ...assessment,
+        statusId: 'pregnancy-not-assessed',
+      })),
+    })).toThrow('must use a non-fallback status')
+  })
 })

@@ -1,6 +1,9 @@
-import { Link } from 'react-router'
+import { useEffect, useState } from 'react'
+import { Link, useSearchParams } from 'react-router'
+import { buildCatalogueQuery, parseCatalogueQuery, type CatalogueQueryState } from '../../app/catalogueQuery'
 import { resolveAssessment } from '../../domain/assessment'
 import { buildCategoryTree, flattenCategoryRows, foodsByCategoryId } from '../../domain/categoryTree'
+import { filterFoods } from '../../domain/filtering'
 import type { ContentData } from '../../domain/contentValidation'
 
 type CataloguePageProps = {
@@ -22,10 +25,59 @@ const toneDescription = {
 } as const
 
 export const CataloguePage = ({ content }: CataloguePageProps) => {
-  const guidanceList = content.guidanceLists[0]
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [filterRemovalAnnouncement, setFilterRemovalAnnouncement] = useState('')
   const tree = buildCategoryTree(content.categories)
   const categoryRows = flattenCategoryRows(tree)
-  const foodsInCategory = foodsByCategoryId(content.foods)
+  const categoryBySlug = new Map(content.categories.map((category) => [category.slug, category]))
+  const { state: queryState, unavailableFiltersRemoved } = parseCatalogueQuery(
+    searchParams,
+    content.guidanceLists,
+    new Set(categoryBySlug.keys()),
+  )
+  const guidanceList = content.guidanceLists.find((list) => list.slug === queryState.displayListSlug)
+    ?? content.guidanceLists[0]
+  const statusIdsByGuidanceListId = Object.fromEntries(
+    Object.entries(queryState.statusSlugsByListSlug).map(([listSlug, statusSlugs]) => {
+      const list = content.guidanceLists.find((candidate) => candidate.slug === listSlug)!
+      return [list.id, list.statuses.filter((status) => statusSlugs.includes(status.slug)).map((status) => status.id)]
+    }),
+  )
+  const selectedFoods = filterFoods(
+    content.foods,
+    content.categories,
+    content.guidanceLists,
+    content.assessments,
+    {
+      query: queryState.query,
+      categoryId: queryState.categorySlug ? categoryBySlug.get(queryState.categorySlug)?.id : undefined,
+      statusIdsByGuidanceListId,
+    },
+  )
+  const foodsInCategory = foodsByCategoryId(selectedFoods)
+  const hasActiveFilters = Boolean(
+    queryState.query || queryState.categorySlug || Object.keys(queryState.statusSlugsByListSlug).length > 0,
+  )
+
+  useEffect(() => {
+    const canonicalSearch = buildCatalogueQuery(queryState, content.guidanceLists).toString()
+    if (canonicalSearch !== searchParams.toString()) {
+      setSearchParams(canonicalSearch, { replace: true })
+    }
+  }, [content.guidanceLists, queryState, searchParams, setSearchParams])
+
+  useEffect(() => {
+    if (unavailableFiltersRemoved) {
+      setFilterRemovalAnnouncement('Unavailable shared filters were removed.')
+    }
+  }, [unavailableFiltersRemoved])
+
+  const updateQueryState = (
+    update: (current: CatalogueQueryState) => CatalogueQueryState,
+    replace = false,
+  ) => {
+    setSearchParams(buildCatalogueQuery(update(queryState), content.guidanceLists), { replace })
+  }
 
   return (
     <main className="page-content content-width">
@@ -45,7 +97,138 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
 
       <section aria-labelledby="catalogue-heading">
         <h2 id="catalogue-heading">Browse foods</h2>
-        <p className="result-count" aria-live="polite">{content.foods.length} foods in the guide</p>
+        <form className="filter-controls" onSubmit={(event) => event.preventDefault()}>
+          <div className="filter-field filter-search">
+            <label htmlFor="food-search">Search foods</label>
+            <input
+              id="food-search"
+              type="search"
+              value={queryState.query}
+              onChange={(event) => updateQueryState(
+                (current) => ({ ...current, query: event.target.value }),
+                true,
+              )}
+            />
+          </div>
+          <div className="filter-field">
+            <label htmlFor="category-filter">Category</label>
+            <select
+              id="category-filter"
+              value={queryState.categorySlug ?? ''}
+              onChange={(event) => updateQueryState((current) => ({
+                ...current,
+                categorySlug: event.target.value || undefined,
+              }))}
+            >
+              <option value="">All categories</option>
+              {categoryRows.map(({ category, breadcrumb }) => (
+                <option key={category.id} value={category.slug}>{breadcrumb}</option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-field">
+            <label htmlFor="guidance-list">Guidance list</label>
+            <select
+              id="guidance-list"
+              value={guidanceList.slug}
+              onChange={(event) => updateQueryState((current) => ({
+                ...current,
+                displayListSlug: event.target.value,
+              }))}
+            >
+              {content.guidanceLists.map((list) => (
+                <option key={list.id} value={list.slug}>{list.title}</option>
+              ))}
+            </select>
+          </div>
+          {content.guidanceLists.map((list) => {
+            const selectedStatusSlugs = queryState.statusSlugsByListSlug[list.slug] ?? []
+            return (
+              <fieldset className="status-filters" key={list.id}>
+                <legend>Filter by {list.title}</legend>
+                {list.statuses.map((status) => (
+                  <label key={status.id}>
+                    <input
+                      type="checkbox"
+                      checked={selectedStatusSlugs.includes(status.slug)}
+                      onChange={() => updateQueryState((current) => {
+                        const selected = current.statusSlugsByListSlug[list.slug] ?? []
+                        const nextSelected = selected.includes(status.slug)
+                          ? selected.filter((slug) => slug !== status.slug)
+                          : [...selected, status.slug]
+                        const statusSlugsByListSlug = { ...current.statusSlugsByListSlug }
+                        if (nextSelected.length > 0) {
+                          statusSlugsByListSlug[list.slug] = nextSelected
+                        } else {
+                          delete statusSlugsByListSlug[list.slug]
+                        }
+                        return { ...current, statusSlugsByListSlug }
+                      })}
+                    />
+                    {status.filterLabel}
+                  </label>
+                ))}
+              </fieldset>
+            )
+          })}
+          <button
+            type="button"
+            className="clear-filters"
+            disabled={!hasActiveFilters}
+            onClick={() => updateQueryState((current) => ({
+              ...current,
+              query: '',
+              categorySlug: undefined,
+              statusSlugsByListSlug: {},
+            }))}
+          >
+            Clear filters
+          </button>
+        </form>
+
+        {hasActiveFilters && (
+          <ul aria-label="Active filters" className="filter-chips">
+            {queryState.query && (
+              <li><button type="button" onClick={() => updateQueryState((current) => ({ ...current, query: '' }))}>Search: {queryState.query}</button></li>
+            )}
+            {queryState.categorySlug && (
+              <li><button type="button" onClick={() => updateQueryState((current) => ({ ...current, categorySlug: undefined }))}>Category: {categoryBySlug.get(queryState.categorySlug)?.name}</button></li>
+            )}
+            {content.guidanceLists.flatMap((list) =>
+              (queryState.statusSlugsByListSlug[list.slug] ?? []).map((statusSlug) => {
+                const status = list.statuses.find((candidate) => candidate.slug === statusSlug)!
+                return (
+                  <li key={`${list.id}-${status.id}`}>
+                    <button
+                      type="button"
+                      onClick={() => updateQueryState((current) => ({
+                        ...current,
+                        statusSlugsByListSlug: Object.fromEntries(
+                          Object.entries(current.statusSlugsByListSlug)
+                            .map(([slug, selected]) => [
+                              slug,
+                              slug === list.slug ? selected.filter((candidate) => candidate !== status.slug) : selected,
+                            ])
+                            .filter(([, selected]) => selected.length > 0),
+                        ),
+                      }))}
+                    >
+                      {list.slug}: {status.filterLabel}
+                    </button>
+                  </li>
+                )
+              }),
+            )}
+          </ul>
+        )}
+
+        <p className="result-count" aria-live="polite">
+          {selectedFoods.length} {selectedFoods.length === 1 ? 'food' : 'foods'} in the guide
+        </p>
+        <p className="visually-hidden" role="status">{filterRemovalAnnouncement}</p>
+        {selectedFoods.length === 0 ? (
+          <p className="no-results">No foods match these filters. Try clearing a filter or searching for another name.</p>
+        ) : (
         <div className="catalogue">
           {categoryRows.map(({ category, breadcrumb, depth }) => {
             const foods = foodsInCategory.get(category.id) ?? []
@@ -86,6 +269,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
             )
           })}
         </div>
+        )}
       </section>
     </main>
   )

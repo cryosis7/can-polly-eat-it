@@ -34,6 +34,11 @@ shareable result.
 - Saved searches, user profiles, or data collection.
 - Filtering, calculations, or recommendations based on condition facts.
 
+## Test confidence
+
+Tests for this feature must retain the repository-wide 90% global branch-coverage threshold for
+application source once the coverage policy is implemented.
+
 ## Acceptance examples
 
 - Searching an alias finds the canonical food card.

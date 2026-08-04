@@ -36,6 +36,11 @@ classification into a growing set of hard-coded booleans.
   guidance-list configuration.
 - User-specific dietary preference profiles.
 
+## Test confidence
+
+Tests for this feature must retain the repository-wide 90% global branch-coverage threshold for
+application source once the coverage policy is implemented.
+
 ## Acceptance examples
 
 - The same named cheese can be green for vegetarian suitability and amber for pregnancy safety.

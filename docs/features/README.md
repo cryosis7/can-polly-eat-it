@@ -16,3 +16,9 @@ The first releasable vertical slice is Features 01-03 using a small set of fully
 records. Feature 04 scales the content safely. Feature 05 is deliberately deferred until the
 pregnancy experience and content contract are proven.
 
+## Test confidence
+
+Once the proposed branch-coverage ADR is Accepted and implemented, every feature that changes
+application or content code must retain at least 90% global branch coverage for application source
+under `src/`. This does not replace the feature-specific acceptance examples or human editorial
+review.

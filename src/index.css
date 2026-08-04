@@ -27,6 +27,21 @@ h2 { margin-top: 2.5rem; }
 .status-key dt { align-items: center; display: flex; font-weight: 800; gap: .5rem; }
 .status-key dd { margin: .25rem 0 0 1.85rem; }
 .result-count { color: #3e5254; }
+.filter-controls { align-items: end; border: 1px solid #bdd1ca; display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; padding: 1rem; }
+.filter-field { display: grid; gap: .35rem; min-width: 12rem; }
+.filter-search { flex: 1 1 18rem; }
+.filter-controls label, .filter-controls legend { font-weight: 700; }
+.filter-controls input, .filter-controls select, .filter-controls button, .filter-chips button { font: inherit; }
+.filter-controls input[type="search"], .filter-controls select { border: 1px solid #78938c; border-radius: .25rem; min-height: 2.5rem; padding: .4rem .5rem; }
+.status-filters { border: 0; display: grid; gap: .35rem; margin: 0; padding: 0; }
+.status-filters label { font-weight: 400; }
+.status-filters input { margin-right: .4rem; }
+.clear-filters, .filter-chips button { background: #fff; border: 1px solid #496365; border-radius: .25rem; color: #173d48; cursor: pointer; min-height: 2.5rem; padding: .4rem .65rem; }
+.clear-filters:disabled { cursor: not-allowed; opacity: .6; }
+.filter-chips { display: flex; flex-wrap: wrap; gap: .5rem; list-style: none; margin: 0 0 1rem; padding: 0; }
+.filter-chips button::after { content: " ×"; }
+.no-results { background: #fff; border-inline-start: .35rem solid #78938c; padding: 1rem; }
+.visually-hidden { height: 1px; margin: -1px; overflow: hidden; position: absolute; width: 1px; clip: rect(0 0 0 0); white-space: nowrap; }
 .catalogue { display: grid; gap: 1.5rem; }
 .category-group { border-inline-start: .35rem solid #9abeb2; margin-inline-start: var(--category-indent); padding-inline-start: 1rem; }
 .breadcrumb { color: #496365; font-size: .9rem; margin-bottom: .25rem; }
@@ -47,4 +62,6 @@ h2 { margin-top: 2.5rem; }
   .page-content { padding-top: 1.5rem; }
   .category-group { margin-inline-start: 0; }
   .food-card-header { align-items: flex-start; flex-direction: column; }
+  .filter-controls { align-items: stretch; }
+  .filter-field { width: 100%; }
 }

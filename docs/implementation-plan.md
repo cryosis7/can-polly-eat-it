@@ -132,6 +132,8 @@ Every pull request that changes application or content code should run:
 
 - package-manager clean install;
 - linting and strict TypeScript checking;
+- the full Vitest suite with the enforced 90% global branch-coverage threshold for application
+  source;
 - domain/schema/tree/search/filter unit tests;
 - React Testing Library tests for catalogue, filters, and detail rendering;
 - a browser-level smoke test for direct detail-route loading and a filtered URL;

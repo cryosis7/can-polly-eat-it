@@ -5,6 +5,7 @@ opening every file. Keep it in sync whenever an ADR is added or its status chang
 
 | ADR | Status | Summary |
 | --- | --- | --- |
+| [2026-08-05 ADR: enforce branch coverage for application source](<2026-08-05 ADR - enforce branch coverage for application source.md>) | Accepted | Vitest V8 coverage enforces at least 90% global branch coverage for application source under `src/`. |
 | [2026-08-04 ADR: link assessments to canonical reason foods](<2026-08-04 ADR - link assessments to canonical reason foods.md>) | Accepted | Assessments can cite a typed reason link to a canonical food such as Gelatin without inferring suitability from that food. |
 | [2026-08-04 ADR: use independent guidance lists for food assessments](<2026-08-04 ADR - use independent guidance lists for food assessments.md>) | Accepted | Food suitability is an assessment against a list-specific status vocabulary, allowing pregnancy and vegetarian guidance to share one catalogue. |
 | [2026-08-04 ADR: store reviewed guide content as version-controlled static data](<2026-08-04 ADR - store reviewed guide content as version-controlled static data.md>) | Accepted | Reviewed food, condition, and citation records live in typed static data validated during development and CI. |
