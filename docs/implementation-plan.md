@@ -135,16 +135,21 @@ version evidence back to an official source.
 
 ## Phase 6: Add vegetarian suitability as a second list (F-05)
 
-1. Define vegetarian status definitions as data, including distinct grey "Not assessed" and
-   "Outside current coverage" fallbacks and an amber ingredient-check outcome.
-2. Add reviewed vegetarian assessments to existing foods; do not add `isVegetarian` to `Food`.
-3. Test the combined-list filtering semantics and the UI's status labels.
-4. Audit composite foods for ambiguity and use "Check ingredients" rather than a confident verdict
+1. Define generic outcome-band mappings for list-owned statuses: "Okay", "Maybe - see notes", "Not
+   okay", and the distinct domain fallback states for "Not assessed" and "Outside current coverage".
+2. Define vegetarian status definitions as data, including distinct grey fallback states and an amber
+   ingredient-check outcome. Do not add `isVegetarian` to `Food`.
+3. Replace the unreleased display-list URL contract with selected dietary scopes and generic outcome
+   filters. Pregnancy is selected by default.
+4. Add reviewed vegetarian assessments to existing foods.
+5. Test the combined-scope filtering semantics and the UI's list-specific status labels.
+6. Audit composite foods for ambiguity and use "Check ingredients" rather than a confident verdict
    when a generic name is insufficient. Where a cited reason is a canonical catalogue food, add an
    assessment reason link; do not infer suitability merely because an ingredient is linked.
 
-**Done when:** a single food can display both pregnancy and vegetarian assessments, and selecting
-either list does not duplicate the catalogue.
+**Done when:** the catalogue defaults to pregnancy guidance, selecting pregnancy plus vegetarian
+requires foods to satisfy both scopes, a single food can display both pregnancy and vegetarian
+assessments, and no list duplicates the catalogue.
 
 ## Phase 7: Improve the mobile-first accessible guide experience (F-06)
 

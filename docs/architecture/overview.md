@@ -54,7 +54,7 @@ users to a health professional for personal advice.
 
 ## Decision approval gate
 
-The five ADRs in [`docs/decisions/`](../decisions/) are **Accepted**. They authorise the
+The Accepted ADRs in [`docs/decisions/`](../decisions/) authorise the
 implementation target in this document; subsequent changes that contradict an accepted decision
 require a new ADR or an explicit amendment.
 
@@ -170,6 +170,7 @@ type StatusDefinition = {
   slug: string;
   label: string;
   tone: "green" | "amber" | "red" | "grey";
+  outcomeBand: "okay" | "maybe" | "not-okay" | "not-assessed" | "outside-coverage";
   sortOrder: number;
   filterLabel: string;
 };
@@ -216,7 +217,10 @@ at least one coverage citation, ISO dates, and `reviewDueOn` on or after `verifi
 controls the visual RAG indicator only; each list defines its own labels and meaning. For example, pregnancy uses
 "OK to eat", "Only with conditions", "Avoid", "Limit", "Not assessed", and "Outside current
 coverage", whereas vegetarian suitability can use "Vegetarian", "Contains animal-derived
-ingredients", "Check ingredients", "Not assessed", and "Outside current coverage".
+ingredients", "Check ingredients", "Not assessed", and "Outside current coverage". Each
+list-owned status maps to one generic `outcomeBand` for filtering. `okay`, `maybe`, and `not-okay`
+are the primary user-facing outcome filters; the two fallback bands remain distinct neutral domain
+states and are never safe outcomes.
 
 ### Assessment reason links
 
@@ -284,21 +288,24 @@ equivalent foods from a model or an external service. Empty search returns the n
 Filter rules are predictable:
 
 - A category filter includes its entire descendant subtree.
-- Multiple selected statuses in one guidance list are alternatives (OR).
-- Predicates from different guidance lists, category, tags, and condition kinds are cumulative
-  (AND).
-- An active guidance list with no assessment includes a food only if its selected status includes
-  the resolved "Not assessed" or "Outside current coverage" fallback.
-- The display list is separate from constraint-only list filters. Every active filter is shown as a
-  labelled chip, including its list name, so users can tell why a food is present.
+- The default selected dietary scope is pregnancy food safety.
+- Selected dietary scopes are cumulative (AND): a food must satisfy every selected scope.
+- Selected generic outcome bands are alternatives (OR) within each selected scope.
+- When no primary outcome is selected, scopes do not narrow foods by outcome; cards still render the
+  selected scopes' list-specific status labels and guidance.
+- Resolved `not-assessed` and `outside-coverage` fallback bands are distinct neutral states, never
+  safe outcomes, and are not primary RAG filters.
+- Every active scope and outcome filter is shown as a labelled chip so users can tell why a food is
+  present or excluded.
 
-The URL query contract is versioned with `v=1`. `list=<list-slug>` selects the display list on both
-catalogue and detail routes. `q=<text>` and `category=<category-slug>` control search and category;
-each constraint list uses `status.<list-slug>=<comma-separated-status-slugs>`. For example,
-`/food/cheddar?v=1&list=pregnancy-food-safety` opens the pregnancy assessment, while a catalogue
-can add `status.vegetarian-suitability=vegetarian`. Unknown version, list, category, or status
-parameters fall back to the default display list and drop only invalid constraints; the UI announces
-that unavailable shared filters were removed. The initial catalogue defaults to pregnancy safety.
+The URL query contract is versioned with `v=1`. `scope=<comma-separated-guidance-list-slugs>`
+selects dietary constraints, defaulting to `pregnancy-food-safety`; `outcome=<comma-separated-outcome-bands>`
+selects generic outcomes; `q=<text>` and `category=<category-slug>` control search and category.
+For example,
+`/food/cheddar?v=1&scope=pregnancy-food-safety,vegetarian-suitability&outcome=okay,maybe`
+preserves the catalogue's selected dietary constraints when opening detail guidance. Unknown version,
+scope, category, or outcome values are removed while valid constraints remain, and the UI announces
+that unavailable shared filters were removed.
 
 ## Trust, accessibility, and privacy
 

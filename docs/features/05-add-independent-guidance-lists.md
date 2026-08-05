@@ -8,32 +8,138 @@
 
 ## Goal
 
-Add vegetarian suitability and future food perspectives to one catalogue without turning food
-classification into a growing set of hard-coded booleans.
+Let Polly narrow one catalogue by the dietary scopes she cares about, starting with pregnancy by
+default and adding vegetarian suitability without turning food classification into hard-coded
+booleans.
 
 ## Primary experience
 
-1. Select the pregnancy or vegetarian list from the catalogue.
-2. Read statuses in the vocabulary appropriate to that list.
-3. Filter by statuses within the selected list, or intentionally apply compatible filters across
-   lists.
-4. Open the same food detail with `v=1&list=<list-slug>` and switch lists without navigating to a
-   duplicated catalogue.
+1. Open the guide and see pregnancy guidance selected by default.
+2. Add vegetarian suitability as an additional dietary scope when she wants foods that satisfy both
+   pregnancy and vegetarian needs.
+3. Narrow the selected scopes with generic outcome filters: "Okay", "Maybe - see notes", and "Not
+   okay".
+4. Read each matching food's list-specific labels, summaries, source links, conditions, and review
+   dates without navigating to a duplicated catalogue.
+5. Open the same food detail and see all relevant guidance sections for that food, with the selected
+   scopes preserved as return context.
+
+```text
+Polly's Food Guide
+
+Search foods: [ cheese                                      ]
+
+Filters
+  Category
+    [ All categories v ]
+
+  Dietary scopes
+    [x] Pregnancy
+    [ ] Vegetarian
+
+  Outcome
+    [ ] Okay
+    [ ] Maybe - see notes
+    [ ] Not okay
+
+Results
+  Cheddar
+    Pregnancy: OK to eat
+    Vegetarian: Vegetarian
+
+  Brie
+    Pregnancy: Avoid
+    Vegetarian: Vegetarian
+```
+
+When pregnancy and vegetarian scopes are both selected with "Okay" and "Maybe - see notes", a food
+appears only if both selected scopes resolve to either "Okay" or "Maybe - see notes".
+
+```text
+| Food            | Pregnancy          | Vegetarian         | Shows? |
+| --------------- | ------------------ | ------------------ | ------ |
+| Cheddar         | Okay               | Okay               | Yes    |
+| Brie            | Not okay           | Okay               | No     |
+| Leftovers       | Maybe - see notes  | Okay               | Yes    |
+| Gelatin dessert | Okay               | Not okay           | No     |
+| Yoghurt         | Not assessed       | Okay               | No     |
+| Tiramisu        | Maybe - see notes  | Maybe - see notes  | Yes    |
+```
+
+```mermaid
+classDiagram
+  class Food {
+    id
+    slug
+    name
+    aliases
+    primaryCategoryId
+    tags
+    sortOrder
+  }
+
+  class GuidanceList {
+    id
+    slug
+    title
+    description
+    statuses
+    coverage
+    unassessedStatusId
+    outOfCoverageStatusId
+  }
+
+  class StatusDefinition {
+    id
+    slug
+    label
+    tone
+    filterLabel
+    outcomeBand
+    sortOrder
+  }
+
+  class FoodAssessment {
+    id
+    foodId
+    guidanceListId
+    statusId
+    summary
+    guidanceScenarios
+    reasonLinks
+    citations
+    reviewedOn
+  }
+
+  FoodAssessment --> Food : assesses
+  FoodAssessment --> GuidanceList : belongs to
+  GuidanceList --> StatusDefinition : owns
+  FoodAssessment --> StatusDefinition : uses list-owned status
+```
 
 ## Required behaviour
 
 - A new list supplies its own title, description, coverage declaration, source-version evidence,
-  distinct grey fallback states, statuses, and assessments.
+  distinct grey fallback states, statuses, generic outcome-band mappings, and assessments.
 - A food may have one assessment per list; it does not gain a new property such as
   `isVegetarian`.
-- Missing assessment is represented as "Not assessed" inside the list's coverage or "Outside current
-  coverage" outside it.
+- Pregnancy is the default selected dietary scope when the catalogue opens without explicit scope
+  state.
+- Selecting multiple dietary scopes is cumulative: a food must satisfy every selected scope.
+- Selecting multiple generic outcomes is alternative: a selected scope may match any selected
+  outcome.
+- Missing assessment remains a domain fallback, represented as "Not assessed" inside the list's
+  coverage or "Outside current coverage" outside it. Missing guidance is never treated as "Okay" and
+  is not a primary RAG filter unless a later maintainer workflow needs an explicit incomplete-content
+  view.
 - Status colour is controlled by the list definition while label and meaning remain list-specific.
 - Composite or brand-dependent foods use an explicit "Check ingredients" style outcome rather than
   an unjustified binary answer. A cited reason can link to a canonical ingredient food such as
   Gelatin, but the composite food retains its own list-specific assessment.
-- Cross-list filtering follows the documented semantics: OR for selected statuses within one list,
-  AND for predicates from different lists; every cross-list constraint is visibly labelled.
+- The unreleased URL contract is replaced rather than migrated: query state uses selected dietary
+  scopes and generic outcomes instead of a selected display list.
+- Active filters are visibly labelled, and unknown scope, category, or outcome values in a shared URL
+  are removed and announced accessibly.
 
 ## Non-goals
 
@@ -46,6 +152,9 @@ classification into a growing set of hard-coded booleans.
 
 - **Resumed from Deferred:** F-01, F-02, F-03, and F-04 are all `Done`, so the original deferral
   condition (complete F-03 and prove the pregnancy content workflow) is now satisfied.
+- **Governing decision:** [show scoped guidance with generic outcome filters](<../decisions/2026-08-06 ADR - show scoped guidance with generic outcome filters.md>)
+  requires the default pregnancy scope, generic outcome bands, and replacement unreleased URL
+  contract.
 - **Still open:** reviewed vegetarian source material, its ownership, and its coverage declaration
   are not yet defined. Resolve these before moving to `Planned` and creating an implementation plan.
 
@@ -53,11 +162,18 @@ classification into a growing set of hard-coded booleans.
 
 - The same named cheese can be green for vegetarian suitability and amber for pregnancy safety.
 - Adding a vegetarian list does not create a second set of category or food records.
-- A food inside vegetarian coverage without an assessment is labelled "Not assessed", while an
-  uncovered food is labelled "Outside current coverage", never "Vegetarian".
+- The catalogue defaults to pregnancy scope when opened without explicit URL state.
+- Selecting pregnancy and vegetarian scopes with "Okay" and "Maybe - see notes" only shows foods
+  whose resolved outcomes are okay or maybe in both selected scopes.
+- A food inside a selected scope's coverage without an assessment is labelled "Not assessed", while
+  an uncovered food is labelled "Outside current coverage"; neither state is treated as "Okay".
+- The primary outcome filters are generic and stable while cards and detail pages still show each
+  guidance list's own status labels and source-backed explanations.
 
 ## Validation
 
 When implemented, retain the repository-wide 100% global statements, branches, functions, and lines
-coverage thresholds for application source. Add Chromium Playwright tests for switching the displayed
-list, list-specific status labels, cross-list filters, and direct list-specific food-detail URLs.
+coverage thresholds for application source. Add domain tests for outcome-band mapping and
+AND-across-selected-scopes filtering, query tests for the replacement unreleased URL contract, and
+Chromium Playwright tests for default pregnancy scope, vegetarian-only filtering, pregnancy +
+vegetarian filtering, list-specific status labels, and direct food-detail URLs.

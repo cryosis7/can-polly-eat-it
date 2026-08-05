@@ -23,7 +23,7 @@ Use the scripts declared in `package.json`.
 
 - Food categories are an adjacency-list forest (`parentId`), not nested authored documents or fixed-depth fields. Foods are separate records that reference exactly one existing primary category; a category can contain both direct foods and child categories.
 - Validate duplicate IDs/slugs, unknown parents and category references, self-parent links, cycles, and orphaned categories. Derive paths, trees, and flattened display rows without a product-defined depth limit or recursive UI rendering. Preserve authored sort order and test a 1,000-level domain-only tree.
-- Food suitability is list-specific. Model it as one `FoodAssessment` per `(foodId, guidanceListId)` with list-owned statuses; never add contextual fields such as `isVegetarian` to `Food` or create duplicate catalogues.
+- Food suitability is list-specific. Model it as one `FoodAssessment` per `(foodId, guidanceListId)` with list-owned statuses and generic outcome-band mappings; never add contextual fields such as `isVegetarian` to `Food` or create duplicate catalogues.
 - When an assessment is absent, resolve it from the guidance list's coverage: use the list's distinct grey in-coverage `Not assessed` state or out-of-coverage `Outside current coverage` state. Neither means safe, and fallback statuses must never be authored on an assessment.
 - Maintain explicit coverage, source-version evidence, verification/review-due dates, citations, and assessment review dates. Parse all authored records with Zod during development/CI; overdue review dates, missing citations, invalid references, malformed dates, invalid status ownership, and duplicate assessment pairs must fail validation.
 - In production builds, Zod parse failures on static data records must throw at module load time so the deploy fails fast rather than serving corrupt data silently.
@@ -33,14 +33,15 @@ Use the scripts declared in `package.json`.
 
 ## Query, UI, and accessibility conventions
 
-- URL state is the product state. Use the versioned `v=1` contract: `list=<display-list-slug>`, `q`, `category`, and `status.<list-slug>=<comma-separated-status-slugs>`. Initialise controls from it and preserve useful context when returning from a food detail.
+- URL state is the product state. Use the versioned `v=1` contract: `scope=<comma-separated-guidance-list-slugs>`, `outcome=<comma-separated-outcome-bands>`, `q`, and `category`. Default an absent scope to pregnancy food safety, initialise controls from it, and preserve scope/outcome context when returning from food detail.
 - Search normalises case, diacritics, punctuation, and whitespace; match every token against food names, aliases, and category-path labels. Do not use fuzzy/AI/external search.
 - Category filters include descendant foods.
-- Within a single guidance list, selected statuses are ORed.
-- Across different guidance lists, category, tags, and condition kinds, all predicates are ANDed.
-- The display list controls rendering only and must not act as a filter constraint.
-- Every active filter chip must be labelled with its guidance list slug.
-- For unknown URL versions, lists, categories, or statuses, select the default display list, remove only invalid constraints, and announce the removal accessibly.
+- Selected generic outcome bands are ORed within every selected guidance scope.
+- Selected guidance scopes, category, tags, and condition kinds are ANDed. A food must satisfy every selected scope.
+- Render list-specific labels, citations, and guidance for selected scopes; do not use a primary display-list selector.
+- Keep `not-assessed` and `outside-coverage` distinct neutral fallback bands. Neither is safe and neither is a primary RAG filter.
+- Every active filter chip must be labelled with its dietary scope or generic outcome.
+- For unknown URL versions, scopes, categories, or outcomes, default to pregnancy scope, remove only invalid constraints, and announce the removal accessibly.
 - Never use colour as the only status signal. Use semantic headings/lists, native labels, keyboard-operable controls, visible focus, result-count announcements, responsive layouts without hover reliance, and the medical-information disclaimer in the app shell and food detail.
 
 ## Scope and validation
