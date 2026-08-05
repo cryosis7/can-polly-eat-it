@@ -49,3 +49,6 @@ and locator in each published record.
 
 Tests for this feature must retain the repository-wide 100% global statements, branches, functions,
 and lines coverage thresholds for application source.
+
+When content changes alter a user-visible catalogue or detail outcome, add or update Chromium
+Playwright scenarios that prove the reviewed data renders with its expected status and source link.

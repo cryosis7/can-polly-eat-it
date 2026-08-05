@@ -18,7 +18,8 @@ Create a new ADR or explicitly amend an existing decision before adopting a conf
 
 1. Scaffold a Vite React TypeScript application and commit its generated package manifest and lockfile.
 2. Enable strict TypeScript, ESLint, and the Vite build command.
-3. Add unit-test support with Vitest and React Testing Library.
+3. Add unit-test support with Vitest and React Testing Library, plus a Chromium Playwright browser
+   suite and Husky pre-commit hook that runs the coverage and browser-test commands.
 4. Add React Router and configure `/` and `/food/:foodSlug` routes with a `/` base path.
 5. Add Netlify deployment configuration: `public/_redirects` with `/* /index.html 200` and
    `netlify.toml` headers that do not cache `index.html` while caching hashed `/assets/*` files
@@ -26,8 +27,9 @@ Create a new ADR or explicitly amend an existing decision before adopting a conf
 6. Create the directories defined in the architecture overview and a minimal accessible shell with
    the disclaimer.
 
-**Done when:** a clean install can lint, type-check, test, build, and load both routes directly in
-a Netlify deploy preview.
+**Done when:** a clean install can lint, type-check, run unit coverage and Chromium browser tests,
+build, and load both routes directly in a Netlify deploy preview. The local pre-commit hook rejects
+changes when either test suite fails.
 
 ## Phase 1: Define and validate the content contract
 
@@ -136,7 +138,9 @@ Every pull request that changes application or content code should run:
   application source;
 - domain/schema/tree/search/filter unit tests;
 - React Testing Library tests for catalogue, filters, and detail rendering;
-- a browser-level smoke test for direct detail-route loading and a filtered URL;
+- Chromium Playwright end-to-end tests for every implemented user-facing flow, including direct
+  detail-route loading when Feature 03 is delivered and a filtered URL;
+- a Husky pre-commit hook that runs the coverage and Playwright commands before every local commit;
 - coverage resolution, review-due date, mutually exclusive-scenario, and 1,000-level tree tests;
 - Netlify deploy-preview smoke tests for direct detail routes and cache/rewrite configuration;
 - build output generation.

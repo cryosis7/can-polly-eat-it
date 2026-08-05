@@ -21,3 +21,7 @@ pregnancy experience and content contract are proven.
 Every feature that changes application or content code must retain 100% global statements, branches,
 functions, and lines for application source under `src/`. This does not replace the feature-specific
 acceptance examples or human editorial review.
+
+Every implemented user-facing feature must also add focused Chromium Playwright end-to-end scenarios
+for its primary experience and relevant direct URLs. These tests complement unit and component tests;
+they must run through the local Husky pre-commit gate before the feature is committed.

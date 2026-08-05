@@ -41,6 +41,9 @@ classification into a growing set of hard-coded booleans.
 Tests for this feature must retain the repository-wide 100% global statements, branches, functions,
 and lines coverage thresholds for application source.
 
+When this feature is implemented, add Chromium Playwright tests for switching the displayed list,
+list-specific status labels, cross-list filters, and direct list-specific food-detail URLs.
+
 ## Acceptance examples
 
 - The same named cheese can be green for vegetarian suitability and amber for pregnancy safety.

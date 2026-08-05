@@ -40,6 +40,9 @@ the selected guidance list.
 Tests for this feature must retain the repository-wide 100% global statements, branches, functions,
 and lines coverage thresholds for application source.
 
+Chromium Playwright tests must load the catalogue in a real browser and verify the selected guide,
+visible category breadcrumb, status outcomes, food cards, and primary-source links.
+
 ## Acceptance examples
 
 - A food attached beneath a 1,000-level test hierarchy can be derived by the domain layer without a

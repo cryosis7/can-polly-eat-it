@@ -41,6 +41,10 @@ only a red, amber, or green badge.
 Tests for this feature must retain the repository-wide 100% global statements, branches, functions,
 and lines coverage thresholds for application source.
 
+When this feature is implemented, add Chromium Playwright tests that open a direct food-detail URL,
+verify the selected list, guidance scenarios, citation and reason-link navigation, disclaimer, and
+safe not-found route.
+
 ## Acceptance examples
 
 - A conditional cheese item can show alternative preparation/storage scenarios without suggesting

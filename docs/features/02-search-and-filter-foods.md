@@ -39,6 +39,9 @@ shareable result.
 Tests for this feature must retain the repository-wide 100% global statements, branches, functions,
 and lines coverage thresholds for application source.
 
+Chromium Playwright tests must exercise alias search, category and status filtering, clearing active
+filters, and direct loading of a versioned filtered URL.
+
 ## Acceptance examples
 
 - Searching an alias finds the canonical food card.
