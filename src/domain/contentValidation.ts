@@ -28,11 +28,6 @@ const assertUnique = (values: string[], label: string) => {
   }
 }
 
-const asCalendarDate = (value: string) => {
-  const timestamp = Date.parse(`${value}T00:00:00.000Z`)
-  return timestamp
-}
-
 const validateCategories = (categories: Category[]) => {
   assertUnique(categories.map((category) => category.id), 'category ID')
   assertUnique(categories.map((category) => category.slug), 'category slug')
@@ -87,12 +82,6 @@ const validateGuidanceLists = (guidanceLists: GuidanceList[], categoryIds: Set<s
     }
     if (list.coverage.foodIds.some((id) => !foodIds.has(id))) {
       fail(`guidance list "${list.id}" covers an unknown food.`)
-    }
-    if (asCalendarDate(list.coverage.reviewDueOn) < asCalendarDate(list.coverage.verifiedOn)) {
-      fail(`guidance list "${list.id}" review due date is before its verification date.`)
-    }
-    if (asCalendarDate(list.coverage.reviewDueOn) < Date.now()) {
-      fail(`guidance list "${list.id}" review is overdue.`)
     }
   }
 }

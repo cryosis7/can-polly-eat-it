@@ -22,9 +22,8 @@ or convert uncertainty into a favourable assessment.
    preserve the shared `Food` catalogue and add list-specific `GuidanceList` and `FoodAssessment`
    records, rather than a list-specific food field or a duplicate catalogue.
 4. Make the skill preserve source evidence for each proposed list and assessment: durable URL, exact
-   locator, access date, source-version evidence, verification/review-due dates, and an authored
-   paraphrase. Require separate scenarios for alternatives and separate citations/statuses for every
-   assessment.
+   locator, and an authored paraphrase. Require separate scenarios for alternatives and separate
+   citations/statuses for every assessment.
 5. Require the skill to flag inaccessible, conflicting, ambiguous, conditional, brand-dependent,
    incomplete, or unsupported material for maintainer resolution. It must use "Not assessed",
    "Outside current coverage", or an explicit list-owned review outcome when appropriate.

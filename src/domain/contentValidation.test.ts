@@ -5,8 +5,8 @@ import { getStatusById, isFoodCovered, validateContent } from './contentValidati
 
 describe('guide content validation', () => {
   it('accepts the authored fixture content', () => {
-    expect(content.foods).toHaveLength(5)
-    expect(content.guidanceLists).toHaveLength(1)
+    expect(content.foods).toHaveLength(19)
+    expect(content.guidanceLists).toHaveLength(2)
   })
 
   it('rejects duplicate category slugs', () => {
@@ -23,6 +23,20 @@ describe('guide content validation', () => {
 
     expect(resolveAssessment(yoghurt, list, content.assessments, content.categories).status.label).toBe('Not assessed')
     expect(resolveAssessment(kombucha, list, content.assessments, content.categories).status.label).toBe('Outside current coverage')
+  })
+
+  it('resolves vegetarian coverage without changing food records', () => {
+    const list = content.guidanceLists.find((candidate) => candidate.id === 'vegetarian-suitability')!
+    const yoghurt = content.foods.find((food) => food.id === 'yoghurt')!
+    const cheddar = content.foods.find((food) => food.id === 'cheddar')!
+    const assessmentsWithoutYoghurt = content.assessments.filter(
+      (assessment) => assessment.id !== 'yoghurt-vegetarian',
+    )
+
+    expect(resolveAssessment(yoghurt, list, content.assessments, content.categories).status.label).toBe('Check ingredients')
+    expect(resolveAssessment(yoghurt, list, assessmentsWithoutYoghurt, content.categories).status.label).toBe('Not assessed')
+    expect(resolveAssessment(cheddar, list, content.assessments, content.categories).status.label).toBe('Outside current coverage')
+    expect(cheddar).not.toHaveProperty('isVegetarian')
   })
 
   it('rejects invalid category relationships and food category references', () => {
@@ -102,7 +116,7 @@ describe('guide content validation', () => {
     })).toThrow('duplicate food ID')
   })
 
-  it('rejects invalid guidance-list ownership, coverage, and review dates', () => {
+  it('rejects invalid guidance-list ownership and coverage', () => {
     expect(() => validateContent({
       ...content,
       guidanceLists: [...content.guidanceLists, { ...content.guidanceLists[0] }],
@@ -132,21 +146,6 @@ describe('guide content validation', () => {
       })),
     })).toThrow('covers an unknown food')
 
-    expect(() => validateContent({
-      ...content,
-      guidanceLists: content.guidanceLists.map((list) => ({
-        ...list,
-        coverage: { ...list.coverage, verifiedOn: '2027-08-05' },
-      })),
-    })).toThrow('review due date is before its verification date')
-
-    expect(() => validateContent({
-      ...content,
-      guidanceLists: content.guidanceLists.map((list) => ({
-        ...list,
-        coverage: { ...list.coverage, verifiedOn: '2019-01-01', reviewDueOn: '2020-01-01' },
-      })),
-    })).toThrow('review is overdue')
   })
 
   it('rejects duplicate, unknown, and invalid assessment links', () => {

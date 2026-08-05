@@ -54,13 +54,12 @@ const renderDetail = (path: string, detailContent = content) => render(
 )
 
 describe('FoodDetailPage', () => {
-  it('renders an assessed food with its status, summary, review date, and citation', () => {
+  it('renders an assessed food with its status, summary, and citation', () => {
     renderDetail('/food/cheddar?v=1&list=pregnancy-food-safety')
 
     expect(screen.getByRole('heading', { name: 'Cheddar' })).toBeInTheDocument()
     expect(screen.getByText('OK to eat')).toBeInTheDocument()
     expect(screen.getByText('Hard cheese is included in the reviewed guidance.')).toBeInTheDocument()
-    expect(screen.getByText('Reviewed: 2026-08-04')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'MPI: Food and pregnancy' })).toHaveAttribute(
       'href',
       'https://www.mpi.govt.nz/food-safety-home/food-pregnancy/list-safe-food-pregnancy/',
@@ -92,6 +91,19 @@ describe('FoodDetailPage', () => {
       'href',
       '/?v=1&list=pregnancy-food-safety&q=yogurt&category=dairy',
     )
+  })
+
+  it('renders a direct vegetarian assessment with its list-specific status and source locator', () => {
+    renderDetail('/food/yoghurt?v=1&list=vegetarian-suitability')
+
+    expect(screen.getByText('Vegetarian suitability')).toBeInTheDocument()
+    expect(screen.getByText('Check ingredients')).toBeInTheDocument()
+    expect(screen.getByText('Some yoghurts use gelatin as a gelling agent, so check the label.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Veggy Malta: 15 Products Not Vegetarian' })).toHaveAttribute(
+      'href',
+      'https://veggymalta.com/15-products-not-vegetarian/',
+    )
+    expect(screen.getByText(/15 non-vegetarian foods: Yogurt/)).toBeInTheDocument()
   })
 
   it('renders the outside-coverage state with the medical-information disclaimer', () => {

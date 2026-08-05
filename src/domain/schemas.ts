@@ -1,7 +1,6 @@
 import { z } from 'zod'
 
 const identifier = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
-const calendarDate = z.iso.date()
 
 export const categorySchema = z.object({
   id: identifier,
@@ -26,7 +25,6 @@ export const sourceCitationSchema = z.object({
   title: z.string().trim().min(1),
   url: z.url().refine((value) => value.startsWith('https://'), 'Citation URL must use HTTPS.'),
   locator: z.string().trim().min(1),
-  accessedOn: calendarDate,
 })
 
 export const statusDefinitionSchema = z.object({
@@ -43,9 +41,6 @@ export const coverageDeclarationSchema = z.object({
   categoryIds: z.array(identifier),
   foodIds: z.array(identifier),
   description: z.string().trim().min(1),
-  sourceVersionEvidence: z.string().trim().min(1),
-  verifiedOn: calendarDate,
-  reviewDueOn: calendarDate,
   citations: z.array(sourceCitationSchema).min(1),
 })
 
@@ -92,7 +87,6 @@ export const foodAssessmentSchema = z.object({
   guidanceScenarios: z.array(guidanceScenarioSchema),
   reasonLinks: z.array(assessmentReasonLinkSchema),
   citations: z.array(sourceCitationSchema).min(1),
-  reviewedOn: calendarDate,
 })
 
 export type Category = z.infer<typeof categorySchema>

@@ -14,7 +14,7 @@ only a red, amber, or green badge.
 ## Primary experience
 
 1. Open a food detail from the catalogue.
-2. See the explicitly selected list's named outcome, short explanation, and review date.
+2. See the explicitly selected list's named outcome, short explanation, and source.
 3. Read the applicable scenario, including preparation, storage, serving, frequency, or composition.
 4. Follow the official source link, and where relevant follow a linked canonical ingredient such as
    Gelatin to understand why the assessed food has that outcome.

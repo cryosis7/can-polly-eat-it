@@ -1,10 +1,10 @@
 # F-05: Add Independent Guidance Lists
 
-**Status:** Proposed
+**Status:** Done
 
 **Depends on:** [F-01: Browse the Food Guide](<01-browse-food-guide.md>), [F-02: Search and Filter Foods](<02-search-and-filter-foods.md>), [F-03: Explain Food Guidance](<03-explain-food-guidance.md>), and [F-04: Maintain Trustworthy Guidance Content](<04-maintain-trustworthy-guidance-content.md>)
 
-**Governing decisions:** [independent guidance lists](<../decisions/2026-08-04 ADR - use independent guidance lists for food assessments.md>), [version-controlled static content](<../decisions/2026-08-04 ADR - store reviewed guide content as version-controlled static data.md>), and [canonical reason foods](<../decisions/2026-08-04 ADR - link assessments to canonical reason foods.md>)
+**Governing decisions:** [independent guidance lists](<../decisions/2026-08-04 ADR - use independent guidance lists for food assessments.md>), [version-controlled static content](<../decisions/2026-08-04 ADR - store reviewed guide content as version-controlled static data.md>), [canonical reason foods](<../decisions/2026-08-04 ADR - link assessments to canonical reason foods.md>), and [remove temporal freshness metadata](<../decisions/2026-08-05 ADR - remove temporal freshness metadata from guidance content.md>)
 
 ## Goal
 
@@ -22,8 +22,8 @@ classification into a growing set of hard-coded booleans.
 
 ## Required behaviour
 
-- A new list supplies its own title, description, coverage declaration, source-version evidence,
-  distinct grey fallback states, statuses, and assessments.
+- A new list supplies its own title, description, coverage declaration, source citation, distinct
+  grey fallback states, statuses, and assessments.
 - A food may have one assessment per list; it does not gain a new property such as
   `isVegetarian`.
 - Missing assessment is represented as "Not assessed" inside the list's coverage or "Outside current
@@ -42,16 +42,23 @@ classification into a growing set of hard-coded booleans.
   guidance-list configuration.
 - User-specific dietary preference profiles.
 
+## Implementation plan
+
+Implement according to [the F-05 implementation plan](<05-add-independent-guidance-lists-plan.md>).
+
 ## Assumptions and open questions
 
-- **Resumed from Deferred:** F-01, F-02, F-03, and F-04 are all `Done`, so the original deferral
-  condition (complete F-03 and prove the pregnancy content workflow) is now satisfied.
-- **Still open:** reviewed vegetarian source material, its ownership, and its coverage declaration
-  are not yet defined. Resolve these before moving to `Planned` and creating an implementation plan.
+- The maintainer approved Veggy Malta's “15 Products Not Vegetarian” article as a vetted source.
+  This first list covers only article-named items, with source links and exact locators retained.
+- A source omission or ambiguity remains outside coverage; no suitability is inferred from a food
+  name, category, or ingredient.
+- The maintainer approved the article-only coverage, assessment statuses, source locators, and
+  paraphrases on 2026-08-05.
 
 ## Acceptance criteria
 
-- The same named cheese can be green for vegetarian suitability and amber for pregnancy safety.
+- The same food can show different independently resolved list outcomes; the source-backed Yoghurt
+  fixture is `Not assessed` for pregnancy safety and `Check ingredients` for vegetarian suitability.
 - Adding a vegetarian list does not create a second set of category or food records.
 - A food inside vegetarian coverage without an assessment is labelled "Not assessed", while an
   uncovered food is labelled "Outside current coverage", never "Vegetarian".

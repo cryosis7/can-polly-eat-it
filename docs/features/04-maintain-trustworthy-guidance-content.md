@@ -15,9 +15,8 @@ automated validation.
 
 1. Select an authoritative source and locate the exact section or table row.
 2. Add or update the category and food record without changing unrelated IDs/slugs.
-3. Declare each list's explicit coverage, source-version evidence, verification date, and review due
-   date. Add a guidance-list assessment with a named status, concise summary, complete guidance
-   scenarios, citation URL/locator/access date, and review date.
+3. Declare each list's explicit coverage. Add a guidance-list assessment with a named status,
+   concise summary, complete guidance scenarios, and a citation URL and locator.
 4. Run schema and relationship validation, then review the rendered card and detail page when
    applicable.
 5. Obtain human review before publishing a material health-guidance change.
@@ -25,7 +24,7 @@ automated validation.
 ## Required behaviour
 
 - Data validation rejects dangling references, category cycles, duplicate assessment pairs, invalid
-  list statuses, malformed dates, invalid coverage, overdue reviews, and missing citations.
+  list statuses, invalid coverage, and missing citations.
 - Every published assessment is traceable to its source.
 - Coverage resolution distinguishes an in-scope food that is "Not assessed" from one that is
   "Outside current coverage".
@@ -56,9 +55,8 @@ automated validation.
 ## Acceptance criteria
 
 - Invalid authored content fails validation with useful errors before it can be rendered.
-- Every published assessment has a status, review date, and citation with a durable URL, exact
-  locator, and access date.
-- A reviewer can trace each published rule and source-version evidence to an authoritative source.
+- Every published assessment has a status and citation with a durable URL and exact locator.
+- A reviewer can trace each published rule to an authoritative source.
 
 ## Validation
 

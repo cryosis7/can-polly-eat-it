@@ -56,7 +56,7 @@ changes when either test suite fails.
 2. Use Zod to parse authored data at development/test time and expose typed data to the application.
 3. Implement validation for IDs, slugs, category parents, category cycles, food category references,
    assessment uniqueness, status ownership, distinct grey fallback statuses, coverage references,
-   citation URLs, reason-link targets/duplicates, review-due dates, and ISO dates.
+   citation URLs and reason-link targets/duplicates.
 4. Implement a category-tree builder and category-path helper independent of React.
 5. Add small fixture data that covers:
    - 1,000 category levels in a domain-only adversarial tree test, plus a readable UI fixture;
@@ -104,7 +104,7 @@ foods.
 
 1. Build the food-detail route and a not-found route; resolve its display list from `v=1&list=`.
 2. Display the list-specific status, summary, and each guidance scenario's applicability,
-   authoritative instruction, ordered conditions, optional display facts, review date, and citation
+   authoritative instruction, ordered conditions, optional display facts, and citation
    links. Display each authored reason link as its statement and a link to the target food detail.
    Never combine conditions from separate scenarios, infer status from a reason-link target, or
    derive advice from facts.
@@ -118,20 +118,18 @@ route state.
 
 ## Phase 5: Curate the initial pregnancy content (F-04)
 
-1. Create a content editorial checklist: source URL, locator, accessed date, source-version
-   evidence, reviewer, coverage declaration, verification date, review due date, paraphrased
-   summary, applicable guidance scenarios, and status.
+1. Create a content editorial checklist: source URL, locator, reviewer, coverage declaration,
+   paraphrased summary, applicable guidance scenarios, and status.
 2. Transcribe reviewed entries from MPI's safe-food guidance into the data contract, beginning with
    all top-level table categories and high-value conditional examples.
 3. Reconcile every entry and any reason link against its source; do not mark an uncited item green
    or derive its status from a linked ingredient.
-4. Add data-specific tests for cited examples and a CI gate that fails for missing citations,
-   invalid coverage, or a `reviewDueOn` before the build date.
+4. Add data-specific tests for cited examples and a CI gate that fails for missing citations or
+   invalid coverage.
 5. Obtain a human review of the curated data before publishing it.
 
-**Done when:** every published pregnancy assessment has a status, review date, and citation; the
-list declares whether every catalogue food is covered; a reviewer can trace each rule and the source
-version evidence back to an official source.
+**Done when:** every published pregnancy assessment has a status and citation; the list declares
+whether every catalogue food is covered; a reviewer can trace each rule to an authoritative source.
 
 ## Phase 6: Add vegetarian suitability as a second list (F-05)
 
@@ -170,7 +168,7 @@ Every pull request that changes application or content code should run:
 - Chromium Playwright end-to-end tests for every implemented user-facing flow, including direct
   detail-route loading when Feature 03 is delivered and a filtered URL;
 - a Husky pre-commit hook that runs the coverage and Playwright commands before every local commit;
-- coverage resolution, review-due date, mutually exclusive-scenario, and 1,000-level tree tests;
+- coverage resolution, mutually exclusive-scenario, and 1,000-level tree tests;
 - Netlify deploy-preview smoke tests for direct detail routes and cache/rewrite configuration;
 - build output generation.
 

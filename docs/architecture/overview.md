@@ -3,12 +3,12 @@
 ## Purpose
 
 Polly's Food Guide is a responsive React single-page application (SPA) for answering the practical
-question "can Polly eat this food?" It starts with pregnancy food-safety advice and must later
-support independently maintained lists, including vegetarian suitability, without changing the
-food catalogue model.
+question "can Polly eat this food?" It starts with pregnancy food-safety advice and supports
+independently maintained lists, including vegetarian suitability, without changing the food
+catalogue model.
 
 The application presents a browsable, category-grouped catalogue; free-text search; composable
-filters; and a food detail view that makes the rule, its conditions, source, and review date clear.
+filters; and a food detail view that makes the rule, its conditions, and source clear.
 It is a personal reference tool, not medical advice. It must link to its source material and direct
 users to a health professional for personal advice.
 
@@ -49,8 +49,8 @@ users to a health professional for personal advice.
    frequently changing content.
 6. **URL state is product state.** Search and filters belong in the URL so a useful result can be
    bookmarked or shared without a user account.
-7. **Coverage and freshness are explicit.** Every guidance list declares what it currently covers,
-   the source-version evidence it was checked against, and its next review due date.
+7. **Coverage and provenance are explicit.** Every guidance list declares what it currently covers
+   and cites precise source locations for its guidance.
 
 ## Decision approval gate
 
@@ -179,9 +179,6 @@ type CoverageDeclaration = {
   categoryIds: string[];
   foodIds: string[];
   description: string;
-  sourceVersionEvidence: string;
-  verifiedOn: string; // ISO-8601 calendar date
-  reviewDueOn: string; // ISO-8601 calendar date
   citations: SourceCitation[];
 };
 
@@ -194,7 +191,6 @@ type FoodAssessment = {
   guidanceScenarios: GuidanceScenario[];
   reasonLinks: AssessmentReasonLink[];
   citations: SourceCitation[];
-  reviewedOn: string; // ISO-8601 calendar date
 };
 
 type AssessmentReasonLink = {
@@ -212,7 +208,7 @@ checks the list's coverage declaration: a food inside coverage resolves to the l
 `mode: "all-catalogue"` ignores `categoryIds` and `foodIds`; the other mode covers the union of
 the listed category subtrees and individual food IDs. Validators must ensure unique status IDs,
 slugs, and labels per list, distinct list-owned grey fallback statuses, valid coverage references,
-at least one coverage citation, ISO dates, and `reviewDueOn` on or after `verifiedOn`. `tone`
+and at least one coverage citation. `tone`
 controls the visual RAG indicator only; each list defines its own labels and meaning. For example, pregnancy uses
 "OK to eat", "Only with conditions", "Avoid", "Limit", "Not assessed", and "Outside current
 coverage", whereas vegetarian suitability can use "Vegetarian", "Contains animal-derived
@@ -260,7 +256,6 @@ type SourceCitation = {
   title: string;
   url: string;
   locator: string;
-  accessedOn: string; // ISO-8601 calendar date
 };
 ```
 
@@ -302,7 +297,7 @@ that unavailable shared filters were removed. The initial catalogue defaults to 
 
 ## Trust, accessibility, and privacy
 
-- Show the list name, status label, meaningful icon/text, review date, coverage state, and a direct
+- Show the list name, status label, meaningful icon/text, coverage state, and a direct
   primary-source link wherever an assessment or fallback is shown. Colour must never be the only
   status signal.
 - Show assessment reason links on the food-detail view with their authored statement and canonical
@@ -332,6 +327,4 @@ implemented assessment.
 - Commit the package lockfile and content data with every release.
 - Run type-checking, data validation, unit tests, and UI tests in continuous integration before
   deployment.
-- Fail continuous integration when a list's `reviewDueOn` is before the build date. Review and update
-  source-version evidence, citations, coverage, and assessment review dates whenever MPI changes
-  its guidance and before each due date.
+- Review and update citations and coverage whenever a source changes.

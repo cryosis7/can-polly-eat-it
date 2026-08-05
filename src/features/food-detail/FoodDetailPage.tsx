@@ -53,10 +53,7 @@ export const FoodDetailPage = ({ content, disclaimer }: FoodDetailPageProps) => 
           <span>{resolved.status.label}</span>
         </p>
         {resolved.assessment ? (
-          <>
-            <p>{resolved.assessment.summary}</p>
-            <p>Reviewed: {resolved.assessment.reviewedOn}</p>
-          </>
+          <p>{resolved.assessment.summary}</p>
         ) : (
           <>
             <p>This food has not been individually assessed in this guidance list.</p>
@@ -120,7 +117,7 @@ export const FoodDetailPage = ({ content, disclaimer }: FoodDetailPageProps) => 
               {resolved.assessment.citations.map((citation) => (
                 <li key={`${citation.url}-${citation.locator}`}>
                   <a href={citation.url} target="_blank" rel="noreferrer">{citation.title}</a>
-                  <span> - {citation.locator} (accessed {citation.accessedOn})</span>
+                  <span> - {citation.locator}</span>
                 </li>
               ))}
             </ul>
@@ -135,7 +132,7 @@ export const FoodDetailPage = ({ content, disclaimer }: FoodDetailPageProps) => 
             {guidanceList.coverage.citations.map((citation) => (
               <li key={`${citation.url}-${citation.locator}`}>
                 <a href={citation.url} target="_blank" rel="noreferrer">{citation.title}</a>
-                <span> - {citation.locator} (accessed {citation.accessedOn})</span>
+                <span> - {citation.locator}</span>
               </li>
             ))}
           </ul>

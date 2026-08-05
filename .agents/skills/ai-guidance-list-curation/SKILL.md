@@ -56,22 +56,18 @@ the requested perspective.
 3. Build an evidence table before writing data. For each proposed list, coverage declaration, and
    food assessment, record:
    - source URL and exact locator;
-   - access date;
-   - the source-version evidence;
    - the source-supported status and concise paraphrase;
    - conditions or alternative scenarios;
    - uncertainties requiring maintainer review.
-   Treat a proposed review-due date as a maintainer decision unless the source or the maintainer
-   supplies a review cadence.
 4. Check whether each named item already exists in `src/data/foods.ts`. Reuse the canonical food
    record where possible. Add a food or category only when the source and the intended coverage
    require it; do not duplicate the catalogue for a new list.
 5. Create or update `GuidanceList` data with list-owned statuses, distinct grey `Not assessed` and
-   `Outside current coverage` fallbacks, explicit coverage, citations, source-version evidence,
-   verification date, and review-due date. Do not use a fallback status on an assessment.
+   `Outside current coverage` fallbacks, explicit coverage, and citations. Do not use a fallback
+   status on an assessment.
 6. Create only source-supported `FoodAssessment` records. Each requires an independent citation,
-   a list-owned non-fallback status, review date, concise paraphrase, and separate guidance
-   scenarios for alternatives. Keep uncertain in-scope foods unassessed or use an explicit,
+   a list-owned non-fallback status, concise paraphrase, and separate guidance scenarios for
+   alternatives. Keep uncertain in-scope foods unassessed or use an explicit,
    source-supported review/check-ingredients outcome.
 7. Use a reason link only when the source supports the assessed food's own conclusion and its target
    is an existing canonical food. A reason link never supplies a status or citation by itself.
@@ -84,7 +80,7 @@ the requested perspective.
 
 After drafting and validation, stop. Do not commit or publish the changes. Ask the maintainer to
 review the source evidence and working-tree diff, specifically confirming each list status, coverage
-claim, assessment, citation locator, date, paraphrase, review-due date, and unresolved item. Do not
+claim, assessment, citation locator, paraphrase, and unresolved item. Do not
 silently omit an unsupported item from the review packet: identify it as excluded or unassessed and
 explain why.
 
@@ -103,9 +99,9 @@ End every invocation with this review packet:
 - [URL] — exact locator(s) used
 
 ### Claim-by-claim evidence
-| Record | Proposed status or coverage | Source URL and exact locator | Paraphrase or condition | Date evidence |
-| --- | --- | --- | --- | --- |
-| ... | ... | ... | ... | accessed, verified, reviewed, and review-due dates |
+| Record | Proposed status or coverage | Source URL and exact locator | Paraphrase or condition |
+| --- | --- | --- | --- |
+| ... | ... | ... | ... |
 
 ### Proposed content changes
 - Lists:
@@ -120,6 +116,5 @@ End every invocation with this review packet:
 
 ### Approval boundary
 No commit, publication, deployment, or human approval has occurred. Please review the source
-evidence and working-tree diff before accepting this draft. The proposed review-due date also
-requires maintainer approval unless a supplied source or instruction established it.
+evidence and working-tree diff before accepting this draft.
 ```

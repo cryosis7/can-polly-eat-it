@@ -26,14 +26,14 @@ without losing provenance or editorial control.
 
 - The workflow must preserve one shared food catalogue and create list-specific assessments rather
   than context-specific fields on foods.
-- Every proposed assessment must retain the source URL, exact locator, access date, review date, and
-  a concise human-reviewed paraphrase.
+- Every proposed assessment must retain the source URL, exact locator, and a concise
+  human-reviewed paraphrase.
 - The AI must flag ambiguous, brand-dependent, incomplete, or unsupported source material for human
   resolution instead of inferring a favourable outcome.
 - The workflow must make additions and changes visible as ordinary version-controlled data and test
   changes.
-- A new list must declare its own statuses, distinct grey fallback states, coverage, source-version
-  evidence, verification date, review-due date, and citations.
+- A new list must declare its own statuses, distinct grey fallback states, explicit coverage, and
+  citations.
 - No proposed content may be published until a human has reviewed and approved it.
 
 ## Non-goals
