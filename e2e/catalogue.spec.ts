@@ -53,4 +53,24 @@ test.describe('Food catalogue', () => {
     await expect(page.getByRole('link', { name: 'Yoghurt' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Cheddar' })).not.toBeVisible()
   })
+
+  test('shows a direct food-detail route with its selected list, citation, and disclaimer', async ({ page }) => {
+    await page.goto('/food/cheddar?v=1&list=pregnancy-food-safety')
+
+    await expect(page.getByRole('heading', { name: 'Cheddar' })).toBeVisible()
+    await expect(page.getByText('Pregnancy food safety')).toBeVisible()
+    await expect(page.getByText('OK to eat')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'MPI: Food and pregnancy' })).toHaveAttribute(
+      'href',
+      'https://www.mpi.govt.nz/food-safety-home/food-pregnancy/list-safe-food-pregnancy/',
+    )
+    await expect(page.getByLabel('Medical information disclaimer')).toContainText('general information, not medical advice')
+  })
+
+  test('shows a safe food-not-found route', async ({ page }) => {
+    await page.goto('/food/removed-food?v=1&list=pregnancy-food-safety')
+
+    await expect(page.getByRole('heading', { name: 'Food not found' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Return to the food guide' })).toBeVisible()
+  })
 })

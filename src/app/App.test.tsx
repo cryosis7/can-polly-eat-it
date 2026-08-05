@@ -12,11 +12,11 @@ afterEach(() => {
 })
 
 describe('App routes', () => {
-  it('renders the food guidance placeholder for a direct food route', () => {
+  it('renders food guidance for a direct food route', () => {
     renderAtPath('/food/cheddar?v=1&list=pregnancy-food-safety')
 
-    expect(screen.getByRole('heading', { name: 'Food guidance' })).toBeInTheDocument()
-    expect(screen.getByText(/Food detail guidance will be available/i)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Cheddar' })).toBeInTheDocument()
+    expect(screen.getByText('OK to eat')).toBeInTheDocument()
   })
 
   it('renders the not-found page for an unknown route', () => {

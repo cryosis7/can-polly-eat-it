@@ -57,6 +57,18 @@ h2 { margin-top: 2.5rem; }
 .tone-amber .status-icon, .status-icon.tone-amber { background: #f1c561; }
 .tone-red .status-icon, .status-icon.tone-red { background: #f09b9b; }
 .tone-grey .status-icon, .status-icon.tone-grey { background: #cbd2d4; }
+.back-link { display: inline-block; margin-bottom: 1.5rem; }
+.guidance-summary, .guidance-scenario, .detail-disclaimer { background: #fff; border: 1px solid #c7d9d3; border-radius: .5rem; padding: 1rem; }
+.guidance-summary { margin-bottom: 2rem; }
+.guidance-summary h2, .guidance-scenario h3 { margin-top: 0; }
+.guidance-scenario { margin-bottom: 1rem; }
+.guidance-scenario ol { padding-left: 1.5rem; }
+.guidance-facts { display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin: 0; }
+.guidance-facts div { display: flex; gap: .3rem; }
+.guidance-facts dt { font-weight: 800; }
+.guidance-facts dd { margin: 0; }
+.reason-links, .source-links { padding-left: 1.25rem; }
+.detail-disclaimer { border-inline-start: .35rem solid #d45500; margin-top: 2rem; }
 
 @media (max-width: 38rem) {
   .page-content { padding-top: 1.5rem; }

@@ -1,15 +1,9 @@
 import { BrowserRouter, Route, Routes } from 'react-router'
 import { content } from '../data'
 import { CataloguePage } from '../features/catalogue/CataloguePage'
+import { FoodDetailPage } from '../features/food-detail/FoodDetailPage'
 
-const disclaimer = 'This guide is general information, not medical advice. Ask your midwife, doctor, or another health professional for advice about your circumstances.'
-
-const FoodRoutePlaceholder = () => (
-  <main className="page-content">
-    <h1>Food guidance</h1>
-    <p>Food detail guidance will be available in the next feature.</p>
-  </main>
-)
+export const disclaimer = 'This guide is general information, not medical advice. Ask your midwife, doctor, or another health professional for advice about your circumstances.'
 
 const NotFound = () => (
   <main className="page-content">
@@ -29,7 +23,7 @@ export const App = () => (
       </header>
       <Routes>
         <Route path="/" element={<CataloguePage content={content} />} />
-        <Route path="/food/:foodSlug" element={<FoodRoutePlaceholder />} />
+        <Route path="/food/:foodSlug" element={<FoodDetailPage content={content} disclaimer={disclaimer} />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
