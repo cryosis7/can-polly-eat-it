@@ -29,7 +29,7 @@ feature IDs below, must not reference the feature itself, and must not form a cy
 | F-02 | [Search and filter foods](<02-search-and-filter-foods.md>) | Done | F-01 | Find a food or narrow the catalogue without losing shareable context. |
 | F-03 | [Explain food guidance](<03-explain-food-guidance.md>) | Done | F-01 | Understand a food status, its conditions, and source. |
 | F-04 | [Maintain trustworthy guidance content](<04-maintain-trustworthy-guidance-content.md>) | Done | None | Safely curate and validate reviewed pregnancy guidance data. |
-| F-05 | [Add independent guidance lists](<05-add-independent-guidance-lists.md>) | Deferred | F-01, F-02, F-03, F-04 | Add vegetarian suitability and future lists to the same catalogue. |
+| F-05 | [Add independent guidance lists](<05-add-independent-guidance-lists.md>) | Proposed | F-01, F-02, F-03, F-04 | Add vegetarian suitability and future lists to the same catalogue. |
 | F-06 | [Improve the mobile-first accessible guide experience](<06-improve-mobile-first-accessible-guide-experience.md>) | Proposed | F-01, F-02 | Browse and refine food guidance confidently on phone or desktop. |
 
 ## Maintaining this register

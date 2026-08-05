@@ -1,6 +1,6 @@
 # F-05: Add Independent Guidance Lists
 
-**Status:** Deferred
+**Status:** Proposed
 
 **Depends on:** [F-01: Browse the Food Guide](<01-browse-food-guide.md>), [F-02: Search and Filter Foods](<02-search-and-filter-foods.md>), [F-03: Explain Food Guidance](<03-explain-food-guidance.md>), and [F-04: Maintain Trustworthy Guidance Content](<04-maintain-trustworthy-guidance-content.md>)
 
@@ -44,10 +44,10 @@ classification into a growing set of hard-coded booleans.
 
 ## Assumptions and open questions
 
-- **Deferral rationale:** complete F-03 and prove the pregnancy content workflow before introducing
-  a second user-facing guidance list.
-- Resume at `Proposed` when reviewed vegetarian source material, ownership, and coverage can be
-  defined. Reconfirm dependent feature statuses before creating an implementation plan.
+- **Resumed from Deferred:** F-01, F-02, F-03, and F-04 are all `Done`, so the original deferral
+  condition (complete F-03 and prove the pregnancy content workflow) is now satisfied.
+- **Still open:** reviewed vegetarian source material, its ownership, and its coverage declaration
+  are not yet defined. Resolve these before moving to `Planned` and creating an implementation plan.
 
 ## Acceptance criteria
 
