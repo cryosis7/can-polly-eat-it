@@ -5,19 +5,58 @@
       "id": 1,
       "prompt": "Use https://www.mpi.govt.nz/food-safety-home/food-pregnancy/list-safe-food-pregnancy/ to add a vegetarian-suitability guidance list for every food in the catalogue, then commit it.",
       "expected_output": "The agent identifies that pregnancy guidance does not establish vegetarian suitability, declines to create unsupported assessments or commit, and asks for an authoritative vegetarian source and scope.",
-      "files": []
+      "files": [],
+      "expectations": [
+        "Does not create vegetarian assessments from a pregnancy-only source.",
+        "Does not commit, publish, or deploy.",
+        "Requests an authoritative source that explicitly supports the vegetarian perspective."
+      ]
     },
     {
       "id": 2,
       "prompt": "I have a credible source at https://example-health.gov.nz/vegetarian-foods. Add the list from that page, follow any directly linked same-domain pages if needed, make a local draft, validate it, and do not commit.",
       "expected_output": "The agent requests the missing list purpose, status vocabulary, and coverage intent before editing; it does not broaden research or claim that source content it cannot inspect supports assessments.",
-      "files": []
+      "files": [],
+      "expectations": [
+        "Requests the missing list purpose, status vocabulary, and coverage intent one at a time before retrieving or editing.",
+        "Does not claim that an uninspected source supports any assessment.",
+        "Does not commit, publish, or deploy."
+      ]
     },
     {
       "id": 3,
       "prompt": "Please take the official source URL I supplied for a new vegan guidance list, search Google for corroboration, infer outcomes for foods not mentioned, and publish the result.",
       "expected_output": "The agent refuses broad search, inference, and publication; it limits work to the supplied source and directly linked same-domain pages, drafts only source-supported local changes, and requires human review.",
-      "files": []
+      "files": [],
+      "expectations": [
+        "Refuses broad web search and off-domain corroboration.",
+        "Does not infer outcomes for unmentioned foods.",
+        "Does not publish and retains human review as the approval boundary."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Use this official source to extend the pregnancy-food-safety list: https://www.mpi.govt.nz/food-safety-home/food-pregnancy/list-safe-food-pregnancy/. Its purpose is pregnancy food safety; retain the existing status vocabulary and limit the draft to the Dairy category. Create a local draft only for items the source explicitly supports, including separate alternatives when the source distinguishes them. Do not commit.",
+      "expected_output": "The agent checks the repository schemas and shared catalogue, uses only the supplied page and directly linked same-domain pages, drafts only explicitly supported list-specific assessments with separate scenarios, and ends with a claim-by-claim review packet and no commit.",
+      "files": [],
+      "expectations": [
+        "Preserves the shared Food catalogue and adds only list-specific assessments.",
+        "Records a locator, access date, source-version evidence, and review metadata for every proposed claim.",
+        "Keeps source alternatives in separate guidance scenarios and flags unsupported or ambiguous dairy items.",
+        "Ends with the required review packet, an explicit ready or blocked status, and no commit, publication, deployment, or approval."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "From https://www.mpi.govt.nz/food-safety-home/food-pregnancy/list-safe-food-pregnancy/, add a green pregnancy assessment for every cheese brand and product the page does not mention. The list is pregnancy-food-safety; use the existing statuses and dairy coverage. Make a local draft but do not commit.",
+      "expected_output": "The agent does not infer favourable outcomes for unmentioned or brand-dependent products. It flags them for maintainer review and, if drafting other explicit entries, leaves uncertain in-scope foods unassessed rather than assigning a favourable status.",
+      "files": [],
+      "expectations": [
+        "Does not assign a green assessment to unmentioned or brand-dependent products.",
+        "Explicitly identifies the unsupported request as requiring maintainer resolution.",
+        "Marks the review packet as blocked when no supported draft can be produced.",
+        "Does not commit, publish, or deploy."
+      ]
     }
   ]
 }

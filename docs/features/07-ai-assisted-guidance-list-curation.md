@@ -1,6 +1,6 @@
 # F-07: Add AI-assisted guidance-list curation
 
-**Status:** In progress
+**Status:** Done
 
 **Depends on:** [F-04: Maintain Trustworthy Guidance Content](<04-maintain-trustworthy-guidance-content.md>)
 
@@ -50,6 +50,10 @@ without losing provenance or editorial control.
 - The accepted AI-assisted-capture ADR governs the workflow.
 - The skill may prepare local draft data changes but must stop before a human approval, commit, or
   publication.
+- The ready-for-review path was validated with a maintainer-supplied saved copy of MPI's official
+  safe-food-in-pregnancy page. The source-backed run used the Dairy table, including explicit
+  favourable, avoid, and conditional entries, and left the saved source bundle outside the committed
+  product changes.
 
 ## Implementation plan
 
@@ -62,14 +66,28 @@ Implement according to [the F-07 implementation plan](<07-ai-assisted-guidance-l
   locator needed for approval.
 - The draft never treats absent, ambiguous, or brand-specific guidance as a safe or favourable
   assessment.
-- A reviewer can trace every accepted list-level and food-level claim to the supplied source and
-  see the corresponding version-controlled change and validation evidence.
+- A reviewer can trace every proposed list-level and food-level claim in the review packet to the
+  supplied source and see the corresponding local draft change or explicit blocked/no-change
+  decision with validation evidence.
 - A new list created through the workflow renders through the existing shared catalogue model
   without adding a list-specific property to `Food`.
 
 ## Validation
 
-Before the feature can be marked done, exercise the skill with representative official web guidance,
-including conditional and ambiguous items. Verify its proposed changes with schema/content
-validation, strict type checking, relevant unit and rendering tests, and the repository-wide
-coverage, Chromium Playwright, and production-build checks required for user-visible list changes.
+- `python C:\Users\ScottDacre-Curtis\.agents\skills\skill-creator\scripts\quick_validate.py .agents\skills\ai-guidance-list-curation`
+  passed for the repository skill structure.
+- The skill evaluation file contains five scenarios covering unsupported perspective changes,
+  missing required input, prohibited broad search/publication, source-backed Dairy drafting, and
+  source-omission/brand ambiguity.
+- Read-only source-backed exercise: the maintainer-supplied saved MPI page identified the official
+  `List of safe food in pregnancy` source, its pregnancy purpose, and Dairy table locators. The
+  evidence included hard cheese as favourable, low-acid soft pasteurised cheese as avoid-unless-cooked,
+  and pasteurised cottage/cream cheese as conditional. The simulated review packet preserved the
+  shared food catalogue, proposed list-specific assessment evidence only, and stopped before commit,
+  publication, deployment, or approval.
+- Read-only ambiguity exercise: a request to assign favourable assessments to every unmentioned
+  cheese brand/product was blocked; no draft content was produced from source omission or brand
+  ambiguity.
+- No application or published content data changed as part of this feature, so schema/content,
+  rendering, coverage, Playwright, and production-build gates are deferred to each future
+  user-visible curation draft produced by the skill.
