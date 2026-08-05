@@ -65,7 +65,7 @@ test.describe('Food catalogue', () => {
     await page.keyboard.press('Tab')
     await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused()
     await expect(page.getByRole('searchbox', { name: 'Search foods' })).toBeVisible()
-    await expect(page.getByText('5 foods in the guide')).toBeVisible()
+    await expect(page.getByText('19 foods in the guide')).toBeVisible()
     await expect(page.locator('details')).not.toHaveAttribute('open', '')
 
     await page.getByText('Filters', { exact: true }).click()

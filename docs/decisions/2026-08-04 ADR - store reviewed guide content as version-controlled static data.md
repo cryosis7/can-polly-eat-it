@@ -92,6 +92,15 @@ contract can reject unsafe or incomplete editorial records before release.
 - [ ] The content data has no network fetch, scraping routine, or browser-only mutation path.
 - [ ] Continuous integration validates the complete data set before build/deployment.
 
+## Superseded Requirements
+
+[2026-08-05 ADR: Remove Temporal Freshness Metadata from Guidance Content](<2026-08-05 ADR - remove temporal freshness metadata from guidance content.md>)
+supersedes the temporal metadata and overdue-validation requirements in this record. References above
+to source access dates, source-version evidence, verification dates, review-due dates, assessment
+review dates, ISO date validation, and overdue-date failures are historical context and are no longer
+binding. This ADR's static, version-controlled content model and citation, coverage, relationship,
+and manual-review requirements remain accepted.
+
 ## More Information
 
 The initial source baseline is MPI's [Food and pregnancy](https://www.mpi.govt.nz/food-safety-home/food-pregnancy)
