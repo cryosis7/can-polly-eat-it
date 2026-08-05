@@ -9,10 +9,27 @@ does not require accounts or a backend.
 Each phase ends with a usable, verifiable increment. Later phases do not duplicate data or UI for
 vegetarian suitability; they extend the shared guidance-list model.
 
+## Relationship to feature planning
+
+This document sequences high-level product delivery. The [Feature Register](features/README.md) is
+the source of truth for an individual feature's outcome, status, dependencies, non-goals, acceptance
+criteria, and feature-specific implementation-plan link. Do not infer a feature's current delivery
+status from a phase alone.
+
+The features map to this roadmap as follows:
+
+| Feature | Delivery phase |
+| --- | --- |
+| F-01: Browse the Food Guide | Phase 2 |
+| F-02: Search and Filter Foods | Phase 3 |
+| F-03: Explain Food Guidance | Phase 4 |
+| F-04: Maintain Trustworthy Guidance Content | Phases 1 and 5 |
+| F-05: Add Independent Guidance Lists | Phase 6 |
+
 ## Decision baseline
 
-The five ADRs in [`docs/decisions/`](decisions/) are Accepted and govern this implementation plan.
-Create a new ADR or explicitly amend an existing decision before adopting a conflicting approach.
+The Accepted ADRs in [`docs/decisions/`](decisions/) govern this implementation plan. Create a new
+ADR or explicitly amend an existing decision before adopting a conflicting approach.
 
 ## Phase 0: Establish the application foundation
 
@@ -51,7 +68,7 @@ changes when either test suite fails.
 **Done when:** invalid fixtures fail with useful errors, valid fixtures yield a stable arbitrary-depth
 tree, and coverage resolution distinguishes unassessed from outside current coverage.
 
-## Phase 2: Deliver the standard catalogue
+## Phase 2: Deliver the standard catalogue (F-01)
 
 1. Render flattened category rows as an accessible, grouped catalogue with full breadcrumb paths
    and depth-safe visual indentation.
@@ -65,7 +82,7 @@ tree, and coverage resolution distinguishes unassessed from outside current cove
 **Done when:** the fixture catalogue visibly proves the hierarchy is not capped and all cards expose
 the selected assessment, "Not assessed", or "Outside current coverage" with a source link.
 
-## Phase 3: Add search, filters, and shareable state
+## Phase 3: Add search, filters, and shareable state (F-02)
 
 1. Implement the pure normalisation, token search, category-subtree, and assessment predicates.
 2. Add a labelled search field, category control, guidance-list selector, status filters, and clear
@@ -82,7 +99,7 @@ the selected assessment, "Not assessed", or "Outside current coverage" with a so
 result and search/filter unit tests cover aliases, punctuation, category descendants, and unassessed
 foods.
 
-## Phase 4: Explain a food decision
+## Phase 4: Explain a food decision (F-03)
 
 1. Build the food-detail route and a not-found route; resolve its display list from `v=1&list=`.
 2. Display the list-specific status, summary, and each guidance scenario's applicability,
@@ -98,7 +115,7 @@ fixture renders "Contains [Gelatin]" as a food-detail-only link, each assessment
 citation, each accepted list opens directly by URL, and missing food slugs fail safely with a helpful
 route state.
 
-## Phase 5: Curate the initial pregnancy content
+## Phase 5: Curate the initial pregnancy content (F-04)
 
 1. Create a content editorial checklist: source URL, locator, accessed date, source-version
    evidence, reviewer, coverage declaration, verification date, review due date, paraphrased
@@ -115,7 +132,7 @@ route state.
 list declares whether every catalogue food is covered; a reviewer can trace each rule and the source
 version evidence back to an official source.
 
-## Phase 6: Add vegetarian suitability as a second list
+## Phase 6: Add vegetarian suitability as a second list (F-05)
 
 1. Define vegetarian status definitions as data, including distinct grey "Not assessed" and
    "Outside current coverage" fallbacks and an amber ingredient-check outcome.

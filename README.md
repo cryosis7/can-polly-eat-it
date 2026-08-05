@@ -3,6 +3,12 @@
 A static React guide for browsing reviewed pregnancy food-safety information. It is general
 information, not medical advice.
 
+## Feature planning
+
+The [Feature Register](docs/features/README.md) records each product feature's outcome, lifecycle
+status, dependencies, and acceptance criteria. The [implementation plan](docs/implementation-plan.md)
+sequences high-level delivery; create a detailed technical plan only when a feature is `Planned`.
+
 ## Development
 
 ```sh

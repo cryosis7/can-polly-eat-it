@@ -1,27 +1,50 @@
-# High-Level Features
+# Feature Register
 
-These documents define independently valuable product slices. They are intentionally not detailed
-backlog tickets: each should be broken into user stories, content tasks, and test cases only after
-the architecture and data contract are in place.
+This directory is the source of truth for independently valuable product features. A feature brief
+records the user outcome and its boundaries; it is not an ADR, a technical implementation plan, or a
+backlog task.
 
-| Feature | Outcome | Depends on |
-| --- | --- | --- |
-| [01 - Browse the food guide](<01-browse-food-guide.md>) | Browse reviewed foods in their natural category hierarchy. | Valid categories, foods, and assessments |
-| [02 - Search and filter foods](<02-search-and-filter-foods.md>) | Find a food or narrow the catalogue without losing context. | Browse feature and query layer |
-| [03 - Explain food guidance](<03-explain-food-guidance.md>) | Understand a status, its conditions, and source. | Food records and citations |
-| [04 - Maintain trustworthy guidance content](<04-maintain-trustworthy-guidance-content.md>) | Safely curate and validate the pregnancy data. | Content contract |
-| [05 - Add independent guidance lists](<05-add-independent-guidance-lists.md>) | Add vegetarian suitability and future lists to the same catalogue. | Shared guidance-list assessment model |
+## Lifecycle
 
-The first releasable vertical slice is Features 01-03 using a small set of fully cited pregnancy
-records. Feature 04 scales the content safely. Feature 05 is deliberately deferred until the
-pregnancy experience and content contract are proven.
+Features move through `Idea`, `Proposed`, `Planned`, `In progress`, and `Done`. A feature may be
+`Deferred` from any non-terminal state; resume it at `Proposed` when it is reconsidered.
 
-## Test confidence
+- **Idea**: a captured opportunity that has not been shaped or prioritised.
+- **Proposed**: the problem, desired outcome, scope, and non-goals are clear enough to discuss.
+- **Planned**: dependencies are complete and an approved, feature-specific implementation plan
+  exists.
+- **In progress**: implementation has started against the approved plan.
+- **Done**: the acceptance criteria and documented validation have been met.
+- **Deferred**: intentionally paused; the brief explains why and what must change to resume it.
 
-Every feature that changes application or content code must retain 100% global statements, branches,
-functions, and lines for application source under `src/`. This does not replace the feature-specific
-acceptance examples or human editorial review.
+A feature cannot move to `Planned` or `In progress` while one of its dependencies is not `Done`
+unless its brief records an approved exception and rationale. Dependencies must use the stable
+feature IDs below, must not reference the feature itself, and must not form a cycle.
 
-Every implemented user-facing feature must also add focused Chromium Playwright end-to-end scenarios
-for its primary experience and relevant direct URLs. These tests complement unit and component tests;
-they must run through the local Husky pre-commit gate before the feature is committed.
+## Index
+
+| ID | Feature | Status | Depends on | Outcome |
+| --- | --- | --- | --- | --- |
+| F-01 | [Browse the food guide](<01-browse-food-guide.md>) | Done | None | Browse reviewed foods in their natural category hierarchy. |
+| F-02 | [Search and filter foods](<02-search-and-filter-foods.md>) | Done | F-01 | Find a food or narrow the catalogue without losing shareable context. |
+| F-03 | [Explain food guidance](<03-explain-food-guidance.md>) | Planned | F-01 | Understand a food status, its conditions, and source. |
+| F-04 | [Maintain trustworthy guidance content](<04-maintain-trustworthy-guidance-content.md>) | Done | None | Safely curate and validate reviewed pregnancy guidance data. |
+| F-05 | [Add independent guidance lists](<05-add-independent-guidance-lists.md>) | Deferred | F-01, F-02, F-03, F-04 | Add vegetarian suitability and future lists to the same catalogue. |
+| F-06 | [Improve the mobile-first accessible guide experience](<06-improve-mobile-first-accessible-guide-experience.md>) | Proposed | F-01, F-02 | Browse and refine food guidance confidently on phone or desktop. |
+
+## Maintaining this register
+
+1. Read the accepted ADRs, architecture overview, this register, related feature briefs, and the
+   high-level implementation roadmap before creating or changing a feature.
+2. Add or update the feature brief and its row in this index in the same change.
+3. Keep the index summary to one outcome-focused sentence. Put rationale, scope, acceptance
+   criteria, dependencies, and delivery detail in the feature brief.
+4. Link a dependency by ID and relative Markdown link in the dependent feature's `Depends on`
+   section. Update its status when the prerequisite changes.
+5. Create a technical implementation plan only after a feature is `Planned`; link it from the brief
+   and keep implementation tasks outside this register.
+
+Every application or content change must retain the repository-wide 100% global statements,
+branches, functions, and lines coverage threshold for application source. Implemented user-facing
+features must also include focused Chromium Playwright scenarios for their primary experience and
+relevant direct URLs.

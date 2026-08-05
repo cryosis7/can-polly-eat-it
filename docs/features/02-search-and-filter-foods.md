@@ -1,4 +1,10 @@
-# Feature 02: Search and Filter Foods
+# F-02: Search and Filter Foods
+
+**Status:** Done
+
+**Depends on:** [F-01: Browse the Food Guide](<01-browse-food-guide.md>)
+
+**Governing decisions:** [Static TypeScript React SPA](<../decisions/2026-08-04 ADR - use a static TypeScript React SPA.md>) and [independent guidance lists](<../decisions/2026-08-04 ADR - use independent guidance lists for food assessments.md>)
 
 ## Goal
 
@@ -28,21 +34,19 @@ shareable result.
 - Validate URL parameters and, if content has changed, select the default list, drop only invalid
   constraints, and announce that unavailable shared filters were removed.
 
-## Not in this feature
+## Non-goals
 
 - Server-side autocomplete, fuzzy AI matching, spelling correction, or external search services.
 - Saved searches, user profiles, or data collection.
 - Filtering, calculations, or recommendations based on condition facts.
 
-## Test confidence
+## Assumptions and open questions
 
-Tests for this feature must retain the repository-wide 100% global statements, branches, functions,
-and lines coverage thresholds for application source.
+- URL state remains the shareable product state; no account or browser persistence is required.
+- No open question blocks this completed slice. A mobile-first control redesign is a future feature,
+  not a change to filtering semantics.
 
-Chromium Playwright tests must exercise alias search, category and status filtering, clearing active
-filters, and direct loading of a versioned filtered URL.
-
-## Acceptance examples
+## Acceptance criteria
 
 - Searching an alias finds the canonical food card.
 - Selecting `Dairy` includes results under all of its descendants.
@@ -50,3 +54,9 @@ filters, and direct loading of a versioned filtered URL.
   adding a vegetarian status filter requires both list predicates to match.
 - A copied `v=1` filtered URL reproduces the same result in a fresh session, while an obsolete list
   slug falls back safely and visibly.
+
+## Validation
+
+Tests retain the repository-wide 100% global statements, branches, functions, and lines coverage
+thresholds for application source. Chromium Playwright tests exercise alias search, category and
+status filtering, clearing active filters, and direct loading of a versioned filtered URL.

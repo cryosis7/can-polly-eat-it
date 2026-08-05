@@ -1,4 +1,10 @@
-# Feature 01: Browse the Food Guide
+# F-01: Browse the Food Guide
+
+**Status:** Done
+
+**Depends on:** None
+
+**Governing decisions:** [Static TypeScript React SPA](<../decisions/2026-08-04 ADR - use a static TypeScript React SPA.md>), [unbounded category tree](<../decisions/2026-08-04 ADR - model food groups as an unbounded category tree.md>), and [independent guidance lists](<../decisions/2026-08-04 ADR - use independent guidance lists for food assessments.md>)
 
 ## Goal
 
@@ -12,7 +18,7 @@ the selected guidance list.
    labels.
 3. Browse grouped categories in editorial order, for example `Dairy -> Cheese -> Hard cheese`.
 4. See food cards inside their category with an explicit text status, summary, and source link.
-5. Follow a card to learn the details.
+5. Follow a card to learn the details delivered by [F-03](<03-explain-food-guidance.md>).
 
 ## Required behaviour
 
@@ -28,25 +34,29 @@ the selected guidance list.
 - Keep the initial fully rendered catalogue within the 2,000-food/500-category architecture budget;
   do not silently truncate results when the budget is exceeded.
 
-## Not in this feature
+## Non-goals
 
 - Full-text search and filters.
-- A food detail explanation.
+- A food-detail explanation.
 - Content editing in the browser.
 - Personalised advice or saved favourites.
 
-## Test confidence
+## Assumptions and open questions
 
-Tests for this feature must retain the repository-wide 100% global statements, branches, functions,
-and lines coverage thresholds for application source.
+- The selected guidance-list vocabulary is owned by content data and can grow without duplicating the
+  food catalogue.
+- No open question blocks this completed slice. Detail-route content is tracked separately in F-03.
 
-Chromium Playwright tests must load the catalogue in a real browser and verify the selected guide,
-visible category breadcrumb, status outcomes, food cards, and primary-source links.
-
-## Acceptance examples
+## Acceptance criteria
 
 - A food attached beneath a 1,000-level test hierarchy can be derived by the domain layer without a
   stack overflow; the readable UI fixture shows its complete category breadcrumb.
 - A food inside pregnancy coverage without an assessment shows "Not assessed", while a food outside
   that coverage shows "Outside current coverage"; both are visually distinct from "OK to eat".
 - A screen-reader user hears the category heading and status label for each food card.
+
+## Validation
+
+Tests retain the repository-wide 100% global statements, branches, functions, and lines coverage
+thresholds for application source. Chromium Playwright coverage verifies the selected guide, visible
+category breadcrumb, status outcomes, food cards, and primary-source links.

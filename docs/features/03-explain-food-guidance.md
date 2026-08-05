@@ -1,4 +1,10 @@
-# Feature 03: Explain Food Guidance
+# F-03: Explain Food Guidance
+
+**Status:** Planned
+
+**Depends on:** [F-01: Browse the Food Guide](<01-browse-food-guide.md>)
+
+**Governing decisions:** [Static TypeScript React SPA](<../decisions/2026-08-04 ADR - use a static TypeScript React SPA.md>), [version-controlled static content](<../decisions/2026-08-04 ADR - store reviewed guide content as version-controlled static data.md>), and [canonical reason foods](<../decisions/2026-08-04 ADR - link assessments to canonical reason foods.md>)
 
 ## Goal
 
@@ -30,22 +36,20 @@ only a red, amber, or green badge.
 - Include the product's medical-information disclaimer and source links.
 - Preserve useful catalogue context when returning to the browse view.
 
-## Not in this feature
+## Non-goals
 
 - Generating recommendations from raw facts.
 - Medical triage, portion planning, or automated source summarisation.
 - Editing content from the application.
 
-## Test confidence
+## Assumptions and open questions
 
-Tests for this feature must retain the repository-wide 100% global statements, branches, functions,
-and lines coverage thresholds for application source.
+- The existing route placeholder proves direct-route composition but does not satisfy this feature's
+  explanatory content or acceptance criteria.
+- A detailed implementation plan must name the route, detail components, context-preserving return
+  behaviour, and direct-route browser tests before work moves to `In progress`.
 
-When this feature is implemented, add Chromium Playwright tests that open a direct food-detail URL,
-verify the selected list, guidance scenarios, citation and reason-link navigation, disclaimer, and
-safe not-found route.
-
-## Acceptance examples
+## Acceptance criteria
 
 - A conditional cheese item can show alternative preparation/storage scenarios without suggesting
   that both alternatives apply, and can cite the exact source row.
@@ -54,3 +58,10 @@ safe not-found route.
 - A direct `/food/<slug>?v=1&list=<list-slug>` load displays the requested valid list after
   deployment.
 - A user can distinguish "avoid" from "only with conditions" without relying on colour.
+
+## Validation
+
+Tests must retain the repository-wide 100% global statements, branches, functions, and lines
+coverage thresholds for application source. Add Chromium Playwright tests that open a direct
+food-detail URL, verify the selected list, guidance scenarios, citation and reason-link navigation,
+disclaimer, and safe not-found route.

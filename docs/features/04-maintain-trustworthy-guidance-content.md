@@ -1,4 +1,10 @@
-# Feature 04: Maintain Trustworthy Guidance Content
+# F-04: Maintain Trustworthy Guidance Content
+
+**Status:** Done
+
+**Depends on:** None
+
+**Governing decisions:** [version-controlled static content](<../decisions/2026-08-04 ADR - store reviewed guide content as version-controlled static data.md>), [unbounded category tree](<../decisions/2026-08-04 ADR - model food groups as an unbounded category tree.md>), and [independent guidance lists](<../decisions/2026-08-04 ADR - use independent guidance lists for food assessments.md>)
 
 ## Goal
 
@@ -12,7 +18,8 @@ automated validation.
 3. Declare each list's explicit coverage, source-version evidence, verification date, and review due
    date. Add a guidance-list assessment with a named status, concise summary, complete guidance
    scenarios, citation URL/locator/access date, and review date.
-4. Run schema and relationship validation, then review the rendered card and detail page.
+4. Run schema and relationship validation, then review the rendered card and detail page when
+   applicable.
 5. Obtain human review before publishing a material health-guidance change.
 
 ## Required behaviour
@@ -32,23 +39,30 @@ automated validation.
   the list.
 - Content changes are reviewable in source control alongside their tests.
 
-## Initial source scope
-
-Start with MPI's food-and-pregnancy guidance, including its safe-food table and clear conditional
-examples. The user-provided pullout guide is a starting reference; use the current reviewed MPI URL
-and locator in each published record.
-
-## Not in this feature
+## Non-goals
 
 - A CMS or in-app authoring workflow.
 - Automated ingestion from PDFs or web pages.
 - Treating a citation as proof without a human content review.
 - Silently extending a list's coverage because a food appears in the catalogue.
 
-## Test confidence
+## Assumptions and open questions
 
-Tests for this feature must retain the repository-wide 100% global statements, branches, functions,
-and lines coverage thresholds for application source.
+- Initial reviewed pregnancy content is intentionally small; scaling the content set remains an
+  editorial activity governed by this workflow, not an automatic import.
+- Material future changes should include rendering tests when they alter visible catalogue or detail
+  outcomes.
 
-When content changes alter a user-visible catalogue or detail outcome, add or update Chromium
-Playwright scenarios that prove the reviewed data renders with its expected status and source link.
+## Acceptance criteria
+
+- Invalid authored content fails validation with useful errors before it can be rendered.
+- Every published assessment has a status, review date, and citation with a durable URL, exact
+  locator, and access date.
+- A reviewer can trace each published rule and source-version evidence to an authoritative source.
+
+## Validation
+
+Tests retain the repository-wide 100% global statements, branches, functions, and lines coverage
+thresholds for application source. When content changes alter a user-visible catalogue or detail
+outcome, add or update Chromium Playwright scenarios that prove the reviewed data renders with its
+expected status and source link.
