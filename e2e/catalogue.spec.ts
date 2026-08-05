@@ -44,14 +44,33 @@ test.describe('Food catalogue', () => {
   })
 
   test('reproduces a filtered catalogue from a direct URL', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
     await page.goto('/?v=1&list=pregnancy-food-safety&category=dairy&status.pregnancy-food-safety=avoid,not-assessed')
 
+    await expect(page.locator('details')).toHaveAttribute('open', '')
     await expect(page.getByRole('combobox', { name: 'Category' })).toHaveValue('dairy')
     await expect(page.getByRole('checkbox', { name: 'Avoid' })).toBeChecked()
     await expect(page.getByRole('checkbox', { name: 'Not assessed' })).toBeChecked()
     await expect(page.getByRole('link', { name: 'Brie' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Yoghurt' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Cheddar' })).not.toBeVisible()
+  })
+
+  test('keeps mobile search and feedback visible while filters are disclosed', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 720 })
+    await page.goto('/')
+
+    await page.keyboard.press('Tab')
+    await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused()
+    await expect(page.getByRole('searchbox', { name: 'Search foods' })).toBeVisible()
+    await expect(page.getByText('5 foods in the guide')).toBeVisible()
+    await expect(page.locator('details')).not.toHaveAttribute('open', '')
+
+    await page.getByText('Filters', { exact: true }).click()
+    await page.getByRole('combobox', { name: 'Category' }).selectOption('dairy')
+
+    await expect(page.getByRole('button', { name: 'Category: Dairy' })).toBeVisible()
+    await expect(page).toHaveURL(/category=dairy/)
   })
 
   test('shows a direct food-detail route with its selected list, citation, and disclaimer', async ({ page }) => {

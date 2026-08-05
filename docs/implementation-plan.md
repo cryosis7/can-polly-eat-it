@@ -25,6 +25,7 @@ The features map to this roadmap as follows:
 | F-03: Explain Food Guidance | Phase 4 |
 | F-04: Maintain Trustworthy Guidance Content | Phases 1 and 5 |
 | F-05: Add Independent Guidance Lists | Phase 6 |
+| F-06: Improve the Mobile-First Accessible Guide Experience | Phase 7 |
 
 ## Decision baseline
 
@@ -144,6 +145,17 @@ version evidence back to an official source.
 
 **Done when:** a single food can display both pregnancy and vegetarian assessments, and selecting
 either list does not duplicate the catalogue.
+
+## Phase 7: Improve the mobile-first accessible guide experience (F-06)
+
+1. Apply a local warm editorial CSS system to the shared shell, catalogue, filters, and cards.
+2. Keep search, active filters, and results feedback visible while placing detailed native controls
+   in an initially mobile-collapsed `details` disclosure that is open initially at wider viewports.
+3. Add the skip link, labelled landmarks, keyboard focus treatment, path-aware category control,
+   and separate native status facets for each guidance list.
+4. Test the focused desktop and mobile filter experiences without changing URL semantics.
+
+**Done when:** the F-06 acceptance criteria and its feature-specific validation plan are complete.
 
 ## Quality gates
 

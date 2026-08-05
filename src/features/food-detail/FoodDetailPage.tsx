@@ -24,7 +24,7 @@ export const FoodDetailPage = ({ content, disclaimer }: FoodDetailPageProps) => 
 
   if (!food) {
     return (
-      <main className="page-content content-width">
+      <main className="page-content content-width" id="main-content" tabIndex={-1}>
         <h1>Food not found</h1>
         <p>This food is not in the current guide or may have been removed.</p>
         <Link to="/">Return to the food guide</Link>
@@ -42,7 +42,7 @@ export const FoodDetailPage = ({ content, disclaimer }: FoodDetailPageProps) => 
   const returnSearch = buildCatalogueQuery(queryState, content.guidanceLists).toString()
 
   return (
-    <main className="page-content content-width food-detail">
+    <main className="page-content content-width food-detail" id="main-content" tabIndex={-1}>
       <Link className="back-link" to={`/?${returnSearch}`}>Back to the food guide</Link>
       <p className="eyebrow">{guidanceList.title}</p>
       <h1>{food.name}</h1>

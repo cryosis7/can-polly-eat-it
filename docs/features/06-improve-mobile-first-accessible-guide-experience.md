@@ -1,6 +1,6 @@
 # F-06: Improve the Mobile-First Accessible Guide Experience
 
-**Status:** Proposed
+**Status:** Done
 
 **Depends on:** [F-01: Browse the Food Guide](<01-browse-food-guide.md>) and [F-02: Search and Filter Foods](<02-search-and-filter-foods.md>)
 
@@ -69,6 +69,7 @@ dense controls or relying on colour.
 
 ## Assumptions and open questions
 
+- **Implementation plan:** [F-06 implementation plan](<06-improve-mobile-first-accessible-guide-experience-plan.md>) records the approved delivery work.
 - **Design direction:** warm editorial food guide. This is the default visual identity, not a
   runtime theme selector.
 - **Mobile filter pattern:** native `details`/`summary` is preferred for semantic, keyboard, and
@@ -78,8 +79,9 @@ dense controls or relying on colour.
   adding hard-coded dietary fields to food records.
 - The initial disclosure state may reflect the viewport when the page first renders; resizing does
   not need to override the person's subsequent open/closed choice.
-- This feature is `Proposed`. Create a feature-specific implementation plan and move it to
-  `Planned` only after the scope and delivery priority are approved.
+- The scope and delivery priority were approved for implementation on 2026-08-05. The documented
+  acceptance criteria were validated with React Testing Library, 100% Vitest coverage, and Chromium
+  Playwright desktop and 320px mobile scenarios.
 
 ## Acceptance criteria
 

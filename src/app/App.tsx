@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router'
+import { BrowserRouter, Link, Route, Routes } from 'react-router'
 import { content } from '../data'
 import { CataloguePage } from '../features/catalogue/CataloguePage'
 import { FoodDetailPage } from '../features/food-detail/FoodDetailPage'
@@ -6,7 +6,7 @@ import { FoodDetailPage } from '../features/food-detail/FoodDetailPage'
 export const disclaimer = 'This guide is general information, not medical advice. Ask your midwife, doctor, or another health professional for advice about your circumstances.'
 
 const NotFound = () => (
-  <main className="page-content">
+  <main className="page-content content-width" id="main-content" tabIndex={-1}>
     <h1>Page not found</h1>
     <p>Return to the food guide to keep browsing.</p>
   </main>
@@ -15,9 +15,10 @@ const NotFound = () => (
 export const App = () => (
   <BrowserRouter>
     <div className="app-shell">
+      <a className="skip-link" href="#main-content">Skip to main content</a>
       <header className="site-header">
         <div className="content-width">
-          <p className="eyebrow">Polly's Food Guide</p>
+          <p className="eyebrow"><Link to="/">Polly's Food Guide</Link></p>
           <p className="site-disclaimer">{disclaimer}</p>
         </div>
       </header>

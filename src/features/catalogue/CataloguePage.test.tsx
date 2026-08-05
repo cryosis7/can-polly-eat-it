@@ -6,7 +6,7 @@ import { CataloguePage } from './CataloguePage'
 
 describe('CataloguePage', () => {
   it('renders category breadcrumbs, each status outcome, and primary-source links', () => {
-    render(
+    const { container } = render(
       <MemoryRouter>
         <CataloguePage content={content} />
       </MemoryRouter>,
@@ -24,6 +24,29 @@ describe('CataloguePage', () => {
       'href',
       '/food/cheddar?v=1&list=pregnancy-food-safety',
     )
+    expect(container.querySelector('.status-key-item.tone-green')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Cheddar' }).closest('.food-card')).toHaveClass('tone-green')
+    expect(screen.getByRole('link', { name: 'Brie' }).closest('.food-card')).toHaveClass('tone-red')
+  })
+
+  it('keeps search available while mobile filter facets use a native disclosure', () => {
+    const { container } = render(
+      <MemoryRouter>
+        <CataloguePage content={content} />
+      </MemoryRouter>,
+    )
+
+    const disclosure = container.querySelector('details')
+    expect(disclosure).not.toHaveAttribute('open')
+    expect(screen.getByRole('searchbox', { name: 'Search foods' })).toBeInTheDocument()
+    expect(screen.getByText('5 foods in the guide')).toBeInTheDocument()
+
+    disclosure!.open = true
+    fireEvent(disclosure!, new Event('toggle', { bubbles: true }))
+
+    expect(disclosure).toHaveAttribute('open')
+    expect(screen.getByRole('combobox', { name: 'Category' })).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Filter by Pregnancy food safety' })).toBeInTheDocument()
   })
 
   it('reproduces a filtered URL and labels active status filters with their list slug', () => {

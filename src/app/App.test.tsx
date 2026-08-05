@@ -15,6 +15,9 @@ describe('App routes', () => {
   it('renders food guidance for a direct food route', () => {
     renderAtPath('/food/cheddar?v=1&list=pregnancy-food-safety')
 
+    expect(screen.getByRole('link', { name: 'Skip to main content' })).toHaveAttribute('href', '#main-content')
+    expect(screen.getByRole('main')).toHaveAttribute('id', 'main-content')
+    expect(screen.getByRole('banner')).toHaveTextContent('general information, not medical advice')
     expect(screen.getByRole('heading', { name: 'Cheddar' })).toBeInTheDocument()
     expect(screen.getByText('OK to eat')).toBeInTheDocument()
   })

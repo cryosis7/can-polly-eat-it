@@ -57,6 +57,13 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
   const hasActiveFilters = Boolean(
     queryState.query || queryState.categorySlug || Object.keys(queryState.statusSlugsByListSlug).length > 0,
   )
+  const statusFacetLists = [
+    guidanceList,
+    ...content.guidanceLists.filter((list) => list.id !== guidanceList.id),
+  ]
+  const [isFilterDisclosureOpen, setFilterDisclosureOpen] = useState(
+    () => window.matchMedia('(min-width: 48rem)').matches,
+  )
 
   useEffect(() => {
     const canonicalSearch = buildCatalogueQuery(queryState, content.guidanceLists).toString()
@@ -79,14 +86,14 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
   }
 
   return (
-    <main className="page-content content-width">
+    <main className="page-content content-width" id="main-content" tabIndex={-1}>
       <section aria-labelledby="guide-title" className="guide-intro">
         <p className="eyebrow">Food guide</p>
         <h1 id="guide-title">{guidanceList.title}</h1>
         <p>{guidanceList.description}</p>
         <dl className="status-key" aria-label="Status meanings">
           {guidanceList.statuses.map((status) => (
-            <div key={status.id}>
+            <div className={`status-key-item tone-${status.tone}`} key={status.id}>
               <dt><span aria-hidden="true" className={`status-icon tone-${status.tone}`}>{statusIcon[status.tone]}</span>{status.label}</dt>
               <dd>{toneDescription[status.tone]}</dd>
             </div>
@@ -96,7 +103,8 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
 
       <section aria-labelledby="catalogue-heading">
         <h2 id="catalogue-heading">Browse foods</h2>
-        <form className="filter-controls" onSubmit={(event) => event.preventDefault()}>
+        <div className="catalogue-tools">
+          <form className="search-controls" role="search" onSubmit={(event) => event.preventDefault()}>
           <div className="filter-field filter-search">
             <label htmlFor="food-search">Search foods</label>
             <input
@@ -109,6 +117,14 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
               )}
             />
           </div>
+          </form>
+          <details
+            className="filter-disclosure"
+            open={isFilterDisclosureOpen}
+            onToggle={(event) => setFilterDisclosureOpen((event.currentTarget as HTMLDetailsElement).open)}
+          >
+            <summary>Filters</summary>
+            <div className="filter-controls">
           <div className="filter-field">
             <label htmlFor="category-filter">Category</label>
             <select
@@ -140,7 +156,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
               ))}
             </select>
           </div>
-          {content.guidanceLists.map((list) => {
+          {statusFacetLists.map((list) => {
             const selectedStatusSlugs = queryState.statusSlugsByListSlug[list.slug] ?? []
             return (
               <fieldset className="status-filters" key={list.id}>
@@ -183,7 +199,9 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
           >
             Clear filters
           </button>
-        </form>
+            </div>
+          </details>
+        </div>
 
         {hasActiveFilters && (
           <ul aria-label="Active filters" className="filter-chips">
@@ -248,7 +266,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                     const resolved = resolveAssessment(food, guidanceList, content.assessments, content.categories)
                     const citation = resolved.assessment?.citations[0] ?? guidanceList.coverage.citations[0]
                     return (
-                      <li className="food-card" key={food.id}>
+                      <li className={`food-card tone-${resolved.status.tone}`} key={food.id}>
                         <div className="food-card-header">
                           <h4><Link to={`/food/${food.slug}?v=1&list=${guidanceList.slug}`}>{food.name}</Link></h4>
                           <p className={`status tone-${resolved.status.tone}`}>
