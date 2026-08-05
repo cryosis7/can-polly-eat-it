@@ -31,6 +31,7 @@ feature IDs below, must not reference the feature itself, and must not form a cy
 | F-04 | [Maintain trustworthy guidance content](<04-maintain-trustworthy-guidance-content.md>) | Done | None | Safely curate and validate reviewed pregnancy guidance data. |
 | F-05 | [Add independent guidance lists](<05-add-independent-guidance-lists.md>) | Proposed | F-01, F-02, F-03, F-04 | Add vegetarian suitability and future lists to the same catalogue. |
 | F-06 | [Improve the mobile-first accessible guide experience](<06-improve-mobile-first-accessible-guide-experience.md>) | Proposed | F-01, F-02 | Browse and refine food guidance confidently on phone or desktop. |
+| F-07 | [Add AI-assisted guidance-list curation](<07-ai-assisted-guidance-list-curation.md>) | In progress | F-04 | Turn a maintainer-provided credible source into reviewable new guidance-list content. |
 
 ## Maintaining this register
 

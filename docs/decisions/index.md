@@ -5,6 +5,7 @@ opening every file. Keep it in sync whenever an ADR is added or its status chang
 
 | ADR | Status | Summary |
 | --- | --- | --- |
+| [2026-08-05 ADR: adopt AI-assisted local draft curation for official sources](<2026-08-05 ADR - adopt AI-assisted local draft curation for official sources.md>) | Accepted | A repository skill may create a source-cited local draft from a maintainer-provided official source, but human review remains mandatory before publication. |
 | [2026-08-05 ADR: adopt Playwright end-to-end testing and Husky pre-commit validation](<2026-08-05 ADR - adopt Playwright end-to-end testing and Husky pre-commit validation.md>) | Proposed | Playwright Chromium browser tests and a Husky pre-commit hook validate implemented user-facing flows alongside Vitest coverage. |
 | [2026-08-05 ADR: enforce complete coverage for application source](<2026-08-05 ADR - enforce complete coverage for application source.md>) | Accepted | Vitest V8 coverage enforces 100% global statements, branches, functions, and lines for application source under `src/`. |
 | [2026-08-04 ADR: link assessments to canonical reason foods](<2026-08-04 ADR - link assessments to canonical reason foods.md>) | Accepted | Assessments can cite a typed reason link to a canonical food such as Gelatin without inferring suitability from that food. |
