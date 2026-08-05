@@ -71,5 +71,5 @@ Implement according to [the F-07 implementation plan](<07-ai-assisted-guidance-l
 
 Before the feature can be marked done, exercise the skill with representative official web guidance,
 including conditional and ambiguous items. Verify its proposed changes with schema/content
-validation, relevant unit and rendering tests, and the repository-wide coverage and Chromium
-Playwright checks required for user-visible list changes.
+validation, strict type checking, relevant unit and rendering tests, and the repository-wide
+coverage, Chromium Playwright, and production-build checks required for user-visible list changes.
