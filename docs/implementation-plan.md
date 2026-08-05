@@ -26,6 +26,7 @@ The features map to this roadmap as follows:
 | F-04: Maintain Trustworthy Guidance Content | Phases 1 and 5 |
 | F-05: Add Independent Guidance Lists | Phase 6 |
 | F-06: Improve the Mobile-First Accessible Guide Experience | Phase 7 |
+| F-08: Rework Guidance-Scope Filtering | Phase 8 |
 
 ## Decision baseline
 
@@ -154,6 +155,20 @@ either list does not duplicate the catalogue.
 4. Test the focused desktop and mobile filter experiences without changing URL semantics.
 
 **Done when:** the F-06 acceptance criteria and its feature-specific validation plan are complete.
+
+## Phase 8: Rework guidance-scope filtering (F-08)
+
+1. Add a generic outcome-band mapping to each list-owned status, retaining list-specific labels and
+   the distinct neutral fallback states.
+2. Replace the unreleased display-list URL contract with `scope` and `outcome` query parameters,
+   defaulting absent scope to pregnancy food safety.
+3. Replace the primary list selector and list-specific status facets with selected dietary scopes and
+   generic Okay, Maybe - see notes, and Not okay outcome controls.
+4. Render the selected scopes' list-specific guidance on cards and food detail pages.
+5. Test default pregnancy scope, combined pregnancy and vegetarian filtering, URL recovery, fallback
+   states, and direct filtered routes.
+
+**Done when:** F-08's acceptance criteria and validation plan are complete.
 
 ## Quality gates
 

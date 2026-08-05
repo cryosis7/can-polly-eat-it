@@ -48,7 +48,7 @@ Implement according to [the F-05 implementation plan](<05-add-independent-guidan
 
 ## Assumptions and open questions
 
-- The maintainer approved Veggy Malta's “15 Products Not Vegetarian” article as a vetted source.
+- The maintainer approved Veggy Malta's "15 Products Not Vegetarian" article as a vetted source.
   This first list covers only article-named items, with source links and exact locators retained.
 - A source omission or ambiguity remains outside coverage; no suitability is inferred from a food
   name, category, or ingredient.

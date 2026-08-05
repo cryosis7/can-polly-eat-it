@@ -29,7 +29,7 @@ test.describe('Food catalogue', () => {
     await page.goto('/')
 
     await page.getByRole('combobox', { name: 'Category' }).selectOption('dairy')
-    await page.getByRole('group', { name: 'Filter by Pregnancy food safety' }).getByRole('checkbox', { name: 'Avoid' }).check()
+    await page.getByRole('group', { name: 'Filter by Pregnancy food safety' }).getByRole('checkbox', { name: 'Avoid' }).click()
 
     await expect(page.getByRole('button', { name: 'Category: Dairy' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'pregnancy-food-safety: Avoid' })).toBeVisible()
