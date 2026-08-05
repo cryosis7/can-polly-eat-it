@@ -5,6 +5,7 @@ import { resolveAssessment } from '../../domain/assessment'
 import { buildCategoryTree, flattenCategoryRows, foodsByCategoryId } from '../../domain/categoryTree'
 import { filterFoods } from '../../domain/filtering'
 import type { ContentData } from '../../domain/contentValidation'
+import type { OutcomeBand } from '../../domain/schemas'
 
 type CataloguePageProps = {
   content: ContentData
@@ -17,12 +18,21 @@ const statusIcon = {
   grey: '?',
 } as const
 
-const toneDescription = {
-  green: 'reviewed as suitable',
-  amber: 'requires care',
-  red: 'not suitable',
-  grey: 'not established as safe',
-} as const
+const primaryOutcomes: { value: OutcomeBand, label: string }[] = [
+  { value: 'okay', label: 'Okay' },
+  { value: 'maybe', label: 'Maybe - see notes' },
+  { value: 'not-okay', label: 'Not okay' },
+]
+
+const outcomeLabels: Record<OutcomeBand, string> = {
+  okay: 'Okay',
+  maybe: 'Maybe - see notes',
+  'not-okay': 'Not okay',
+  'not-assessed': 'Not assessed',
+  'outside-coverage': 'Outside current coverage',
+}
+
+const defaultScopeSlug = 'pregnancy-food-safety'
 
 export const CataloguePage = ({ content }: CataloguePageProps) => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -35,13 +45,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
     content.guidanceLists,
     new Set(categoryBySlug.keys()),
   )
-  const guidanceList = content.guidanceLists.find((list) => list.slug === queryState.displayListSlug)!
-  const statusIdsByGuidanceListId = Object.fromEntries(
-    Object.entries(queryState.statusSlugsByListSlug).map(([listSlug, statusSlugs]) => {
-      const list = content.guidanceLists.find((candidate) => candidate.slug === listSlug)!
-      return [list.id, list.statuses.filter((status) => statusSlugs.includes(status.slug)).map((status) => status.id)]
-    }),
-  )
+  const selectedGuidanceLists = content.guidanceLists.filter((list) => queryState.scopeSlugs.includes(list.slug))
   const selectedFoods = filterFoods(
     content.foods,
     content.categories,
@@ -50,17 +54,15 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
     {
       query: queryState.query,
       categoryId: queryState.categorySlug ? categoryBySlug.get(queryState.categorySlug)?.id : undefined,
-      statusIdsByGuidanceListId,
+      guidanceListIds: selectedGuidanceLists.map((list) => list.id),
+      outcomeBands: queryState.outcomeBands,
     },
   )
   const foodsInCategory = foodsByCategoryId(selectedFoods)
+  const hasNonDefaultScope = queryState.scopeSlugs.length !== 1 || queryState.scopeSlugs[0] !== defaultScopeSlug
   const hasActiveFilters = Boolean(
-    queryState.query || queryState.categorySlug || Object.keys(queryState.statusSlugsByListSlug).length > 0,
+    queryState.query || queryState.categorySlug || queryState.outcomeBands.length > 0 || hasNonDefaultScope,
   )
-  const statusFacetLists = [
-    guidanceList,
-    ...content.guidanceLists.filter((list) => list.id !== guidanceList.id),
-  ]
   const [isFilterDisclosureOpen, setFilterDisclosureOpen] = useState(
     () => window.matchMedia('(min-width: 48rem)').matches,
   )
@@ -85,38 +87,32 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
     setSearchParams(buildCatalogueQuery(update(queryState), content.guidanceLists), { replace })
   }
 
+  const returnSearch = buildCatalogueQuery(queryState, content.guidanceLists).toString()
+
   return (
     <main className="page-content content-width" id="main-content" tabIndex={-1}>
       <section aria-labelledby="guide-title" className="guide-intro">
         <p className="eyebrow">Food guide</p>
-        <h1 id="guide-title">{guidanceList.title}</h1>
-        <p>{guidanceList.description}</p>
-        <dl className="status-key" aria-label="Status meanings">
-          {guidanceList.statuses.map((status) => (
-            <div className={`status-key-item tone-${status.tone}`} key={status.id}>
-              <dt><span aria-hidden="true" className={`status-icon tone-${status.tone}`}>{statusIcon[status.tone]}</span>{status.label}</dt>
-              <dd>{toneDescription[status.tone]}</dd>
-            </div>
-          ))}
-        </dl>
+        <h1 id="guide-title">Polly&apos;s Food Guide</h1>
+        <p>Find food guidance for the dietary scopes that matter to you.</p>
       </section>
 
       <section aria-labelledby="catalogue-heading">
         <h2 id="catalogue-heading">Browse foods</h2>
         <div className="catalogue-tools">
           <form className="search-controls" role="search" onSubmit={(event) => event.preventDefault()}>
-          <div className="filter-field filter-search">
-            <label htmlFor="food-search">Search foods</label>
-            <input
-              id="food-search"
-              type="search"
-              value={queryState.query}
-              onChange={(event) => updateQueryState(
-                (current) => ({ ...current, query: event.target.value }),
-                true,
-              )}
-            />
-          </div>
+            <div className="filter-field filter-search">
+              <label htmlFor="food-search">Search foods</label>
+              <input
+                id="food-search"
+                type="search"
+                value={queryState.query}
+                onChange={(event) => updateQueryState(
+                  (current) => ({ ...current, query: event.target.value }),
+                  true,
+                )}
+              />
+            </div>
           </form>
           <details
             className="filter-disclosure"
@@ -125,80 +121,77 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
           >
             <summary>Filters</summary>
             <div className="filter-controls">
-          <div className="filter-field">
-            <label htmlFor="category-filter">Category</label>
-            <select
-              id="category-filter"
-              value={queryState.categorySlug ?? ''}
-              onChange={(event) => updateQueryState((current) => ({
-                ...current,
-                categorySlug: event.target.value || undefined,
-              }))}
-            >
-              <option value="">All categories</option>
-              {categoryRows.map(({ category, breadcrumb }) => (
-                <option key={category.id} value={category.slug}>{breadcrumb}</option>
-              ))}
-            </select>
-          </div>
-          <div className="filter-field">
-            <label htmlFor="guidance-list">Guidance list</label>
-            <select
-              id="guidance-list"
-              value={guidanceList.slug}
-              onChange={(event) => updateQueryState((current) => ({
-                ...current,
-                displayListSlug: event.target.value,
-              }))}
-            >
-              {content.guidanceLists.map((list) => (
-                <option key={list.id} value={list.slug}>{list.title}</option>
-              ))}
-            </select>
-          </div>
-          {statusFacetLists.map((list) => {
-            const selectedStatusSlugs = queryState.statusSlugsByListSlug[list.slug] ?? []
-            return (
-              <fieldset className="status-filters" key={list.id}>
-                <legend>Filter by {list.title}</legend>
-                {list.statuses.map((status) => (
-                  <label key={status.id}>
+              <div className="filter-field">
+                <label htmlFor="category-filter">Category</label>
+                <select
+                  id="category-filter"
+                  value={queryState.categorySlug ?? ''}
+                  onChange={(event) => updateQueryState((current) => ({
+                    ...current,
+                    categorySlug: event.target.value || undefined,
+                  }))}
+                >
+                  <option value="">All categories</option>
+                  {categoryRows.map(({ category, breadcrumb }) => (
+                    <option key={category.id} value={category.slug}>{breadcrumb}</option>
+                  ))}
+                </select>
+              </div>
+              <fieldset className="status-filters">
+                <legend>Dietary scopes</legend>
+                {content.guidanceLists.map((list) => {
+                  const isSelected = queryState.scopeSlugs.includes(list.slug)
+                  return (
+                    <label key={list.id}>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        disabled={isSelected && queryState.scopeSlugs.length === 1}
+                        onChange={() => updateQueryState((current) => ({
+                          ...current,
+                          scopeSlugs: isSelected
+                            ? current.scopeSlugs.filter((slug) => slug !== list.slug)
+                            : [...current.scopeSlugs, list.slug],
+                        }))}
+                      />
+                      {list.title}
+                    </label>
+                  )
+                })}
+              </fieldset>
+              <fieldset className="status-filters">
+                <legend>Outcome</legend>
+                <p>Selected outcomes must match every selected dietary scope.</p>
+                {primaryOutcomes.map((outcome) => (
+                  <label key={outcome.value}>
                     <input
                       type="checkbox"
-                      checked={selectedStatusSlugs.includes(status.slug)}
-                      onChange={() => updateQueryState((current) => {
-                        const selected = current.statusSlugsByListSlug[list.slug] ?? []
-                        const nextSelected = selected.includes(status.slug)
-                          ? selected.filter((slug) => slug !== status.slug)
-                          : [...selected, status.slug]
-                        const statusSlugsByListSlug = { ...current.statusSlugsByListSlug }
-                        if (nextSelected.length > 0) {
-                          statusSlugsByListSlug[list.slug] = nextSelected
-                        } else {
-                          delete statusSlugsByListSlug[list.slug]
-                        }
-                        return { ...current, statusSlugsByListSlug }
-                      })}
+                      checked={queryState.outcomeBands.includes(outcome.value)}
+                      onChange={() => updateQueryState((current) => ({
+                        ...current,
+                        outcomeBands: current.outcomeBands.includes(outcome.value)
+                          ? current.outcomeBands.filter((band) => band !== outcome.value)
+                          : [...current.outcomeBands, outcome.value],
+                      }))}
                     />
-                    {status.filterLabel}
+                    {outcome.label}
                   </label>
                 ))}
               </fieldset>
-            )
-          })}
-          <button
-            type="button"
-            className="clear-filters"
-            disabled={!hasActiveFilters}
-            onClick={() => updateQueryState((current) => ({
-              ...current,
-              query: '',
-              categorySlug: undefined,
-              statusSlugsByListSlug: {},
-            }))}
-          >
-            Clear filters
-          </button>
+              <button
+                type="button"
+                className="clear-filters"
+                disabled={!hasActiveFilters}
+                onClick={() => updateQueryState((current) => ({
+                  ...current,
+                  query: '',
+                  categorySlug: undefined,
+                  scopeSlugs: [defaultScopeSlug],
+                  outcomeBands: [],
+                }))}
+              >
+                Clear filters
+              </button>
             </div>
           </details>
         </div>
@@ -211,31 +204,35 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
             {queryState.categorySlug && (
               <li><button type="button" onClick={() => updateQueryState((current) => ({ ...current, categorySlug: undefined }))}>Category: {categoryBySlug.get(queryState.categorySlug)?.name}</button></li>
             )}
-            {content.guidanceLists.flatMap((list) =>
-              (queryState.statusSlugsByListSlug[list.slug] ?? []).map((statusSlug) => {
-                const status = list.statuses.find((candidate) => candidate.slug === statusSlug)!
-                return (
-                  <li key={`${list.id}-${status.id}`}>
-                    <button
-                      type="button"
-                      onClick={() => updateQueryState((current) => ({
-                        ...current,
-                        statusSlugsByListSlug: Object.fromEntries(
-                          Object.entries(current.statusSlugsByListSlug)
-                            .map(([slug, selected]) => [
-                              slug,
-                              slug === list.slug ? selected.filter((candidate) => candidate !== status.slug) : selected,
-                            ])
-                            .filter(([, selected]) => selected.length > 0),
-                        ),
-                      }))}
-                    >
-                      {list.slug}: {status.filterLabel}
-                    </button>
-                  </li>
-                )
-              }),
-            )}
+            {hasNonDefaultScope && selectedGuidanceLists.map((list) => (
+              <li key={list.id}>
+                <button
+                  type="button"
+                  disabled={queryState.scopeSlugs.length === 1}
+                  onClick={() => updateQueryState((current) => ({
+                    ...current,
+                    scopeSlugs: current.scopeSlugs.filter((slug) => slug !== list.slug),
+                  }))}
+                >
+                  Dietary scope: {list.title}
+                </button>
+              </li>
+            ))}
+            {queryState.outcomeBands.map((outcomeBand) => {
+              return (
+                <li key={outcomeBand}>
+                  <button
+                    type="button"
+                    onClick={() => updateQueryState((current) => ({
+                      ...current,
+                      outcomeBands: current.outcomeBands.filter((band) => band !== outcomeBand),
+                    }))}
+                  >
+                    Outcome: {outcomeLabels[outcomeBand]}
+                  </button>
+                </li>
+              )
+            })}
           </ul>
         )}
 
@@ -246,46 +243,51 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
         {selectedFoods.length === 0 ? (
           <p className="no-results">No foods match these filters. Try clearing a filter or searching for another name.</p>
         ) : (
-        <div className="catalogue">
-          {categoryRows.map(({ category, breadcrumb, depth }) => {
-            const foods = foodsInCategory.get(category.id) ?? []
-            if (foods.length === 0) {
-              return null
-            }
-            return (
-              <section
-                aria-labelledby={`category-${category.id}`}
-                className="category-group"
-                key={category.id}
-                style={{ '--category-indent': `${Math.min(depth, 6)}rem` } as React.CSSProperties}
-              >
-                <p className="breadcrumb">{breadcrumb}</p>
-                <h3 id={`category-${category.id}`}>{category.name}</h3>
-                <ul className="food-list">
-                  {foods.map((food) => {
-                    const resolved = resolveAssessment(food, guidanceList, content.assessments, content.categories)
-                    const citation = resolved.assessment?.citations[0] ?? guidanceList.coverage.citations[0]
-                    return (
-                      <li className={`food-card tone-${resolved.status.tone}`} key={food.id}>
+          <div className="catalogue">
+            {categoryRows.map(({ category, breadcrumb, depth }) => {
+              const foods = foodsInCategory.get(category.id) ?? []
+              if (foods.length === 0) {
+                return null
+              }
+              return (
+                <section
+                  aria-labelledby={`category-${category.id}`}
+                  className="category-group"
+                  key={category.id}
+                  style={{ '--category-indent': `${Math.min(depth, 6)}rem` } as React.CSSProperties}
+                >
+                  <p className="breadcrumb">{breadcrumb}</p>
+                  <h3 id={`category-${category.id}`}>{category.name}</h3>
+                  <ul className="food-list">
+                    {foods.map((food) => (
+                      <li className="food-card" key={food.id}>
                         <div className="food-card-header">
-                          <h4><Link to={`/food/${food.slug}?v=1&list=${guidanceList.slug}`}>{food.name}</Link></h4>
-                          <p className={`status tone-${resolved.status.tone}`}>
-                            <span aria-hidden="true" className="status-icon">{statusIcon[resolved.status.tone]}</span>
-                            <span>{resolved.status.label}</span>
-                          </p>
+                          <h4><Link to={`/food/${food.slug}?${returnSearch}`}>{food.name}</Link></h4>
                         </div>
-                        <p>{resolved.assessment?.summary ?? 'This food has not been individually assessed in this guidance list.'}</p>
-                        <a href={citation.url} target="_blank" rel="noreferrer">
-                          Primary source: {citation.title}
-                        </a>
+                        {selectedGuidanceLists.map((guidanceList) => {
+                          const resolved = resolveAssessment(food, guidanceList, content.assessments, content.categories)
+                          const citation = resolved.assessment?.citations[0] ?? guidanceList.coverage.citations[0]
+                          return (
+                            <section className="food-guidance" key={guidanceList.id}>
+                              <h5>{guidanceList.title}</h5>
+                              <p className={`status tone-${resolved.status.tone}`}>
+                                <span aria-hidden="true" className="status-icon">{statusIcon[resolved.status.tone]}</span>
+                                <span>{resolved.status.label}</span>
+                              </p>
+                              <p>{resolved.assessment?.summary ?? 'This food has not been individually assessed in this guidance list.'}</p>
+                              <a href={citation.url} target="_blank" rel="noreferrer">
+                                Primary source: {citation.title}
+                              </a>
+                            </section>
+                          )
+                        })}
                       </li>
-                    )
-                  })}
-                </ul>
-              </section>
-            )
-          })}
-        </div>
+                    ))}
+                  </ul>
+                </section>
+              )
+            })}
+          </div>
         )}
       </section>
     </main>

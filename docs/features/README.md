@@ -32,7 +32,7 @@ feature IDs below, must not reference the feature itself, and must not form a cy
 | F-05 | [Add independent guidance lists](<05-add-independent-guidance-lists.md>) | Done | F-01, F-02, F-03, F-04 | Add vegetarian suitability and future lists to the same catalogue. |
 | F-06 | [Improve the mobile-first accessible guide experience](<06-improve-mobile-first-accessible-guide-experience.md>) | Done | F-01, F-02 | Browse and refine food guidance confidently on phone or desktop. |
 | F-07 | [Add AI-assisted guidance-list curation](<07-ai-assisted-guidance-list-curation.md>) | Done | F-04 | Turn a maintainer-provided credible source into reviewable new guidance-list content. |
-| F-08 | [Rework guidance-scope filtering](<08-rework-guidance-scope-filtering.md>) | Proposed | F-05 | Narrow one catalogue by selected dietary scopes and generic outcomes. |
+| F-08 | [Rework guidance-scope filtering](<08-rework-guidance-scope-filtering.md>) | Done | F-05 | Narrow one catalogue by selected dietary scopes and generic outcomes. |
 
 ## Maintaining this register
 

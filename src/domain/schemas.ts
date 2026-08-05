@@ -32,6 +32,7 @@ export const statusDefinitionSchema = z.object({
   slug: identifier,
   label: z.string().trim().min(1),
   tone: z.enum(['green', 'amber', 'red', 'grey']),
+  outcomeBand: z.enum(['okay', 'maybe', 'not-okay', 'not-assessed', 'outside-coverage']),
   sortOrder: z.number().int().nonnegative(),
   filterLabel: z.string().trim().min(1),
 })
@@ -94,4 +95,5 @@ export type Food = z.infer<typeof foodSchema>
 export type GuidanceList = z.infer<typeof guidanceListSchema>
 export type FoodAssessment = z.infer<typeof foodAssessmentSchema>
 export type StatusDefinition = z.infer<typeof statusDefinitionSchema>
+export type OutcomeBand = StatusDefinition['outcomeBand']
 export type SourceCitation = z.infer<typeof sourceCitationSchema>

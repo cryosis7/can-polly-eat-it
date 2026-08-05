@@ -1,12 +1,13 @@
 import { resolveAssessment } from './assessment'
 import { buildCategoryTree } from './categoryTree'
 import { matchesSearchQuery } from './search'
-import type { Category, Food, FoodAssessment, GuidanceList } from './schemas'
+import type { Category, Food, FoodAssessment, GuidanceList, OutcomeBand } from './schemas'
 
 export type FoodFilterState = {
   query: string
   categoryId?: string
-  statusIdsByGuidanceListId: Record<string, string[]>
+  guidanceListIds: string[]
+  outcomeBands: OutcomeBand[]
 }
 
 export const categoryAndDescendantIds = (categories: Category[], categoryId: string) => {
@@ -43,10 +44,17 @@ export const filterFoods = (
       return false
     }
 
-    return Object.entries(filters.statusIdsByGuidanceListId).every(([guidanceListId, statusIds]) => {
+    return filters.guidanceListIds.every((guidanceListId) => {
       const guidanceList = guidanceListsById.get(guidanceListId)
-      return guidanceList !== undefined
-        && statusIds.includes(resolveAssessment(food, guidanceList, assessments, categories).status.id)
+      if (!guidanceList) {
+        return false
+      }
+      if (filters.outcomeBands.length === 0) {
+        return true
+      }
+      return filters.outcomeBands.includes(
+        resolveAssessment(food, guidanceList, assessments, categories).status.outcomeBand,
+      )
     })
   })
 }

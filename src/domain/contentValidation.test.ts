@@ -7,6 +7,18 @@ describe('guide content validation', () => {
   it('accepts the authored fixture content', () => {
     expect(content.foods).toHaveLength(19)
     expect(content.guidanceLists).toHaveLength(2)
+    expect(content.guidanceLists.flatMap((list) => list.statuses.map((status) => status.outcomeBand))).toEqual([
+      'okay',
+      'maybe',
+      'not-okay',
+      'not-assessed',
+      'outside-coverage',
+      'okay',
+      'not-okay',
+      'maybe',
+      'not-assessed',
+      'outside-coverage',
+    ])
   })
 
   it('rejects duplicate category slugs', () => {
@@ -69,6 +81,16 @@ describe('guide content validation', () => {
         coverage: { ...list.coverage, categoryIds: ['unknown-category'] },
       })),
     })).toThrow('covers an unknown category')
+
+    expect(() => validateContent({
+      ...content,
+      guidanceLists: content.guidanceLists.map((list) => ({
+        ...list,
+        statuses: list.statuses.map((status) => (
+          status.id === list.unassessedStatusId ? { ...status, outcomeBand: 'outside-coverage' } : status
+        )),
+      })),
+    })).toThrow('distinct neutral outcome bands')
   })
 
   it('rejects invalid assessment references and fallback statuses', () => {

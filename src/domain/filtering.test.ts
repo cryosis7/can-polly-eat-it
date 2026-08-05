@@ -9,12 +9,14 @@ describe('filterFoods', () => {
   it('matches aliases and normalised category-path text', () => {
     expect(filterFoods(foods, categories, guidanceLists, assessments, {
       query: 'yógurt',
-      statusIdsByGuidanceListId: {},
+      guidanceListIds: [],
+      outcomeBands: [],
     }).map((food) => food.slug)).toEqual(['yoghurt'])
 
     expect(filterFoods(foods, categories, guidanceLists, assessments, {
       query: 'milk-products hard-cheese',
-      statusIdsByGuidanceListId: {},
+      guidanceListIds: [],
+      outcomeBands: [],
     }).map((food) => food.slug)).toEqual(['cheddar', 'parmesan'])
   })
 
@@ -22,14 +24,14 @@ describe('filterFoods', () => {
     expect(filterFoods(foods, categories, guidanceLists, assessments, {
       query: '',
       categoryId: 'dairy',
-      statusIdsByGuidanceListId: {},
+      guidanceListIds: [],
+      outcomeBands: [],
     }).map((food) => food.slug)).toEqual(['cheddar', 'parmesan', 'brie', 'yoghurt'])
 
     expect(filterFoods(foods, categories, guidanceLists, assessments, {
       query: '',
-      statusIdsByGuidanceListId: {
-        'pregnancy-food-safety': ['pregnancy-not-assessed'],
-      },
+      guidanceListIds: ['pregnancy-food-safety'],
+      outcomeBands: ['not-assessed'],
     }).map((food) => food.slug)).toEqual([
       'parmesan',
       'yoghurt',
@@ -47,24 +49,29 @@ describe('filterFoods', () => {
     ])
   })
 
-  it('ORs selected statuses within a list while combining category and status predicates', () => {
+  it('ORs selected outcome bands within a scope while combining category and outcome predicates', () => {
     expect(filterFoods(foods, categories, guidanceLists, assessments, {
       query: '',
       categoryId: 'dairy',
-      statusIdsByGuidanceListId: {
-        'pregnancy-food-safety': ['pregnancy-avoid', 'pregnancy-not-assessed'],
-      },
+      guidanceListIds: ['pregnancy-food-safety'],
+      outcomeBands: ['not-okay', 'not-assessed'],
     }).map((food) => food.slug)).toEqual(['parmesan', 'brie', 'yoghurt'])
   })
 
-  it('ANDs vegetarian and pregnancy status constraints from separate lists', () => {
+  it('ANDs outcome constraints across vegetarian and pregnancy scopes', () => {
     expect(filterFoods(foods, categories, guidanceLists, assessments, {
       query: '',
       categoryId: 'dairy',
-      statusIdsByGuidanceListId: {
-        'vegetarian-suitability': ['vegetarian-check-ingredients'],
-        'pregnancy-food-safety': ['pregnancy-not-assessed'],
-      },
+      guidanceListIds: ['vegetarian-suitability', 'pregnancy-food-safety'],
+      outcomeBands: ['maybe', 'not-assessed'],
     }).map((food) => food.slug)).toEqual(['yoghurt'])
+  })
+
+  it('rejects an unknown selected guidance scope', () => {
+    expect(filterFoods(foods, categories, guidanceLists, assessments, {
+      query: '',
+      guidanceListIds: ['unknown-guidance-list'],
+      outcomeBands: [],
+    })).toEqual([])
   })
 })

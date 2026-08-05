@@ -9,11 +9,11 @@ export const guidanceLists: GuidanceList[] = [
     unassessedStatusId: 'pregnancy-not-assessed',
     outOfCoverageStatusId: 'pregnancy-outside-coverage',
     statuses: [
-      { id: 'pregnancy-ok', slug: 'ok-to-eat', label: 'OK to eat', tone: 'green', sortOrder: 1, filterLabel: 'OK to eat' },
-      { id: 'pregnancy-conditions', slug: 'only-with-conditions', label: 'Only with conditions', tone: 'amber', sortOrder: 2, filterLabel: 'Only with conditions' },
-      { id: 'pregnancy-avoid', slug: 'avoid', label: 'Avoid', tone: 'red', sortOrder: 3, filterLabel: 'Avoid' },
-      { id: 'pregnancy-not-assessed', slug: 'not-assessed', label: 'Not assessed', tone: 'grey', sortOrder: 4, filterLabel: 'Not assessed' },
-      { id: 'pregnancy-outside-coverage', slug: 'outside-current-coverage', label: 'Outside current coverage', tone: 'grey', sortOrder: 5, filterLabel: 'Outside current coverage' },
+      { id: 'pregnancy-ok', slug: 'ok-to-eat', label: 'OK to eat', tone: 'green', outcomeBand: 'okay', sortOrder: 1, filterLabel: 'OK to eat' },
+      { id: 'pregnancy-conditions', slug: 'only-with-conditions', label: 'Only with conditions', tone: 'amber', outcomeBand: 'maybe', sortOrder: 2, filterLabel: 'Only with conditions' },
+      { id: 'pregnancy-avoid', slug: 'avoid', label: 'Avoid', tone: 'red', outcomeBand: 'not-okay', sortOrder: 3, filterLabel: 'Avoid' },
+      { id: 'pregnancy-not-assessed', slug: 'not-assessed', label: 'Not assessed', tone: 'grey', outcomeBand: 'not-assessed', sortOrder: 4, filterLabel: 'Not assessed' },
+      { id: 'pregnancy-outside-coverage', slug: 'outside-current-coverage', label: 'Outside current coverage', tone: 'grey', outcomeBand: 'outside-coverage', sortOrder: 5, filterLabel: 'Outside current coverage' },
     ],
     coverage: {
       mode: 'category-subtrees-and-foods',
@@ -35,11 +35,11 @@ export const guidanceLists: GuidanceList[] = [
     unassessedStatusId: 'vegetarian-not-assessed',
     outOfCoverageStatusId: 'vegetarian-outside-coverage',
     statuses: [
-      { id: 'vegetarian-suitable', slug: 'vegetarian', label: 'Vegetarian', tone: 'green', sortOrder: 1, filterLabel: 'Vegetarian' },
-      { id: 'vegetarian-animal-derived', slug: 'contains-animal-derived-ingredients', label: 'Contains animal-derived ingredients', tone: 'red', sortOrder: 2, filterLabel: 'Contains animal-derived ingredients' },
-      { id: 'vegetarian-check-ingredients', slug: 'check-ingredients', label: 'Check ingredients', tone: 'amber', sortOrder: 3, filterLabel: 'Check ingredients' },
-      { id: 'vegetarian-not-assessed', slug: 'not-assessed', label: 'Not assessed', tone: 'grey', sortOrder: 4, filterLabel: 'Not assessed' },
-      { id: 'vegetarian-outside-coverage', slug: 'outside-current-coverage', label: 'Outside current coverage', tone: 'grey', sortOrder: 5, filterLabel: 'Outside current coverage' },
+      { id: 'vegetarian-suitable', slug: 'vegetarian', label: 'Vegetarian', tone: 'green', outcomeBand: 'okay', sortOrder: 1, filterLabel: 'Vegetarian' },
+      { id: 'vegetarian-animal-derived', slug: 'contains-animal-derived-ingredients', label: 'Contains animal-derived ingredients', tone: 'red', outcomeBand: 'not-okay', sortOrder: 2, filterLabel: 'Contains animal-derived ingredients' },
+      { id: 'vegetarian-check-ingredients', slug: 'check-ingredients', label: 'Check ingredients', tone: 'amber', outcomeBand: 'maybe', sortOrder: 3, filterLabel: 'Check ingredients' },
+      { id: 'vegetarian-not-assessed', slug: 'not-assessed', label: 'Not assessed', tone: 'grey', outcomeBand: 'not-assessed', sortOrder: 4, filterLabel: 'Not assessed' },
+      { id: 'vegetarian-outside-coverage', slug: 'outside-current-coverage', label: 'Outside current coverage', tone: 'grey', outcomeBand: 'outside-coverage', sortOrder: 5, filterLabel: 'Outside current coverage' },
     ],
     coverage: {
       mode: 'category-subtrees-and-foods',

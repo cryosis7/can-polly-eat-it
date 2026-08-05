@@ -1,10 +1,10 @@
-import type { GuidanceList } from '../domain/schemas'
+import type { GuidanceList, OutcomeBand } from '../domain/schemas'
 
 export type CatalogueQueryState = {
-  displayListSlug: string
+  scopeSlugs: string[]
+  outcomeBands: OutcomeBand[]
   query: string
   categorySlug?: string
-  statusSlugsByListSlug: Record<string, string[]>
 }
 
 export type ParsedCatalogueQuery = {
@@ -13,11 +13,12 @@ export type ParsedCatalogueQuery = {
 }
 
 const unique = (values: string[]) => [...new Set(values)]
+const outcomeBandOrder: OutcomeBand[] = ['okay', 'maybe', 'not-okay', 'not-assessed', 'outside-coverage']
 
 const defaultState = (guidanceLists: GuidanceList[]): CatalogueQueryState => ({
-  displayListSlug: guidanceLists[0].slug,
+  scopeSlugs: [guidanceLists.find((list) => list.slug === 'pregnancy-food-safety')?.slug ?? guidanceLists[0].slug],
+  outcomeBands: [],
   query: '',
-  statusSlugsByListSlug: {},
 })
 
 export const parseCatalogueQuery = (
@@ -33,13 +34,18 @@ export const parseCatalogueQuery = (
     unavailableFiltersRemoved = true
   }
 
-  const requestedListSlug = searchParams.get('list')
-  if (requestedListSlug) {
-    if (guidanceLists.some((list) => list.slug === requestedListSlug) && (version === null || version === '1')) {
-      state.displayListSlug = requestedListSlug
-    } else {
+  const requestedScopeSlugs = unique((searchParams.get('scope') ?? '').split(',').filter(Boolean))
+  if (requestedScopeSlugs.length > 0) {
+    const validScopeSlugs = requestedScopeSlugs.filter((slug) => guidanceLists.some((list) => list.slug === slug))
+    if (validScopeSlugs.length > 0 && (version === null || version === '1')) {
+      state.scopeSlugs = validScopeSlugs
+    }
+    if (validScopeSlugs.length !== requestedScopeSlugs.length || version !== null && version !== '1') {
       unavailableFiltersRemoved = true
     }
+  }
+  if (searchParams.has('list') || [...searchParams.keys()].some((key) => key.startsWith('status.'))) {
+    unavailableFiltersRemoved = true
   }
 
   const query = searchParams.get('q')
@@ -56,23 +62,15 @@ export const parseCatalogueQuery = (
     }
   }
 
-  for (const [key, value] of searchParams.entries()) {
-    if (!key.startsWith('status.')) {
-      continue
+  const requestedOutcomes = unique((searchParams.get('outcome') ?? '').split(',').filter(Boolean))
+  if (requestedOutcomes.length > 0) {
+    const validOutcomes = requestedOutcomes.filter((outcome): outcome is OutcomeBand =>
+      outcomeBandOrder.includes(outcome as OutcomeBand),
+    )
+    if (version === null || version === '1') {
+      state.outcomeBands = validOutcomes
     }
-    const listSlug = key.slice('status.'.length)
-    const guidanceList = guidanceLists.find((list) => list.slug === listSlug)
-    if (!guidanceList) {
-      unavailableFiltersRemoved = true
-      continue
-    }
-    const validStatusSlugs = unique(value.split(',').filter((slug) =>
-      guidanceList.statuses.some((status) => status.slug === slug),
-    ))
-    if (validStatusSlugs.length > 0) {
-      state.statusSlugsByListSlug[listSlug] = validStatusSlugs
-    }
-    if (validStatusSlugs.length !== unique(value.split(',').filter(Boolean)).length) {
+    if (validOutcomes.length !== requestedOutcomes.length || version !== null && version !== '1') {
       unavailableFiltersRemoved = true
     }
   }
@@ -84,7 +82,11 @@ export const buildCatalogueQuery = (
   state: CatalogueQueryState,
   guidanceLists: GuidanceList[],
 ): URLSearchParams => {
-  const searchParams = new URLSearchParams({ v: '1', list: state.displayListSlug })
+  const scopeSlugs = guidanceLists
+    .filter((list) => state.scopeSlugs.includes(list.slug))
+    .map((list) => list.slug)
+  const orderedOutcomes = outcomeBandOrder.filter((outcome) => state.outcomeBands.includes(outcome))
+  const searchParams = new URLSearchParams({ v: '1', scope: scopeSlugs.join(',') })
   if (state.query) {
     searchParams.set('q', state.query)
   }
@@ -92,14 +94,8 @@ export const buildCatalogueQuery = (
     searchParams.set('category', state.categorySlug)
   }
 
-  for (const guidanceList of guidanceLists) {
-    const selectedSlugs = state.statusSlugsByListSlug[guidanceList.slug] ?? []
-    const orderedSlugs = guidanceList.statuses
-      .filter((status) => selectedSlugs.includes(status.slug))
-      .map((status) => status.slug)
-    if (orderedSlugs.length > 0) {
-      searchParams.set(`status.${guidanceList.slug}`, orderedSlugs.join(','))
-    }
+  if (orderedOutcomes.length > 0) {
+    searchParams.set('outcome', orderedOutcomes.join(','))
   }
 
   return searchParams

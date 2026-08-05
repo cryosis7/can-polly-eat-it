@@ -1,6 +1,6 @@
 # F-08: Rework Guidance-Scope Filtering
 
-**Status:** Proposed
+**Status:** Done
 
 **Depends on:** [F-05: Add Independent Guidance Lists](<05-add-independent-guidance-lists.md>)
 
@@ -101,13 +101,13 @@ classDiagram
 - Adding recipe/ingredient analysis, user profiles, or further dietary lists.
 - Treating missing assessment or outside coverage as safe.
 
-## Assumptions and open questions
+## Implementation notes
 
 - The accepted ADR defines the replacement URL contract and filtering semantics.
 - F-05 supplies the existing pregnancy and vegetarian assessments required to validate combined
   scopes.
-- Move this feature to `Planned` only after an approved F-08 implementation plan records affected
-  code, test files, rollout checks, and direct-URL scenarios.
+- The accepted ADR's implementation plan governed the completed work across schemas, domain
+  filtering, URL state, catalogue and detail rendering, and browser coverage.
 
 ## Acceptance criteria
 
@@ -121,7 +121,10 @@ classDiagram
 
 ## Validation
 
-Run focused domain tests for outcome-band mapping, coverage fallbacks, and AND-across-scope filtering;
-React Testing Library coverage for scope/outcome controls and cards; Chromium tests for default,
-combined, and direct filtered URLs; then the repository coverage, lint, type-check, and production
-build quality gates.
+Completed 2026-08-06:
+
+- `npm run test:coverage`
+- `npm run test:e2e -- e2e/catalogue.spec.ts`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run build`

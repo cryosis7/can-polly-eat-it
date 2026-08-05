@@ -4,7 +4,7 @@
 
 **Depends on:** [F-01: Browse the Food Guide](<01-browse-food-guide.md>), [F-02: Search and Filter Foods](<02-search-and-filter-foods.md>), [F-03: Explain Food Guidance](<03-explain-food-guidance.md>), and [F-04: Maintain Trustworthy Guidance Content](<04-maintain-trustworthy-guidance-content.md>)
 
-**Governing decisions:** [independent guidance lists](<../decisions/2026-08-04 ADR - use independent guidance lists for food assessments.md>), [version-controlled static content](<../decisions/2026-08-04 ADR - store reviewed guide content as version-controlled static data.md>), [canonical reason foods](<../decisions/2026-08-04 ADR - link assessments to canonical reason foods.md>), and [remove temporal freshness metadata](<../decisions/2026-08-05 ADR - remove temporal freshness metadata from guidance content.md>)
+**Governing decisions:** [independent guidance lists](<../decisions/2026-08-04 ADR - use independent guidance lists for food assessments.md>), [version-controlled static content](<../decisions/2026-08-04 ADR - store reviewed guide content as version-controlled static data.md>), [canonical reason foods](<../decisions/2026-08-04 ADR - link assessments to canonical reason foods.md>), [remove temporal freshness metadata](<../decisions/2026-08-05 ADR - remove temporal freshness metadata from guidance content.md>), and [scoped guidance with generic outcome filters](<../decisions/2026-08-06 ADR - show scoped guidance with generic outcome filters.md>)
 
 ## Goal
 
@@ -13,12 +13,12 @@ classification into a growing set of hard-coded booleans.
 
 ## Primary experience
 
-1. Select the pregnancy or vegetarian list from the catalogue.
-2. Read statuses in the vocabulary appropriate to that list.
-3. Filter by statuses within the selected list, or intentionally apply compatible filters across
-   lists.
-4. Open the same food detail with `v=1&list=<list-slug>` and switch lists without navigating to a
-   duplicated catalogue.
+1. Start with pregnancy food safety selected and add vegetarian suitability when both constraints
+   matter.
+2. Read each selected scope's status in the vocabulary appropriate to that list.
+3. Filter selected scopes by generic outcome bands without duplicating food records.
+4. Open the same food detail with preserved scope/outcome context and read every independently
+   resolved guidance section.
 
 ## Required behaviour
 
@@ -32,8 +32,9 @@ classification into a growing set of hard-coded booleans.
 - Composite or brand-dependent foods use an explicit "Check ingredients" style outcome rather than
   an unjustified binary answer. A cited reason can link to a canonical ingredient food such as
   Gelatin, but the composite food retains its own list-specific assessment.
-- Cross-list filtering follows the documented semantics: OR for selected statuses within one list,
-  AND for predicates from different lists; every cross-list constraint is visibly labelled.
+- Cross-list filtering follows the documented semantics: selected generic outcomes are alternatives
+  within every selected scope and selected scopes are cumulative constraints; every active scope or
+  outcome is visibly labelled.
 
 ## Non-goals
 
@@ -66,5 +67,5 @@ Implement according to [the F-05 implementation plan](<05-add-independent-guidan
 ## Validation
 
 When implemented, retain the repository-wide 100% global statements, branches, functions, and lines
-coverage thresholds for application source. Add Chromium Playwright tests for switching the displayed
-list, list-specific status labels, cross-list filters, and direct list-specific food-detail URLs.
+coverage thresholds for application source. Add Chromium Playwright tests for selected dietary
+scopes, list-specific status labels, generic outcome filters, and direct scoped food-detail URLs.

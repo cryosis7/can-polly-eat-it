@@ -4,7 +4,7 @@
 
 **Depends on:** [F-01: Browse the Food Guide](<01-browse-food-guide.md>) and [F-02: Search and Filter Foods](<02-search-and-filter-foods.md>)
 
-**Governing decisions:** [Static TypeScript React SPA](<../decisions/2026-08-04 ADR - use a static TypeScript React SPA.md>)
+**Governing decisions:** [Static TypeScript React SPA](<../decisions/2026-08-04 ADR - use a static TypeScript React SPA.md>) and [scoped guidance with generic outcome filters](<../decisions/2026-08-06 ADR - show scoped guidance with generic outcome filters.md>)
 
 ## Goal
 
@@ -19,8 +19,8 @@ dense controls or relying on colour.
 2. Read clear guidance headings, status meanings, and food cards in a warm editorial presentation.
 3. Search food names from the always-visible search field.
 4. On a narrow viewport, open the native `Filters` disclosure to narrow by a path-aware category
-   control, choose the display list, or apply guidance-list status facets; on a wider viewport, use
-   the same controls without concealing them.
+   control, dietary scopes, or generic outcome bands; on a wider viewport, use the same controls
+   without concealing them.
 5. See the result count, active filter chips, and no-results guidance update without losing the
    shareable URL or keyboard focus.
 
@@ -37,19 +37,16 @@ dense controls or relying on colour.
 - Keep search, active-filter chips, and result feedback visible while the detailed controls are
   collapsed on narrow viewports.
 - Use a native `details` and `summary` disclosure for detailed filters on narrow viewports. It must
-  contain the category, guidance-list, status, and clear-filter controls; it is initially expanded
+  contain the category, dietary-scope, generic-outcome, and clear-filter controls; it is initially expanded
   on wider viewports and initially collapsed on narrow viewports.
 - Present category narrowing as a hierarchy-aware control that can select a parent, intermediate, or
   leaf category by its full path, for example `Dairy > Cheese > Soft cheese`; selecting any category
   continues to include descendant foods.
 - Show category-path context on catalogue cards or their containing category rows so a person can see
   why a food appears under a nested branch without relying on heading depth alone.
-- Group status filters by guidance list as separate facets. Keep native checkboxes for multi-select
-  statuses within each list, rather than replacing them with a custom dropdown multi-select.
-- Prioritise the selected display list's status facet, but keep the same facet pattern available for
-  vegetarian, vegan, or other future guidance lists. Additional list facets may be progressively
-  disclosed so the filter area does not become a long always-expanded checklist.
-- Preserve the existing versioned URL contract, filtering semantics, result-count announcement,
+- Group dietary scopes and generic outcome bands as separate native checkbox facets, rather than
+  replacing them with a custom dropdown multi-select.
+- Preserve the versioned scope/outcome URL contract, filtering semantics, result-count announcement,
   invalid-filter announcement, no-results state, direct food links, and status/source information.
 - Add an in-page skip link, a keyboard-reachable main-content target, and clear structural
   landmarks in the shared shell.
@@ -62,8 +59,8 @@ dense controls or relying on colour.
 
 - Implementing or designing the unbuilt food-detail experience in F-03.
 - A user-selectable light/dark theme, saved preference, or any other personalisation.
-- Changing guidance content, assessment/filtering logic, the URL contract, data model, routing, or
-  application dependencies.
+- Changing guidance content, routing, or application dependencies. F-08 later changed filtering
+  logic, the URL contract, and the presentation of guidance scopes.
 - A custom modal, side drawer, or JavaScript-only filter experience.
 - A custom multi-select dropdown or dense comparison matrix for guidance statuses.
 
@@ -74,9 +71,10 @@ dense controls or relying on colour.
   runtime theme selector.
 - **Mobile filter pattern:** native `details`/`summary` is preferred for semantic, keyboard, and
   progressive-enhancement reliability.
-- **Filter mental model:** filters are facets. Category is one hierarchy-aware facet; each guidance
-  list contributes its own status facet. This supports future vegetarian and vegan lists without
-  adding hard-coded dietary fields to food records.
+- **Filter mental model:** filters are facets. Category is one hierarchy-aware facet; dietary scopes
+  are cumulative constraints and generic outcome bands are alternatives within every selected scope.
+  This supports future vegetarian and vegan lists without adding hard-coded dietary fields to food
+  records.
 - The initial disclosure state may reflect the viewport when the page first renders; resizing does
   not need to override the person's subsequent open/closed choice.
 - The scope and delivery priority were approved for implementation on 2026-08-05. The documented
@@ -90,12 +88,12 @@ dense controls or relying on colour.
 - At a desktop viewport, the editorial hierarchy is readable and detailed filters are immediately
   available without a disclosure interaction.
 - Selecting `Dairy`, `Dairy > Cheese`, or `Dairy > Cheese > Soft cheese` narrows to the selected
-  category's descendant foods while preserving the existing versioned URL contract.
+  category's descendant foods while preserving the versioned scope/outcome URL contract.
 - Catalogue cards or visible category rows expose the relevant category path so nested results remain
   understandable when a person arrives from search or a filtered URL.
-- Pregnancy, vegetarian, and future vegan status controls can be shown as separate guidance-list
-  facets using native checkbox groups; selected statuses within one list remain alternatives, while
-  selections across lists remain cumulative.
+- Pregnancy, vegetarian, and future vegan scope controls can be shown using native checkbox groups;
+  generic outcomes remain alternatives within every selected scope, while selected scopes remain
+  cumulative.
 - A keyboard user can skip repeated shell content, reach the main guide, operate search, disclosure,
   selects, checkboxes, clear action, and chips, and can always see where focus is.
 - A screen-reader user receives semantic landmarks, labelled controls, results feedback, status

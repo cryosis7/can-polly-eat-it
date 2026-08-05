@@ -1,17 +1,18 @@
 import { expect, test } from '@playwright/test'
 
 test.describe('Food catalogue', () => {
-  test('shows the default guide, food outcomes, and source links', async ({ page }) => {
+  test('shows pregnancy guidance by default with neutral fallback states', async ({ page }) => {
     await page.goto('/')
 
-    await expect(page.getByRole('heading', { name: 'Pregnancy food safety' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: "Polly's Food Guide" })).toBeVisible()
+    await expect(page.getByRole('checkbox', { name: 'Pregnancy food safety' })).toBeChecked()
+    await expect(page.getByRole('checkbox', { name: 'Vegetarian suitability' })).not.toBeChecked()
     await expect(page.locator('.breadcrumb', { hasText: 'Dairy > Cheese > Hard cheese' })).toBeVisible()
     await expect(page.getByText('OK to eat').first()).toBeVisible()
     await expect(page.getByText('Only with conditions').first()).toBeVisible()
-    await expect(page.getByText('Avoid').first()).toBeVisible()
     await expect(page.getByText('Not assessed').first()).toBeVisible()
     await expect(page.getByText('Outside current coverage').first()).toBeVisible()
-    await expect(page.getByRole('link', { name: /Primary source: MPI: Food and pregnancy/i })).toHaveCount(19)
+    await expect(page.getByRole('checkbox', { name: 'Not assessed' })).toHaveCount(0)
   })
 
   test('finds a food through an alias search', async ({ page }) => {
@@ -25,37 +26,35 @@ test.describe('Food catalogue', () => {
     await expect(page).toHaveURL(/q=yogurt/)
   })
 
-  test('filters by category and status, then clears filters', async ({ page }) => {
+  test('reproduces combined scopes and outcomes from a direct URL', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await page.goto('/?v=1&scope=pregnancy-food-safety,vegetarian-suitability&outcome=okay,maybe')
+
+    await expect(page.locator('details')).toHaveAttribute('open', '')
+    await expect(page.getByRole('checkbox', { name: 'Pregnancy food safety' })).toBeChecked()
+    await expect(page.getByRole('checkbox', { name: 'Vegetarian suitability' })).toBeChecked()
+    await expect(page.getByRole('checkbox', { name: 'Okay', exact: true })).toBeChecked()
+    await expect(page.getByRole('checkbox', { name: 'Maybe - see notes' })).toBeChecked()
+    await expect(page.getByRole('button', { name: 'Dietary scope: Pregnancy food safety' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Outcome: Maybe - see notes' })).toBeVisible()
+    await expect(page.getByText(/No foods match these filters/i)).toBeVisible()
+  })
+
+  test('updates scope and outcome controls, then clears filters', async ({ page }) => {
     await page.goto('/')
 
-    await page.getByRole('combobox', { name: 'Category' }).selectOption('dairy')
-    await page.getByRole('group', { name: 'Filter by Pregnancy food safety' }).getByRole('checkbox', { name: 'Avoid' }).click()
+    await page.getByRole('checkbox', { name: 'Vegetarian suitability' }).click()
+    await page.getByRole('checkbox', { name: 'Not okay' }).click()
 
-    await expect(page.getByRole('button', { name: 'Category: Dairy' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'pregnancy-food-safety: Avoid' })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Brie' })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Cheddar' })).not.toBeVisible()
-    await expect(page.getByText('1 food in the guide')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Dietary scope: Vegetarian suitability' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Outcome: Not okay' })).toBeVisible()
+    await expect(page).toHaveURL(/scope=pregnancy-food-safety%2Cvegetarian-suitability/)
 
     await page.getByRole('button', { name: 'Clear filters' }).click()
 
-    await expect(page.getByText('19 foods in the guide')).toBeVisible()
+    await expect(page.getByRole('checkbox', { name: 'Pregnancy food safety' })).toBeChecked()
+    await expect(page.getByRole('checkbox', { name: 'Vegetarian suitability' })).not.toBeChecked()
     await expect(page.getByRole('button', { name: 'Clear filters' })).toBeDisabled()
-  })
-
-  test('reproduces a filtered catalogue from a direct URL', async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 800 })
-    await page.goto('/?v=1&list=pregnancy-food-safety&category=dairy&status.pregnancy-food-safety=avoid,not-assessed')
-
-    await expect(page.locator('details')).toHaveAttribute('open', '')
-    await expect(page.getByRole('combobox', { name: 'Category' })).toHaveValue('dairy')
-    await expect(page.getByRole('checkbox', { name: 'Avoid' })).toBeChecked()
-    await expect(
-      page.getByRole('group', { name: 'Filter by Pregnancy food safety' }).getByRole('checkbox', { name: 'Not assessed' }),
-    ).toBeChecked()
-    await expect(page.getByRole('link', { name: 'Brie' })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Yoghurt' })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Cheddar' })).not.toBeVisible()
   })
 
   test('keeps mobile search and feedback visible while filters are disclosed', async ({ page }) => {
@@ -75,41 +74,30 @@ test.describe('Food catalogue', () => {
     await expect(page).toHaveURL(/category=dairy/)
   })
 
-  test('shows a direct food-detail route with its selected list, citation, and disclaimer', async ({ page }) => {
-    await page.goto('/food/cheddar?v=1&list=pregnancy-food-safety')
-
-    await expect(page.getByRole('heading', { name: 'Cheddar' })).toBeVisible()
-    await expect(page.getByText('Pregnancy food safety')).toBeVisible()
-    await expect(page.getByText('OK to eat')).toBeVisible()
-    await expect(page.getByRole('link', { name: 'MPI: Food and pregnancy' })).toHaveAttribute(
-      'href',
-      'https://www.mpi.govt.nz/food-safety-home/food-pregnancy/list-safe-food-pregnancy/',
-    )
-    await expect(page.getByLabel('Medical information disclaimer')).toContainText('general information, not medical advice')
-  })
-
-  test('switches to vegetarian guidance and reproduces cross-list filters from a direct URL', async ({ page }) => {
-    await page.goto('/?v=1&list=vegetarian-suitability&category=dairy&status.vegetarian-suitability=check-ingredients&status.pregnancy-food-safety=not-assessed')
-
-    await expect(page.getByRole('heading', { name: 'Vegetarian suitability' })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Yoghurt' })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Parmesan' })).not.toBeVisible()
-    await expect(page.getByText('1 food in the guide')).toBeVisible()
-  })
-
-  test('shows a direct vegetarian food-detail route with its article source', async ({ page }) => {
-    await page.goto('/food/yoghurt?v=1&list=vegetarian-suitability')
+  test('shows all independently resolved guidance on a direct food-detail route', async ({ page }) => {
+    await page.goto('/food/yoghurt?v=1&scope=vegetarian-suitability')
 
     await expect(page.getByRole('heading', { name: 'Yoghurt' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Pregnancy food safety' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Vegetarian suitability' })).toBeVisible()
     await expect(page.getByText('Check ingredients')).toBeVisible()
     await expect(page.getByRole('link', { name: 'Veggy Malta: 15 Products Not Vegetarian' })).toHaveAttribute(
       'href',
       'https://veggymalta.com/15-products-not-vegetarian/',
     )
+    await expect(page.getByLabel('Medical information disclaimer')).toContainText('general information, not medical advice')
+  })
+
+  test('removes unavailable URL constraints without dropping valid search text', async ({ page }) => {
+    await page.goto('/?v=2&scope=unknown&outcome=unknown&q=yogurt')
+
+    await expect(page.getByRole('status')).toContainText('Unavailable shared filters were removed.')
+    await expect(page.getByRole('link', { name: 'Yoghurt' })).toBeVisible()
+    await expect(page).toHaveURL(/scope=pregnancy-food-safety/)
   })
 
   test('shows a safe food-not-found route', async ({ page }) => {
-    await page.goto('/food/removed-food?v=1&list=pregnancy-food-safety')
+    await page.goto('/food/removed-food?v=1&scope=pregnancy-food-safety')
 
     await expect(page.getByRole('heading', { name: 'Food not found' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Return to the food guide' })).toBeVisible()

@@ -55,7 +55,7 @@ const renderDetail = (path: string, detailContent = content) => render(
 
 describe('FoodDetailPage', () => {
   it('renders an assessed food with its status, summary, and citation', () => {
-    renderDetail('/food/cheddar?v=1&list=pregnancy-food-safety')
+    renderDetail('/food/cheddar?v=1&scope=pregnancy-food-safety')
 
     expect(screen.getByRole('heading', { name: 'Cheddar' })).toBeInTheDocument()
     expect(screen.getByText('OK to eat')).toBeInTheDocument()
@@ -67,7 +67,7 @@ describe('FoodDetailPage', () => {
   })
 
   it('renders distinct guidance scenarios, optional facts, and authored reason links', () => {
-    renderDetail('/food/leftovers?v=1&list=pregnancy-food-safety', detailedContent)
+    renderDetail('/food/leftovers?v=1&scope=pregnancy-food-safety', detailedContent)
 
     expect(screen.getByRole('heading', { name: 'How to follow this guidance' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'When reheating leftovers' })).toBeInTheDocument()
@@ -77,26 +77,27 @@ describe('FoodDetailPage', () => {
     expect(screen.getByRole('heading', { name: 'When leftovers cannot be reheated' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Cheddar' })).toHaveAttribute(
       'href',
-      '/food/cheddar?v=1&list=pregnancy-food-safety',
+      '/food/cheddar?v=1&scope=pregnancy-food-safety',
     )
   })
 
   it('renders the in-coverage not-assessed state with coverage sources and retained catalogue context', () => {
-    renderDetail('/food/yoghurt?v=1&list=pregnancy-food-safety&q=yogurt&category=dairy')
+    renderDetail('/food/yoghurt?v=1&scope=pregnancy-food-safety&q=yogurt&category=dairy')
 
     expect(screen.getByText('Not assessed')).toBeInTheDocument()
     expect(screen.getByText(/has not been individually assessed/i)).toBeInTheDocument()
     expect(screen.getByText('Dairy and prepared foods reviewed for this initial guide.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Back to the food guide' })).toHaveAttribute(
       'href',
-      '/?v=1&list=pregnancy-food-safety&q=yogurt&category=dairy',
+      '/?v=1&scope=pregnancy-food-safety&q=yogurt&category=dairy',
     )
   })
 
-  it('renders a direct vegetarian assessment with its list-specific status and source locator', () => {
-    renderDetail('/food/yoghurt?v=1&list=vegetarian-suitability')
+  it('renders all independently resolved guidance, including vegetarian assessment details', () => {
+    renderDetail('/food/yoghurt?v=1&scope=vegetarian-suitability')
 
     expect(screen.getByText('Vegetarian suitability')).toBeInTheDocument()
+    expect(screen.getByText('Pregnancy food safety')).toBeInTheDocument()
     expect(screen.getByText('Check ingredients')).toBeInTheDocument()
     expect(screen.getByText('Some yoghurts use gelatin as a gelling agent, so check the label.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Veggy Malta: 15 Products Not Vegetarian' })).toHaveAttribute(
@@ -107,14 +108,14 @@ describe('FoodDetailPage', () => {
   })
 
   it('renders the outside-coverage state with the medical-information disclaimer', () => {
-    renderDetail('/food/kombucha?v=1&list=pregnancy-food-safety')
+    renderDetail('/food/kombucha?v=1&scope=pregnancy-food-safety')
 
-    expect(screen.getByText('Outside current coverage')).toBeInTheDocument()
+    expect(screen.getAllByText('Outside current coverage')).toHaveLength(2)
     expect(screen.getByLabelText('Medical information disclaimer')).toHaveTextContent(disclaimer)
   })
 
   it('renders a safe food-not-found page', () => {
-    renderDetail('/food/removed-food?v=1&list=pregnancy-food-safety')
+    renderDetail('/food/removed-food?v=1&scope=pregnancy-food-safety')
 
     expect(screen.getByRole('heading', { name: 'Food not found' })).toBeInTheDocument()
     expect(screen.getByText(/not in the current guide/i)).toBeInTheDocument()

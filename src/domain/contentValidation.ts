@@ -69,10 +69,14 @@ const validateGuidanceLists = (guidanceLists: GuidanceList[], categoryIds: Set<s
     }
 
     const statusById = new Map(list.statuses.map((status) => [status.id, status]))
-    for (const fallbackId of [list.unassessedStatusId, list.outOfCoverageStatusId]) {
-      if (statusById.get(fallbackId)?.tone !== 'grey') {
-        fail(`guidance list "${list.id}" fallback statuses must be list-owned grey statuses.`)
-      }
+    const unassessedStatus = statusById.get(list.unassessedStatusId)
+    const outOfCoverageStatus = statusById.get(list.outOfCoverageStatusId)
+    if (unassessedStatus?.tone !== 'grey' || outOfCoverageStatus?.tone !== 'grey') {
+      fail(`guidance list "${list.id}" fallback statuses must be list-owned grey statuses.`)
+    }
+    if (unassessedStatus?.outcomeBand !== 'not-assessed'
+      || outOfCoverageStatus?.outcomeBand !== 'outside-coverage') {
+      fail(`guidance list "${list.id}" fallback statuses must retain their distinct neutral outcome bands.`)
     }
 
     assertUnique(list.coverage.categoryIds, `coverage category ID in "${list.id}"`)
