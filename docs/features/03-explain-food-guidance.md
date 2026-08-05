@@ -1,6 +1,6 @@
 # F-03: Explain Food Guidance
 
-**Status:** Planned
+**Status:** Done
 
 **Depends on:** [F-01: Browse the Food Guide](<01-browse-food-guide.md>)
 
@@ -44,10 +44,10 @@ only a red, amber, or green badge.
 
 ## Assumptions and open questions
 
-- The existing route placeholder proves direct-route composition but does not satisfy this feature's
-  explanatory content or acceptance criteria.
-- A detailed implementation plan must name the route, detail components, context-preserving return
-  behaviour, and direct-route browser tests before work moves to `In progress`.
+- The food-detail route, reason-link navigation, and safe not-found handling are implemented in
+  `src/features/food-detail/FoodDetailPage.tsx` and verified by
+  `src/features/food-detail/FoodDetailPage.test.tsx` and `e2e/catalogue.spec.ts`.
+- No open question blocks this completed slice.
 
 ## Acceptance criteria
 
