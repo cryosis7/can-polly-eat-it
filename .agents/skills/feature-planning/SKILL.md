@@ -124,8 +124,11 @@ Before finishing:
 3. Confirm each status transition is allowed and prerequisites are `Done` for `Planned` or
    `In progress`.
 4. Ensure that acceptance criteria are observable outcomes, not a list of implementation steps.
-5. Ensure a feature governed by an ADR links to it rather than duplicating or contradicting it.
-6. State what changed and any unresolved decisions in the final response.
+5. For feature-specific implementation plans, ensure the verification steps include instructing a
+   subagent to run the `prepare` skill after implementation and targeted validation, before opening
+   a PR or marking the feature `Done`.
+6. Ensure a feature governed by an ADR links to it rather than duplicating or contradicting it.
+7. State what changed and any unresolved decisions in the final response.
 
 ## Implementation hand-off
 
@@ -133,8 +136,11 @@ When a feature is approved for delivery:
 
 1. Confirm it is `Planned`, dependencies are `Done`, and its acceptance criteria are stable.
 2. Create or update its technical implementation plan with affected areas, constraints, tests, and
-   rollout/validation steps. Do not change architecture without the relevant ADR workflow.
+   rollout/validation steps. Include a pre-PR verification task that instructs a subagent to run the
+   `prepare` skill so documentation drift, dependency-version issues, and undocumented architecture
+   changes are checked independently. Do not change architecture without the relevant ADR workflow.
 3. Break the plan into ordered tasks and mark the feature `In progress` only when work actually
    begins.
-4. Mark it `Done` only after its acceptance criteria and validation evidence are complete, then
-   update the index and dependent briefs.
+4. Mark it `Done` only after its acceptance criteria and validation evidence are complete, including
+   the subagent `prepare` result or the recorded resolution of any findings, then update the index
+   and dependent briefs.

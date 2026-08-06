@@ -16,6 +16,11 @@ the source of truth for an individual feature's outcome, status, dependencies, n
 criteria, and feature-specific implementation-plan link. Do not infer a feature's current delivery
 status from a phase alone.
 
+Feature-specific implementation plans should inherit the quality gates below and add a pre-PR
+verification task that instructs a subagent to run the `prepare` skill after implementation and
+targeted validation. Resolve or record any `prepare` findings before opening a PR or marking the
+feature `Done`.
+
 The features map to this roadmap as follows:
 
 | Feature | Delivery phase |
@@ -185,7 +190,9 @@ Every pull request that changes application or content code should run:
 - a Husky pre-commit hook that runs the coverage and Playwright commands before every local commit;
 - coverage resolution, mutually exclusive-scenario, and 1,000-level tree tests;
 - Netlify deploy-preview smoke tests for direct detail routes and cache/rewrite configuration;
-- build output generation.
+- build output generation;
+- a subagent `prepare` skill run for feature implementation work, with findings resolved or recorded
+  before PR readiness.
 
 ## Deferred decisions
 
