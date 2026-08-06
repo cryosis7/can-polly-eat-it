@@ -63,15 +63,22 @@ the requested perspective.
    record where possible. Add a food or category only when the source and the intended coverage
    require it; do not duplicate the catalogue for a new list.
 5. Create or update `GuidanceList` data with list-owned statuses, distinct grey `Not assessed` and
-   `Outside current coverage` fallbacks, explicit coverage, and citations. Do not use a fallback
-   status on an assessment.
-6. Create only source-supported `FoodAssessment` records. Each requires an independent citation,
-   a list-owned non-fallback status, concise paraphrase, and separate guidance scenarios for
-   alternatives. Keep uncertain in-scope foods unassessed or use an explicit,
-   source-supported review/check-ingredients outcome.
-7. Use a reason link only when the source supports the assessed food's own conclusion and its target
+   `Outside current coverage` fallbacks, explicit coverage, an explicit `citationPolicy`, and
+   citations. Do not use a fallback status on an assessment.
+6. Create only source-supported `Assessment` records, whose subject is one food or one category. Each
+   requires an independent citation **regardless of the target list's `citationPolicy`**, because
+   this skill works from a maintainer-supplied source; an uncited generated claim is fabrication, not
+   maintainer knowledge. Each also requires a list-owned non-fallback status, a concise paraphrase,
+   and separate guidance scenarios for alternatives. A category subject additionally requires a
+   `scopeStatement` naming the breadth of the claim, and the source must actually support a claim
+   that broad. Keep uncertain in-scope foods unassessed or use an explicit, source-supported
+   review/check-ingredients outcome.
+7. When adding a food beneath a category that is already assessed, confirm the inherited outcome is
+   correct for that specific food. If it is not, author a food-level assessment; a food-level
+   assessment replaces the category's guidance entirely.
+8. Use a reason link only when the source supports the assessed food's own conclusion and its target
    is an existing canonical food. A reason link never supplies a status or citation by itself.
-8. Update focused domain, rendering, and browser tests when the draft adds a visible list or changes
+9. Update focused domain, rendering, and browser tests when the draft adds a visible list or changes
    an assessment outcome. Run the narrowest existing relevant checks first, then `npm run
    test:coverage`, `npm run test:e2e`, and `npm run build` for user-visible content. Report each
    command and its outcome; surface a failure rather than treating the draft as validated.

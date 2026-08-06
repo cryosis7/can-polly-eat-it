@@ -34,6 +34,8 @@ feature IDs below, must not reference the feature itself, and must not form a cy
 | F-06 | [Improve the mobile-first accessible guide experience](<06-improve-mobile-first-accessible-guide-experience.md>) | Done | F-01, F-02 | Browse and refine food guidance confidently on phone or desktop. |
 | F-07 | [Add AI-assisted guidance-list curation](<07-ai-assisted-guidance-list-curation.md>) | Done | F-04 | Turn a maintainer-provided credible source into reviewable new guidance-list content. |
 | F-08 | [Rework guidance-scope filtering](<08-rework-guidance-scope-filtering.md>) | Done | F-05 | Narrow one catalogue by selected dietary scopes and generic outcomes. |
+| F-09 | [Assess and browse food categories](<09-assess-and-browse-food-categories.md>) | Proposed | F-04, F-05, F-08, F-10 | Apply a source's group-level guidance to every food in that group, and browse the group itself. |
+| F-10 | [Vary citation expectations by guidance list](<10-vary-citation-expectations-by-list.md>) | Planned | F-04, F-05 | Let each guidance list set its own source expectation instead of one global citation rule. |
 
 ## Maintaining this register
 
