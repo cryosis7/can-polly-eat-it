@@ -240,6 +240,11 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
           {selectedFoods.length} {selectedFoods.length === 1 ? 'food' : 'foods'} in the guide
         </p>
         <p className="visually-hidden" role="status">{filterRemovalAnnouncement}</p>
+        {selectedGuidanceLists.filter((list) => list.evidentiaryBasis).map((list) => (
+          <p className="evidentiary-basis" key={list.id}>
+            {list.title}: {list.evidentiaryBasis}
+          </p>
+        ))}
         {selectedFoods.length === 0 ? (
           <p className="no-results">No foods match these filters. Try clearing a filter or searching for another name.</p>
         ) : (
@@ -266,7 +271,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                         </div>
                         {selectedGuidanceLists.map((guidanceList) => {
                           const resolved = resolveAssessment(food, guidanceList, content.assessments, content.categories)
-                          const citation = resolved.assessment?.citations[0] ?? guidanceList.coverage.citations[0]
+                          const citations = resolved.assessment?.citations ?? guidanceList.coverage.citations
                           return (
                             <section className="food-guidance" key={guidanceList.id}>
                               <h5>{guidanceList.title}</h5>
@@ -275,9 +280,11 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                                 <span>{resolved.status.label}</span>
                               </p>
                               <p>{resolved.assessment?.summary ?? 'This food has not been individually assessed in this guidance list.'}</p>
-                              <a href={citation.url} target="_blank" rel="noreferrer">
-                                Primary source: {citation.title}
-                              </a>
+                              {citations.length > 0 && (
+                                <a href={citations[0].url} target="_blank" rel="noreferrer">
+                                  Primary source: {citations[0].title}
+                                </a>
+                              )}
                             </section>
                           )
                         })}

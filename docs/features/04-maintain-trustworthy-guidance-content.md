@@ -24,8 +24,10 @@ automated validation.
 ## Required behaviour
 
 - Data validation rejects dangling references, category cycles, duplicate assessment pairs, invalid
-  list statuses, invalid coverage, and missing citations.
-- Every published assessment is traceable to its source.
+  list statuses, invalid coverage, and, for a citation-required guidance list, missing citations. A
+  citation-optional list's requirements are amended by [F-10](<10-vary-citation-expectations-by-list.md>).
+- Every published assessment is traceable to its source, or, for a citation-optional guidance list,
+  to its list's declared evidentiary basis.
 - Coverage resolution distinguishes an in-scope food that is "Not assessed" from one that is
   "Outside current coverage".
 - Source text is manually reviewed and succinctly paraphrased; the product does not scrape or
@@ -55,8 +57,11 @@ automated validation.
 ## Acceptance criteria
 
 - Invalid authored content fails validation with useful errors before it can be rendered.
-- Every published assessment has a status and citation with a durable URL and exact locator.
-- A reviewer can trace each published rule to an authoritative source.
+- Every published assessment has a status, and, per its guidance list's citation policy, either a
+  citation with a durable URL and exact locator or the list's declared evidentiary basis (see
+  [F-10](<10-vary-citation-expectations-by-list.md>)).
+- A reviewer can trace each published rule to an authoritative source or, for a citation-optional
+  list, to its declared evidentiary basis.
 
 ## Validation
 

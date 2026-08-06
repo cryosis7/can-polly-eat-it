@@ -28,7 +28,10 @@ const GuidanceSection = ({
   resolved,
   content,
   returnSearch,
-}: GuidanceSectionProps) => (
+}: GuidanceSectionProps) => {
+  const citations = resolved.assessment?.citations ?? guidanceList.coverage.citations
+
+  return (
   <article aria-labelledby={`guidance-${guidanceList.id}`} className="guidance-summary">
     <h3 id={`guidance-${guidanceList.id}`}>{guidanceList.title}</h3>
     <p className={`status tone-${resolved.status.tone}`}>
@@ -42,6 +45,9 @@ const GuidanceSection = ({
         <p>This food has not been individually assessed in this guidance list.</p>
         <p>{guidanceList.coverage.description}</p>
       </>
+    )}
+    {guidanceList.evidentiaryBasis && (
+      <p className="evidentiary-basis">{guidanceList.evidentiaryBasis}</p>
     )}
 
     {resolved.assessment && (
@@ -95,19 +101,22 @@ const GuidanceSection = ({
       </>
     )}
 
-    <section aria-labelledby={`sources-${guidanceList.id}`}>
-      <h4 id={`sources-${guidanceList.id}`}>Sources</h4>
-      <ul className="source-links">
-        {(resolved.assessment?.citations ?? guidanceList.coverage.citations).map((citation) => (
-          <li key={`${citation.url}-${citation.locator}`}>
-            <a href={citation.url} target="_blank" rel="noreferrer">{citation.title}</a>
-            <span> - {citation.locator}</span>
-          </li>
-        ))}
-      </ul>
-    </section>
+    {citations.length > 0 && (
+      <section aria-labelledby={`sources-${guidanceList.id}`}>
+        <h4 id={`sources-${guidanceList.id}`}>Sources</h4>
+        <ul className="source-links">
+          {citations.map((citation) => (
+            <li key={`${citation.url}-${citation.locator}`}>
+              <a href={citation.url} target="_blank" rel="noreferrer">{citation.title}</a>
+              <span> - {citation.locator}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
   </article>
-)
+  )
+}
 
 // ADR: Link assessments to canonical reason foods.
 // See: docs/decisions/2026-08-04 ADR - link assessments to canonical reason foods.md

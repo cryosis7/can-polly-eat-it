@@ -15,6 +15,9 @@ describe('guide content validation', () => {
       'not-assessed',
       'outside-coverage',
     ])
+    expect(content.guidanceLists.map((list) => list.citationPolicy)).toEqual(['required', 'optional'])
+    expect(content.guidanceLists[0].evidentiaryBasis).toBeUndefined()
+    expect(content.guidanceLists[1].evidentiaryBasis).toBeTruthy()
   })
 
   it('rejects duplicate category slugs', () => {
@@ -190,6 +193,51 @@ describe('guide content validation', () => {
         reasonLinks: [{ kind: 'contains', targetFoodId: assessment.foodId, statement: 'Self reference.' }],
       })),
     })).toThrow('invalid reason-link target')
+  })
+
+  it('enforces citation policy per guidance list', () => {
+    const pregnancyId = 'pregnancy-food-safety'
+    const vegetarianId = 'vegetarian-suitability'
+
+    expect(() => validateContent({
+      ...content,
+      assessments: content.assessments.map((assessment) => (
+        assessment.guidanceListId === pregnancyId ? { ...assessment, citations: [] } : assessment
+      )),
+    })).toThrow('belongs to a guidance list that requires citations')
+
+    expect(() => validateContent({
+      ...content,
+      guidanceLists: content.guidanceLists.map((list) => (
+        list.id === pregnancyId ? { ...list, coverage: { ...list.coverage, citations: [] } } : list
+      )),
+    })).toThrow('must include at least one citation')
+
+    expect(() => validateContent({
+      ...content,
+      guidanceLists: content.guidanceLists.map((list) => (
+        list.id === vegetarianId ? { ...list, evidentiaryBasis: undefined } : list
+      )),
+    })).toThrow('must declare an evidentiary basis')
+
+    expect(() => validateContent({
+      ...content,
+      guidanceLists: content.guidanceLists.map((list) => (
+        list.id === pregnancyId ? { ...list, evidentiaryBasis: 'Should not be allowed.' } : list
+      )),
+    })).toThrow('must not declare an evidentiary basis')
+
+    const uncitedVegetarian = validateContent({
+      ...content,
+      guidanceLists: content.guidanceLists.map((list) => (
+        list.id === vegetarianId ? { ...list, coverage: { ...list.coverage, citations: [] } } : list
+      )),
+      assessments: content.assessments.map((assessment) => (
+        assessment.guidanceListId === vegetarianId ? { ...assessment, citations: [] } : assessment
+      )),
+    })
+    expect(uncitedVegetarian.assessments.filter((assessment) => assessment.guidanceListId === vegetarianId)
+      .every((assessment) => assessment.citations.length === 0)).toBe(true)
   })
 
   it('resolves statuses and coverage declarations through its public helpers', () => {

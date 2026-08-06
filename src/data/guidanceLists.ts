@@ -6,6 +6,7 @@ export const guidanceLists: GuidanceList[] = [
     slug: 'pregnancy-food-safety',
     title: 'Pregnancy food safety',
     description: 'Food-safety guidance for pregnancy from New Zealand Food Safety.',
+    citationPolicy: 'required',
     unassessedStatusId: 'pregnancy-not-assessed',
     outOfCoverageStatusId: 'pregnancy-outside-coverage',
     statuses: [
@@ -40,6 +41,8 @@ export const guidanceLists: GuidanceList[] = [
     slug: 'vegetarian-suitability',
     title: 'Vegetarian suitability',
     description: 'Article-backed guidance for foods that can contain animal-derived ingredients.',
+    citationPolicy: 'optional',
+    evidentiaryBasis: 'Reflects general vegetarian knowledge; sources are attached where a useful one exists.',
     unassessedStatusId: 'vegetarian-not-assessed',
     outOfCoverageStatusId: 'vegetarian-outside-coverage',
     statuses: [

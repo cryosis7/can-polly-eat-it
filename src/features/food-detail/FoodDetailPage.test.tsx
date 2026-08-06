@@ -61,6 +61,15 @@ const outsideCoverageContent: ContentData = {
   })),
 }
 
+const uncitedVegetarianContent: ContentData = {
+  ...content,
+  assessments: content.assessments.map((assessment) => (
+    assessment.foodId === 'parmesan' && assessment.guidanceListId === 'vegetarian-suitability'
+      ? { ...assessment, citations: [] }
+      : assessment
+  )),
+}
+
 describe('FoodDetailPage', () => {
   it('renders an assessed food with its status, summary, and citation', () => {
     renderDetail('/food/cheddar?v=1&scope=pregnancy-food-safety')
@@ -116,6 +125,19 @@ describe('FoodDetailPage', () => {
     expect(screen.getByText('Contains animal-derived ingredients')).toBeInTheDocument()
     expect(screen.getByText('Traditional Parmesan uses animal-derived rennet.')).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Pregnancy food safety' })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Sources' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Veggy Malta: 15 Products Not Vegetarian' })).toHaveAttribute(
+      'href',
+      'https://veggymalta.com/15-products-not-vegetarian/',
+    )
+  })
+
+  it('renders the evidentiary basis and omits the Sources section for an uncited assessment', () => {
+    renderDetail('/food/parmesan?v=1&scope=vegetarian-suitability', uncitedVegetarianContent)
+
+    expect(screen.getByText('Contains animal-derived ingredients')).toBeInTheDocument()
+    expect(screen.getByText(/Reflects general vegetarian knowledge/)).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Sources' })).not.toBeInTheDocument()
   })
 
   it('renders the outside-coverage state with the medical-information disclaimer', () => {

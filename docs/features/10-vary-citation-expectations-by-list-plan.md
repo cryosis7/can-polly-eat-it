@@ -1,6 +1,6 @@
 # F-10 Implementation Plan: Vary Citation Expectations by Guidance List
 
-**Status:** Approved, not started
+**Status:** Approved, complete
 
 **Feature:** [F-10: Vary Citation Expectations by Guidance List](<10-vary-citation-expectations-by-list.md>)
 
@@ -8,8 +8,9 @@
 
 ## Constraints
 
-- Pregnancy food safety keeps every existing citation, locator, and rendered source link. No
-  pregnancy data record changes in this feature.
+- Pregnancy food safety keeps every existing citation, locator, and rendered source link. Its only
+  data change in this feature is declaring `citationPolicy: 'required'`, which the schema now
+  requires explicitly of every list.
 - The citation policy is declared per list with no schema default, so adding a list is a deliberate
   evidentiary choice.
 - Minimum-citation enforcement moves from the Zod schemas into `contentValidation.ts`, because the
@@ -73,8 +74,10 @@
 - `src/features/food-detail/FoodDetailPage.test.tsx`: the Sources section is absent for an uncited
   assessment, present with title and locator for a cited one, and the evidentiary basis renders for
   an optional-policy list.
-- `e2e/catalogue.spec.ts`: a pregnancy source link and an uncited vegetarian entry both render
-  correctly on a filtered URL.
+- `e2e/catalogue.spec.ts`: a pregnancy source link renders correctly on a filtered URL, alongside the
+  vegetarian list's evidentiary basis (implemented in place of an uncited vegetarian entry, since
+  every currently authored vegetarian assessment remains cited; see the deviation recorded in F-10's
+  `Validation` section).
 
 ## Validation
 

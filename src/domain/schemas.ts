@@ -42,7 +42,7 @@ export const coverageDeclarationSchema = z.object({
   categoryIds: z.array(identifier),
   foodIds: z.array(identifier),
   description: z.string().trim().min(1),
-  citations: z.array(sourceCitationSchema).min(1),
+  citations: z.array(sourceCitationSchema),
 })
 
 export const guidanceListSchema = z.object({
@@ -50,6 +50,8 @@ export const guidanceListSchema = z.object({
   slug: identifier,
   title: z.string().trim().min(1),
   description: z.string().trim().min(1),
+  citationPolicy: z.enum(['required', 'optional']),
+  evidentiaryBasis: z.string().trim().min(1).optional(),
   unassessedStatusId: identifier,
   outOfCoverageStatusId: identifier,
   statuses: z.array(statusDefinitionSchema).min(2),
@@ -87,7 +89,7 @@ export const foodAssessmentSchema = z.object({
   summary: z.string().trim().min(1),
   guidanceScenarios: z.array(guidanceScenarioSchema),
   reasonLinks: z.array(assessmentReasonLinkSchema),
-  citations: z.array(sourceCitationSchema).min(1),
+  citations: z.array(sourceCitationSchema),
 })
 
 export type Category = z.infer<typeof categorySchema>

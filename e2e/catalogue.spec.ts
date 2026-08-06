@@ -82,6 +82,17 @@ test.describe('Food catalogue', () => {
     await expect(page.getByRole('link', { name: 'Parmesan', exact: true })).toHaveCount(0)
   })
 
+  test('shows a cited pregnancy source and the vegetarian evidentiary basis on a filtered URL', async ({ page }) => {
+    await page.goto('/?v=1&scope=pregnancy-food-safety,vegetarian-suitability&category=dairy')
+
+    const cheddarCard = foodCard(page, 'Cheddar')
+    await expect(cheddarCard.getByRole('link', { name: 'Primary source: New Zealand Food Safety: Pullout guide to food safety in pregnancy' })).toHaveAttribute(
+      'href',
+      mpiSourceUrl,
+    )
+    await expect(page.getByText(/Reflects general vegetarian knowledge/)).toBeVisible()
+  })
+
   test('updates outcome controls, then clears filters', async ({ page }) => {
     await page.goto('/')
 

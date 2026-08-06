@@ -87,6 +87,17 @@ const validateGuidanceLists = (guidanceLists: GuidanceList[], categoryIds: Set<s
     if (list.coverage.foodIds.some((id) => !foodIds.has(id))) {
       fail(`guidance list "${list.id}" covers an unknown food.`)
     }
+
+    if (list.citationPolicy === 'required') {
+      if (list.coverage.citations.length === 0) {
+        fail(`guidance list "${list.id}" requires citations, so its coverage declaration must include at least one citation.`)
+      }
+      if (list.evidentiaryBasis !== undefined) {
+        fail(`guidance list "${list.id}" requires citations and must not declare an evidentiary basis.`)
+      }
+    } else if (list.evidentiaryBasis === undefined) {
+      fail(`guidance list "${list.id}" has an optional citation policy and must declare an evidentiary basis.`)
+    }
   }
 }
 
@@ -107,6 +118,9 @@ const validateAssessments = (assessments: FoodAssessment[], foods: Food[], guida
       const status = guidanceList.statuses.find((candidate) => candidate.id === assessment.statusId)
       if (!status || [guidanceList.unassessedStatusId, guidanceList.outOfCoverageStatusId].includes(assessment.statusId)) {
         fail(`assessment "${assessment.id}" must use a non-fallback status owned by its guidance list.`)
+      }
+      if (guidanceList.citationPolicy === 'required' && assessment.citations.length === 0) {
+        fail(`assessment "${assessment.id}" belongs to a guidance list that requires citations.`)
       }
     }
     assertUnique(assessment.reasonLinks.map((link) => `${link.kind}:${link.targetFoodId}`), `reason link in "${assessment.id}"`)

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { content } from '../../data'
@@ -25,6 +25,15 @@ const contentWithAdditionalScope: ContentData = {
       guidanceListId: 'alternative-pregnancy-food-safety',
     },
   ],
+}
+
+const contentWithUncitedVegetarianAssessment: ContentData = {
+  ...content,
+  assessments: content.assessments.map((assessment) => (
+    assessment.foodId === 'parmesan' && assessment.guidanceListId === 'vegetarian-suitability'
+      ? { ...assessment, citations: [] }
+      : assessment
+  )),
 }
 
 describe('CataloguePage', () => {
@@ -146,5 +155,23 @@ describe('CataloguePage', () => {
     renderCatalogue('/?scope=pregnancy-food-safety&q=not-a-guide-food')
 
     expect(screen.getByText(/No foods match these filters/i)).toBeInTheDocument()
+  })
+
+  it('renders a primary source link for a cited scope', () => {
+    renderCatalogue('/?v=1&scope=vegetarian-suitability&q=marshmallows')
+
+    const marshmallowsCard = screen.getByRole('link', { name: 'Marshmallows' }).closest('.food-card') as HTMLElement
+    expect(within(marshmallowsCard).getByRole('link', { name: /Primary source: Veggy Malta/ })).toHaveAttribute(
+      'href',
+      'https://veggymalta.com/15-products-not-vegetarian/',
+    )
+  })
+
+  it('omits the source affordance for an uncited assessment and shows the evidentiary basis once per view', () => {
+    renderCatalogue('/?v=1&scope=vegetarian-suitability&q=parmesan', contentWithUncitedVegetarianAssessment)
+
+    const parmesanCard = screen.getByRole('link', { name: 'Parmesan' }).closest('.food-card') as HTMLElement
+    expect(within(parmesanCard).queryByRole('link', { name: /Primary source/ })).not.toBeInTheDocument()
+    expect(screen.getAllByText(/Reflects general vegetarian knowledge/)).toHaveLength(1)
   })
 })

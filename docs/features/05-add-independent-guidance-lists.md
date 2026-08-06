@@ -22,8 +22,10 @@ classification into a growing set of hard-coded booleans.
 
 ## Required behaviour
 
-- A new list supplies its own title, description, coverage declaration, source citation, distinct
-  grey fallback states, statuses, and assessments.
+- A new list supplies its own title, description, coverage declaration, distinct grey fallback
+  states, statuses, and assessments, plus an explicit `citationPolicy` that determines whether it
+  must supply source citations or a declared evidentiary basis (see
+  [F-10](<10-vary-citation-expectations-by-list.md>)).
 - A food may have one assessment per list; it does not gain a new property such as
   `isVegetarian`.
 - Missing assessment is represented as "Not assessed" inside the list's coverage or "Outside current
