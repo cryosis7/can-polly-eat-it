@@ -5,6 +5,8 @@ opening every file. Keep it in sync whenever an ADR is added or its status chang
 
 | ADR | Status | Summary |
 | --- | --- | --- |
+| [2026-08-06 ADR: vary source-citation requirements by guidance list](<2026-08-06 ADR - vary source-citation requirements by guidance list.md>) | Accepted | Each guidance list declares whether citations are required or optional; pregnancy stays fully cited while a list may instead declare its evidentiary basis. |
+| [2026-08-06 ADR: assess categories as first-class subjects with inherited guidance](<2026-08-06 ADR - assess categories as first-class subjects with inherited guidance.md>) | Accepted | An assessment's subject is a food or a category, foods inherit the nearest assessed ancestor's cited guidance, and an assessed category is a searchable, routable guide entry. |
 | [2026-08-06 ADR: show scoped guidance with generic outcome filters](<2026-08-06 ADR - show scoped guidance with generic outcome filters.md>) | Accepted | Catalogue filtering defaults to pregnancy scope and uses generic outcome bands across selected guidance scopes while preserving list-owned assessments. |
 | [2026-08-05 ADR: remove temporal freshness metadata from guidance content](<2026-08-05 ADR - remove temporal freshness metadata from guidance content.md>) | Accepted | Guidance lists retain cited, precisely located sources and explicit coverage but no longer carry temporal freshness metadata or overdue validation. |
 | [2026-08-05 ADR: adopt AI-assisted local draft curation for official sources](<2026-08-05 ADR - adopt AI-assisted local draft curation for official sources.md>) | Accepted | A repository skill may create a source-cited local draft from a maintainer-provided official source, but human review remains mandatory before publication. |

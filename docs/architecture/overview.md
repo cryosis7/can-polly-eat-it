@@ -36,8 +36,11 @@ users to a health professional for personal advice.
 
 ## Design principles
 
-1. **Safety and provenance before convenience.** Never infer a food's safety from its name or from
-   a parent category. Each displayed assessment must be explicitly reviewed and cited.
+1. **Safety and provenance before convenience.** Never infer a food's safety from its name, from a
+   sibling food, or from an ancestor category that carries no authored assessment. Guidance may only
+   come from an explicitly reviewed assessment on the food itself or on its nearest assessed ancestor
+   category, and inherited guidance is always displayed with its origin and breadth. Every assessment
+   is manually reviewed, and cited according to its guidance list's citation policy.
 2. **Conditions are first-class.** "Safe only when cooked" is not equivalent to "safe"; the
    condition is displayed with the amber outcome.
 3. **One food catalogue, many guidance lists.** Pregnancy safety and vegetarian suitability are
@@ -50,7 +53,8 @@ users to a health professional for personal advice.
 6. **URL state is product state.** Search and filters belong in the URL so a useful result can be
    bookmarked or shared without a user account.
 7. **Coverage and provenance are explicit.** Every guidance list declares what it currently covers
-   and cites precise source locations for its guidance.
+   and states its evidentiary standard: either precise source locations for its guidance, or, for a
+   list whose claims rest on general knowledge, a displayed statement of that basis.
 
 ## Decision approval gate
 
@@ -77,7 +81,8 @@ React domain/query layer ----------------> validation errors in CI
 React routes and accessible UI
   /                         grouped catalogue
   /food/:foodSlug           food detail
-  URL query parameters      selected lists, search, and filters
+  /category/:categorySlug   assessed category detail
+  URL query parameters      selected scopes, outcomes, search, and filters
 ```
 
 The initial application is entirely client-side. It is deployed on Netlify as an HTTPS static site.
@@ -97,6 +102,7 @@ src/
   features/
     catalogue/         category-grouped list and result cards
     food-detail/       conditions, source citations, and empty/not-assessed states
+    category-detail/   category-wide guidance and the foods that inherit it
     filters/           search and filter controls
   components/          shared presentational and accessibility primitives
   styles/              global tokens and application styles
@@ -150,8 +156,8 @@ that exceeds either budget requires a measured performance review and a new ADR 
 
 ### Guidance lists and assessments
 
-A **guidance list** is a named perspective over foods. The initial active list is
-`pregnancy-food-safety`; a future `vegetarian-suitability` list uses exactly the same shape.
+A **guidance list** is a named perspective over foods and categories. The initial lists are
+`pregnancy-food-safety` and `vegetarian-suitability`; every list uses exactly the same shape.
 
 ```ts
 type GuidanceList = {
@@ -159,6 +165,8 @@ type GuidanceList = {
   slug: string;
   title: string;
   description: string;
+  citationPolicy: "required" | "optional";
+  evidentiaryBasis?: string;
   unassessedStatusId: string;
   outOfCoverageStatusId: string;
   statuses: StatusDefinition[];
@@ -183,12 +191,17 @@ type CoverageDeclaration = {
   citations: SourceCitation[];
 };
 
-type FoodAssessment = {
+type AssessmentSubject =
+  | { kind: "food"; foodId: string }
+  | { kind: "category"; categoryId: string };
+
+type Assessment = {
   id: string;
-  foodId: string;
+  subject: AssessmentSubject;
   guidanceListId: string;
   statusId: string;
   summary: string;
+  scopeStatement?: string;
   guidanceScenarios: GuidanceScenario[];
   reasonLinks: AssessmentReasonLink[];
   citations: SourceCitation[];
@@ -201,15 +214,40 @@ type AssessmentReasonLink = {
 };
 ```
 
-An assessment is unique for a `(foodId, guidanceListId)` pair. When it is absent, the resolver first
-checks the list's coverage declaration: a food inside coverage resolves to the list-owned grey
-`unassessedStatusId`, while a food outside coverage resolves to the distinct grey
+An assessment is unique for a `(subject, guidanceListId)` pair, where the subject is exactly one food
+or one category. A food's guidance resolves in three steps: its own assessment; otherwise the nearest
+ancestor category assessed in the same guidance list, walking the category path from the nearest
+parent to the root; otherwise the coverage declaration, where a food inside coverage resolves to the
+list-owned grey `unassessedStatusId` and a food outside coverage resolves to the distinct grey
 `outOfCoverageStatusId`. Neither fallback status may be authored on an assessment.
+
+An inherited assessment is applied whole. Statuses, summaries, scenarios, conditions, and citations
+are never merged across subject levels, and inheritance never crosses guidance lists. A food-level
+assessment replaces an ancestor's completely. Wherever guidance is inherited, the interface names the
+origin category, shows its `scopeStatement`, and shows that category's source if it has one. A
+category assessment requires a `scopeStatement`; a food assessment must not have one. Every assessed
+subject must fall within its list's declared coverage, so a category rule cannot reach foods the list
+does not claim to cover.
+
+A category that carries its own authored assessment is a **guide entry**: it is searchable,
+filterable, counted in results, and addressable at `/category/<slug>`. Categories that merely inherit
+remain plain browse headings.
 
 `mode: "all-catalogue"` ignores `categoryIds` and `foodIds`; the other mode covers the union of
 the listed category subtrees and individual food IDs. Validators must ensure unique status IDs,
 slugs, and labels per list, distinct list-owned grey fallback statuses, valid coverage references,
-and at least one coverage citation. `tone`
+and unique subject/list pairs.
+
+Citation requirements are owned by the list, not the application. A list declares
+`citationPolicy: "required" | "optional"` with no default. A `required` list, such as
+`pregnancy-food-safety`, fails validation when any assessment or its coverage declaration omits a
+citation. An `optional` list, such as `vegetarian-suitability`, may hold uncited assessments because
+its claims are largely definitional rather than risk judgements; it must instead declare an
+`evidentiaryBasis` that is displayed once per view. No per-assessment "no source attached" marker is
+rendered, and no view may assume a citation exists. Manual review remains mandatory for every list,
+and content drafted by the AI curation skill is always cited regardless of policy.
+
+`tone`
 controls the visual RAG indicator only; each list defines its own labels and meaning. For example, pregnancy uses
 "OK to eat", "Only with conditions", "Avoid", "Limit", "Not assessed", and "Outside current
 coverage", whereas vegetarian suitability can use "Vegetarian", "Contains animal-derived
@@ -228,9 +266,10 @@ inherit, calculate, or infer status from the target food's assessments.
 Reason links are intentionally restricted to existing `Food` records in the first release. They do
 not create standalone abstract concerns such as "contamination risk", do not replace the
 assessment's own citation, and do not change which food's assessment is displayed. Validators must
-reject an unknown target food, a self-link, duplicate `(kind, targetFoodId)` links within an
-assessment, or an empty statement. The target food may be unassessed in the active list; the link
-still renders as a navigation aid, not proof of a particular outcome.
+reject an unknown target food, duplicate `(kind, targetFoodId)` links within an assessment, or an
+empty statement. A link from a food assessment must not target that same food. The target food may be
+unassessed in the active list; the link still renders as a navigation aid, not proof of a particular
+outcome.
 
 ### Conditions and citations
 
@@ -265,19 +304,24 @@ type SourceCitation = {
 
 The prose instruction remains the authoritative display text. `facts` are optional display metadata
 only: their `valueText` deliberately retains ranges and qualifiers such as "1 serving every 1 to
-2 weeks"; the application must not calculate, filter, or generate advice from them. A citation must
-identify both a durable URL and a locator such as a table heading and row. Source material is
-manually reviewed and paraphrased; the application does not scrape, infer, or silently update
-advice.
+2 weeks"; the application must not calculate, filter, or generate advice from them. A citation, where
+one is authored, must identify both a durable URL and a locator such as a table heading and row.
+Source material is manually reviewed and paraphrased; the application does not scrape, infer, or
+silently update advice.
 
 ## Catalogue, search, and filters
 
-The standard view renders depth-first category rows in editorial order. A category is shown only
-when it or one of its descendants contains a food that matches the current query. Each visible
-group exposes its full breadcrumb; headings are not mapped one-to-one to arbitrary category depth.
+The standard view renders depth-first category rows in editorial order. A category is shown when it
+or one of its descendants contains a food that matches the current query, or when it is itself a
+matching guide entry. Each visible group exposes its full breadcrumb; headings are not mapped
+one-to-one to arbitrary category depth.
+
+A **guide entry** is a food, or a category carrying its own authored assessment. Search, filters, and
+the result count operate over guide entries, and the count announces results rather than foods.
 
 Search normalises case, diacritics, punctuation, and whitespace, then matches every query token
-against food names, aliases, and the labels/aliases on the food's category path. It must not guess
+against food names, aliases, and the labels/aliases on the food's category path. A category entry is
+matched against its own name, its aliases, and its ancestor path labels. It must not guess
 equivalent foods from a model or an external service. Empty search returns the normal catalogue.
 
 Filter rules are predictable:
@@ -298,19 +342,23 @@ selects dietary constraints, defaulting to `pregnancy-food-safety`; `outcome=<co
 selects generic outcomes; `q=<text>` and `category=<category-slug>` control search and category.
 For example,
 `/food/cheddar?v=1&scope=pregnancy-food-safety,vegetarian-suitability&outcome=okay,maybe`
-preserves the catalogue's selected dietary constraints when opening detail guidance. Unknown version,
+preserves the catalogue's selected dietary constraints when opening detail guidance, and
+`/category/<slug>` does the same for an assessed category. Unknown version,
 scope, category, or outcome values are removed while valid constraints remain, and the UI announces
 that unavailable shared filters were removed.
 
 ## Trust, accessibility, and privacy
 
-- Show the list name, status label, meaningful icon/text, coverage state, and a direct
-  primary-source link wherever an assessment or fallback is shown. Colour must never be the only
-  status signal.
+- Show the list name, status label, meaningful icon/text, and coverage state wherever an assessment or
+  fallback is shown, with a direct primary-source link whenever a citation exists. For a list whose
+  citation policy is optional, show its declared evidentiary basis once per view instead. Colour must
+  never be the only status signal.
+- Where guidance is inherited from an ancestor category, name that category, show its scope statement,
+  and link to it, so inherited advice is never presented as food-specific.
 - Show assessment reason links on the food-detail view with their authored statement and canonical
   food label; keep catalogue cards concise and do not show reason links there in the first release.
-- Put the medical-information disclaimer in the application shell and food detail page; source
-  guidance remains authoritative.
+- Put the medical-information disclaimer in the application shell, food detail page, and category
+  detail page; source guidance remains authoritative.
 - Use native form labels, semantic headings/lists, keyboard-operable controls, visible focus,
   logical screen-reader announcements for result count, and responsive layouts that do not rely on
   hover.
@@ -329,8 +377,9 @@ implemented assessment.
 
 ## Deployment and operations
 
-- Deploy the Vite bundle to Netlify using `netlify.toml` and `public/_redirects`; test the root and
-  a direct `/food/<slug>` route in a Netlify deploy preview before production.
+- Deploy the Vite bundle to Netlify using `netlify.toml` and `public/_redirects`; test the root, a
+  direct `/food/<slug>` route, and a direct `/category/<slug>` route in a Netlify deploy preview
+  before production.
 - Commit the package lockfile and content data with every release.
 - Run type-checking, data validation, unit tests, and UI tests in continuous integration before
   deployment.
