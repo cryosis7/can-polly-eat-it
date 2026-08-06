@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { content } from '../data'
 import { resolveAssessment } from './assessment'
-import { getStatusById, isFoodCovered, validateContent } from './contentValidation'
+import { createContentIndex } from './contentIndex'
+import { getStatusById, isCategoryCovered, isFoodCovered, validateContent } from './contentValidation'
+
+const index = createContentIndex(content.categories, content.assessments)
 
 describe('guide content validation', () => {
   it('accepts the authored fixture content', () => {
-    expect(content.foods).toHaveLength(140)
-    expect(content.assessments).toHaveLength(141)
+    expect(content.foods).toHaveLength(138)
+    expect(content.assessments).toHaveLength(134)
     expect(content.guidanceLists.map((list) => list.id)).toEqual(['pregnancy-food-safety', 'vegetarian-suitability'])
     expect(content.guidanceLists[0].statuses.map((status) => status.outcomeBand)).toEqual([
       'okay',
@@ -32,13 +35,39 @@ describe('guide content validation', () => {
     const yellowfinTuna = content.foods.find((food) => food.id === 'yellowfin-tuna')!
     const applePie = content.foods.find((food) => food.id === 'apple-pie')!
 
-    expect(resolveAssessment(yellowfinTuna, list, content.assessments, content.categories).status.label).toBe('Not assessed')
-    expect(resolveAssessment(applePie, list, content.assessments, content.categories).status.label).toBe('Outside current coverage')
-    expect(resolveAssessment(yellowfinTuna, {
+    expect(resolveAssessment({ kind: 'food', food: yellowfinTuna }, list, index).status.label).toBe('Not assessed')
+    expect(resolveAssessment({ kind: 'food', food: applePie }, list, index).status.label).toBe('Outside current coverage')
+    expect(resolveAssessment({ kind: 'food', food: yellowfinTuna }, {
       ...list,
       coverage: { ...list.coverage, mode: 'category-subtrees-and-foods', categoryIds: [], foodIds: [] },
-    }, content.assessments, content.categories).status.label).toBe('Outside current coverage')
+    }, index).status.label).toBe('Outside current coverage')
     expect(yellowfinTuna).not.toHaveProperty('pregnancyStatus')
+  })
+
+  it('resolves category guidance inherited by descendant foods, overridden by a food-level assessment', () => {
+    const pregnancyList = content.guidanceLists[0]
+    const vegetarianList = content.guidanceLists[1]
+    const gouda = content.foods.find((food) => food.id === 'gouda')!
+    const parmesan = content.foods.find((food) => food.id === 'parmesan')!
+    const hardCheese = content.categories.find((category) => category.id === 'hard-cheese')!
+
+    const goudaPregnancy = resolveAssessment({ kind: 'food', food: gouda }, pregnancyList, index)
+    expect(goudaPregnancy.status.label).toBe('OK to eat')
+    expect(goudaPregnancy.origin).toEqual({ kind: 'inherited', category: hardCheese })
+    expect(goudaPregnancy.assessment?.scopeStatement).toBe('Applies to all hard cheese.')
+
+    const goudaVegetarian = resolveAssessment({ kind: 'food', food: gouda }, vegetarianList, index)
+    expect(goudaVegetarian.status.label).toBe('Check ingredients')
+    expect(goudaVegetarian.origin).toEqual({ kind: 'inherited', category: hardCheese })
+
+    const parmesanVegetarian = resolveAssessment({ kind: 'food', food: parmesan }, vegetarianList, index)
+    expect(parmesanVegetarian.status.label).toBe('Contains animal-derived ingredients')
+    expect(parmesanVegetarian.origin).toEqual({ kind: 'own' })
+
+    const hardCheeseOwn = resolveAssessment({ kind: 'category', category: hardCheese }, pregnancyList, index)
+    expect(hardCheeseOwn.origin).toEqual({ kind: 'own' })
+    expect(index.assessedCategoryIds.has('hard-cheese')).toBe(true)
+    expect(index.assessedCategoryIds.has('cheese')).toBe(false)
   })
 
   it('rejects invalid category relationships and food category references', () => {
@@ -83,15 +112,24 @@ describe('guide content validation', () => {
     })).toThrow('distinct neutral outcome bands')
   })
 
-  it('rejects invalid assessment references and fallback statuses', () => {
+  it('rejects invalid assessment subject references and fallback statuses', () => {
     expect(() => validateContent({
       ...content,
       assessments: [...content.assessments, {
         ...content.assessments[0],
         id: 'unknown-food-assessment',
-        foodId: 'unknown-food',
+        subject: { kind: 'food', foodId: 'unknown-food' },
       }],
     })).toThrow('references an unknown food')
+
+    expect(() => validateContent({
+      ...content,
+      assessments: [...content.assessments, {
+        ...content.assessments.find((assessment) => assessment.subject.kind === 'category')!,
+        id: 'unknown-category-assessment',
+        subject: { kind: 'category', categoryId: 'unknown-category' },
+      }],
+    })).toThrow('references an unknown category')
 
     expect(() => validateContent({
       ...content,
@@ -100,6 +138,58 @@ describe('guide content validation', () => {
         statusId: 'pregnancy-not-assessed',
       })),
     })).toThrow('must use a non-fallback status')
+  })
+
+  it('rejects category assessments without a scopeStatement, and food assessments with one', () => {
+    const categoryAssessment = content.assessments.find((assessment) => assessment.subject.kind === 'category')!
+    const foodAssessment = content.assessments.find((assessment) => assessment.subject.kind === 'food')!
+
+    expect(() => validateContent({
+      ...content,
+      assessments: content.assessments.map((assessment) => (
+        assessment.id === categoryAssessment.id ? { ...assessment, scopeStatement: undefined } : assessment
+      )),
+    })).toThrow('must declare a scopeStatement')
+
+    expect(() => validateContent({
+      ...content,
+      assessments: content.assessments.map((assessment) => (
+        assessment.id === foodAssessment.id ? { ...assessment, scopeStatement: 'Should not be allowed.' } : assessment
+      )),
+    })).toThrow('must not declare a scopeStatement')
+  })
+
+  it('rejects duplicate subject/list pairs across food and category subjects', () => {
+    expect(() => validateContent({
+      ...content,
+      assessments: [...content.assessments, { ...content.assessments[0] }],
+    })).toThrow('duplicate assessment ID')
+
+    const categoryAssessment = content.assessments.find((assessment) => assessment.subject.kind === 'category')!
+    expect(() => validateContent({
+      ...content,
+      assessments: [...content.assessments, { ...categoryAssessment, id: 'duplicate-category-subject' }],
+    })).toThrow('duplicate subject/list assessment pair')
+  })
+
+  it('rejects an assessed subject outside its guidance list declared coverage', () => {
+    expect(() => validateContent({
+      ...content,
+      guidanceLists: content.guidanceLists.map((list) => (
+        list.id === 'pregnancy-food-safety'
+          ? { ...list, coverage: { ...list.coverage, categoryIds: list.coverage.categoryIds.filter((id) => id !== 'dairy') } }
+          : list
+      )),
+    })).toThrow("outside its guidance list's declared coverage")
+
+    expect(() => validateContent({
+      ...content,
+      guidanceLists: content.guidanceLists.map((list) => (
+        list.id === 'vegetarian-suitability'
+          ? { ...list, coverage: { ...list.coverage, categoryIds: [] } }
+          : list
+      )),
+    })).toThrow("outside its guidance list's declared coverage")
   })
 
   it('rejects duplicate identifiers, invalid hierarchy relationships, and duplicate foods', () => {
@@ -163,11 +253,6 @@ describe('guide content validation', () => {
   it('rejects duplicate, unknown, and invalid assessment links', () => {
     expect(() => validateContent({
       ...content,
-      assessments: [...content.assessments, { ...content.assessments[0] }],
-    })).toThrow('duplicate assessment ID')
-
-    expect(() => validateContent({
-      ...content,
       assessments: [...content.assessments, {
         ...content.assessments[0],
         id: 'unknown-list-assessment',
@@ -188,10 +273,11 @@ describe('guide content validation', () => {
 
     expect(() => validateContent({
       ...content,
-      assessments: content.assessments.map((assessment) => ({
-        ...assessment,
-        reasonLinks: [{ kind: 'contains', targetFoodId: assessment.foodId, statement: 'Self reference.' }],
-      })),
+      assessments: content.assessments.map((assessment) => (
+        assessment.subject.kind === 'food'
+          ? { ...assessment, reasonLinks: [{ kind: 'contains', targetFoodId: assessment.subject.foodId, statement: 'Self reference.' }] }
+          : assessment
+      )),
     })).toThrow('invalid reason-link target')
   })
 
@@ -244,25 +330,43 @@ describe('guide content validation', () => {
     const list = content.guidanceLists[0]
     const cheddar = content.foods.find((food) => food.id === 'cheddar')!
     const yellowfinTuna = content.foods.find((food) => food.id === 'yellowfin-tuna')!
+    const hardCheese = content.categories.find((category) => category.id === 'hard-cheese')!
 
     expect(getStatusById(list, 'pregnancy-ok').label).toBe('OK to eat')
     expect(() => getStatusById(list, 'unknown-status')).toThrow('does not own status')
     expect(isFoodCovered(cheddar, {
       ...list,
       coverage: { ...list.coverage, mode: 'all-catalogue', categoryIds: [], foodIds: [] },
-    }, content.categories)).toBe(true)
-    expect(isFoodCovered(cheddar, list, content.categories)).toBe(true)
-    expect(isFoodCovered(yellowfinTuna, list, content.categories)).toBe(true)
+    }, index)).toBe(true)
+    expect(isFoodCovered(cheddar, list, index)).toBe(true)
+    expect(isFoodCovered(yellowfinTuna, list, index)).toBe(true)
     expect(isFoodCovered(yellowfinTuna, {
       ...list,
       coverage: { ...list.coverage, mode: 'category-subtrees-and-foods', categoryIds: [], foodIds: ['yellowfin-tuna'] },
-    }, content.categories)).toBe(true)
+    }, index)).toBe(true)
     expect(isFoodCovered({
       ...yellowfinTuna,
       primaryCategoryId: 'unknown-category',
     }, {
       ...list,
       coverage: { ...list.coverage, mode: 'category-subtrees-and-foods', categoryIds: [], foodIds: [] },
-    }, content.categories)).toBe(false)
+    }, index)).toBe(false)
+
+    expect(isCategoryCovered(hardCheese, {
+      ...list,
+      coverage: { ...list.coverage, mode: 'all-catalogue', categoryIds: [], foodIds: [] },
+    }, index)).toBe(true)
+    expect(isCategoryCovered(hardCheese, list, index)).toBe(true)
+    expect(isCategoryCovered(hardCheese, {
+      ...list,
+      coverage: { ...list.coverage, mode: 'category-subtrees-and-foods', categoryIds: [] },
+    }, index)).toBe(false)
+    expect(isCategoryCovered({
+      ...hardCheese,
+      id: 'unknown-category',
+    }, {
+      ...list,
+      coverage: { ...list.coverage, mode: 'category-subtrees-and-foods', categoryIds: [] },
+    }, index)).toBe(false)
   })
 })

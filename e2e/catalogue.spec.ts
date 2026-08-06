@@ -36,7 +36,7 @@ test.describe('Food catalogue', () => {
 
     await expect(page.getByRole('link', { name: 'Yoghurt' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Cheddar' })).not.toBeVisible()
-    await expect(page.getByText('1 food in the guide')).toBeVisible()
+    await expect(page.getByText('1 result in the guide')).toBeVisible()
     await expect(page).toHaveURL(/q=yogurt/)
   })
 
@@ -70,7 +70,7 @@ test.describe('Food catalogue', () => {
     await expect(page.getByRole('checkbox', { name: 'Vegetarian suitability' })).toBeChecked()
     await expect(page.getByRole('checkbox', { name: 'Maybe - see notes' })).toBeChecked()
     await expect(page.getByRole('button', { name: 'Dietary scope: Vegetarian suitability' })).toBeVisible()
-    await expect(page.getByText('1 food in the guide')).toBeVisible()
+    await expect(page.getByText('1 result in the guide')).toBeVisible()
 
     const yoghurtCard = foodCard(page, 'Pasteurised yoghurt')
     await expect(yoghurtCard).toBeVisible()
@@ -109,7 +109,7 @@ test.describe('Food catalogue', () => {
   test('shows a useful no-results state for valid filters', async ({ page }) => {
     await page.goto('/?v=1&scope=pregnancy-food-safety&q=not-a-guide-food')
 
-    await expect(page.getByText('0 foods in the guide')).toBeVisible()
+    await expect(page.getByText('0 results in the guide')).toBeVisible()
     await expect(page.getByText('No foods match these filters. Try clearing a filter or searching for another name.')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Search: not-a-guide-food' })).toBeVisible()
   })
@@ -121,7 +121,7 @@ test.describe('Food catalogue', () => {
     await page.keyboard.press('Tab')
     await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused()
     await expect(page.getByRole('searchbox', { name: 'Search foods' })).toBeVisible()
-    await expect(page.getByText('140 foods in the guide')).toBeVisible()
+    await expect(page.getByText('143 results in the guide')).toBeVisible()
     await expect(page.locator('details')).not.toHaveAttribute('open', '')
 
     await page.getByText('Filters', { exact: true }).click()
@@ -219,5 +219,35 @@ test.describe('Food catalogue', () => {
 
     await expect(page.getByRole('heading', { name: 'Food not found' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Return to the food guide' })).toBeVisible()
+  })
+
+  test('loads an assessed category directly and shows its scoped guidance', async ({ page }) => {
+    await page.goto('/category/hard-cheese?v=1&scope=pregnancy-food-safety,vegetarian-suitability')
+
+    await expect(page.getByRole('heading', { name: 'Hard cheese' })).toBeVisible()
+    await expect(page.getByText('Dairy > Cheese > Hard cheese')).toBeVisible()
+    await expect(page.getByText('OK to eat')).toBeVisible()
+    await expect(page.getByText('Check ingredients')).toBeVisible()
+    await expect(page.getByLabel('Medical information disclaimer')).toContainText('general information, not medical advice')
+  })
+
+  test('shows an inheritance-only food and its origin category as guide entries on a filtered URL', async ({ page }) => {
+    await page.goto('/?v=1&scope=pregnancy-food-safety,vegetarian-suitability&category=hard-cheese')
+
+    const hardCheeseHeading = page.getByRole('heading', { name: 'Hard cheese' })
+    await expect(hardCheeseHeading.getByRole('link', { name: 'Hard cheese' })).toBeVisible()
+    await expect(page.getByText('Pregnancy food safety: OK to eat')).toBeVisible()
+
+    const goudaCard = foodCard(page, 'Gouda')
+    await expect(goudaCard).toBeVisible()
+    await expect(goudaCard.getByText('Applies to all hard cheese.').first()).toBeVisible()
+    await expect(goudaCard.getByRole('link', { name: 'See Hard cheese guidance' }).first()).toHaveAttribute(
+      'href',
+      /\/category\/hard-cheese/,
+    )
+
+    await goudaCard.getByRole('link', { name: 'See Hard cheese guidance' }).first().click()
+    await expect(page.getByRole('heading', { name: 'Hard cheese' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Back to the food guide' })).toBeVisible()
   })
 })

@@ -54,7 +54,7 @@ export const guidanceLists: GuidanceList[] = [
     ],
     coverage: {
       mode: 'category-subtrees-and-foods',
-      categoryIds: [],
+      categoryIds: ['hard-cheese'],
       foodIds: [
         'apple-pie',
         'french-fries',
@@ -73,7 +73,7 @@ export const guidanceLists: GuidanceList[] = [
         'wine-and-beer',
         'worcestershire-sauce',
       ],
-      description: 'Only foods explicitly named in the reviewed Veggy Malta article are covered.',
+      description: 'Foods explicitly named in the reviewed Veggy Malta article, plus the hard cheese category assessed for animal-derived rennet, are covered.',
       citations: [{
         title: 'Veggy Malta: 15 Products Not Vegetarian',
         url: 'https://veggymalta.com/15-products-not-vegetarian/',

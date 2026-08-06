@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { buildCatalogueQuery, parseCatalogueQuery, type CatalogueQueryState } from '../../app/catalogueQuery'
 import { resolveAssessment } from '../../domain/assessment'
-import { buildCategoryTree, flattenCategoryRows, foodsByCategoryId } from '../../domain/categoryTree'
-import { filterFoods } from '../../domain/filtering'
+import { flattenCategoryRows, foodsByCategoryId } from '../../domain/categoryTree'
+import { createContentIndex } from '../../domain/contentIndex'
+import { filterCategoryEntries, filterFoods } from '../../domain/filtering'
 import type { ContentData } from '../../domain/contentValidation'
 import type { OutcomeBand } from '../../domain/schemas'
 
@@ -37,8 +38,8 @@ const defaultScopeSlug = 'pregnancy-food-safety'
 export const CataloguePage = ({ content }: CataloguePageProps) => {
   const [searchParams, setSearchParams] = useSearchParams()
   const [filterRemovalAnnouncement, setFilterRemovalAnnouncement] = useState('')
-  const tree = buildCategoryTree(content.categories)
-  const categoryRows = flattenCategoryRows(tree)
+  const index = createContentIndex(content.categories, content.assessments)
+  const categoryRows = flattenCategoryRows(index.tree)
   const categoryBySlug = new Map(content.categories.map((category) => [category.slug, category]))
   const { state: queryState, unavailableFiltersRemoved } = parseCatalogueQuery(
     searchParams,
@@ -46,18 +47,16 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
     new Set(categoryBySlug.keys()),
   )
   const selectedGuidanceLists = content.guidanceLists.filter((list) => queryState.scopeSlugs.includes(list.slug))
-  const selectedFoods = filterFoods(
-    content.foods,
-    content.categories,
-    content.guidanceLists,
-    content.assessments,
-    {
-      query: queryState.query,
-      categoryId: queryState.categorySlug ? categoryBySlug.get(queryState.categorySlug)?.id : undefined,
-      guidanceListIds: selectedGuidanceLists.map((list) => list.id),
-      outcomeBands: queryState.outcomeBands,
-    },
-  )
+  const filterState = {
+    query: queryState.query,
+    categoryId: queryState.categorySlug ? categoryBySlug.get(queryState.categorySlug)?.id : undefined,
+    guidanceListIds: selectedGuidanceLists.map((list) => list.id),
+    outcomeBands: queryState.outcomeBands,
+  }
+  const selectedFoods = filterFoods(content.foods, content.guidanceLists, index, filterState)
+  const selectedCategoryEntries = filterCategoryEntries(content.categories, content.guidanceLists, index, filterState)
+  const matchedCategoryEntryIds = new Set(selectedCategoryEntries.map((category) => category.id))
+  const resultCount = selectedFoods.length + selectedCategoryEntries.length
   const foodsInCategory = foodsByCategoryId(selectedFoods)
   const hasNonDefaultScope = queryState.scopeSlugs.length !== 1 || queryState.scopeSlugs[0] !== defaultScopeSlug
   const hasActiveFilters = Boolean(
@@ -237,7 +236,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
         )}
 
         <p className="result-count" aria-live="polite">
-          {selectedFoods.length} {selectedFoods.length === 1 ? 'food' : 'foods'} in the guide
+          {resultCount} {resultCount === 1 ? 'result' : 'results'} in the guide
         </p>
         <p className="visually-hidden" role="status">{filterRemovalAnnouncement}</p>
         {selectedGuidanceLists.filter((list) => list.evidentiaryBasis).map((list) => (
@@ -245,13 +244,14 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
             {list.title}: {list.evidentiaryBasis}
           </p>
         ))}
-        {selectedFoods.length === 0 ? (
+        {resultCount === 0 ? (
           <p className="no-results">No foods match these filters. Try clearing a filter or searching for another name.</p>
         ) : (
           <div className="catalogue">
             {categoryRows.map(({ category, breadcrumb, depth }) => {
               const foods = foodsInCategory.get(category.id) ?? []
-              if (foods.length === 0) {
+              const isCategoryEntry = matchedCategoryEntryIds.has(category.id)
+              if (foods.length === 0 && !isCategoryEntry) {
                 return null
               }
               return (
@@ -262,7 +262,24 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                   style={{ '--category-indent': `${Math.min(depth, 6)}rem` } as React.CSSProperties}
                 >
                   <p className="breadcrumb">{breadcrumb}</p>
-                  <h3 id={`category-${category.id}`}>{category.name}</h3>
+                  <h3 id={`category-${category.id}`}>
+                    {isCategoryEntry ? (
+                      <Link to={`/category/${category.slug}?${returnSearch}`}>{category.name}</Link>
+                    ) : category.name}
+                  </h3>
+                  {isCategoryEntry && (
+                    <div className="category-guidance">
+                      {selectedGuidanceLists.map((guidanceList) => {
+                        const resolved = resolveAssessment({ kind: 'category', category }, guidanceList, index)
+                        return (
+                          <p className={`status tone-${resolved.status.tone}`} key={guidanceList.id}>
+                            <span aria-hidden="true" className="status-icon">{statusIcon[resolved.status.tone]}</span>
+                            <span>{guidanceList.title}: {resolved.status.label}</span>
+                          </p>
+                        )
+                      })}
+                    </div>
+                  )}
                   <ul className="food-list">
                     {foods.map((food) => (
                       <li className="food-card" key={food.id}>
@@ -270,7 +287,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                           <h4><Link to={`/food/${food.slug}?${returnSearch}`}>{food.name}</Link></h4>
                         </div>
                         {selectedGuidanceLists.map((guidanceList) => {
-                          const resolved = resolveAssessment(food, guidanceList, content.assessments, content.categories)
+                          const resolved = resolveAssessment({ kind: 'food', food }, guidanceList, index)
                           const citations = resolved.assessment?.citations ?? guidanceList.coverage.citations
                           return (
                             <section className="food-guidance" key={guidanceList.id}>
@@ -280,6 +297,14 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                                 <span>{resolved.status.label}</span>
                               </p>
                               <p>{resolved.assessment?.summary ?? 'This food has not been individually assessed in this guidance list.'}</p>
+                              {resolved.origin.kind === 'inherited' && (
+                                <p className="inherited-note">
+                                  {resolved.assessment!.scopeStatement}{' '}
+                                  <Link to={`/category/${resolved.origin.category.slug}?${returnSearch}`}>
+                                    See {resolved.origin.category.name} guidance
+                                  </Link>
+                                </p>
+                              )}
                               {citations.length > 0 && (
                                 <a href={citations[0].url} target="_blank" rel="noreferrer">
                                   Primary source: {citations[0].title}

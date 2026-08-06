@@ -1,6 +1,7 @@
 import { BrowserRouter, Link, Route, Routes } from 'react-router'
 import { content } from '../data'
 import { CataloguePage } from '../features/catalogue/CataloguePage'
+import { CategoryDetailPage } from '../features/category-detail/CategoryDetailPage'
 import { FoodDetailPage } from '../features/food-detail/FoodDetailPage'
 
 export const disclaimer = 'This guide is general information, not medical advice. Ask your midwife, doctor, or another health professional for advice about your circumstances.'
@@ -25,6 +26,7 @@ export const App = () => (
       <Routes>
         <Route path="/" element={<CataloguePage content={content} />} />
         <Route path="/food/:foodSlug" element={<FoodDetailPage content={content} disclaimer={disclaimer} />} />
+        <Route path="/category/:categorySlug" element={<CategoryDetailPage content={content} disclaimer={disclaimer} />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </div>

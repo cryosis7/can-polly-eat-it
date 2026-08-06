@@ -5,21 +5,22 @@ import { resolveAssessment } from '../../domain/assessment'
 import { createContentIndex } from '../../domain/contentIndex'
 import type { ContentData } from '../../domain/contentValidation'
 
-type FoodDetailPageProps = {
+type CategoryDetailPageProps = {
   content: ContentData
   disclaimer: string
 }
 
-export const FoodDetailPage = ({ content, disclaimer }: FoodDetailPageProps) => {
-  const { foodSlug } = useParams()
+export const CategoryDetailPage = ({ content, disclaimer }: CategoryDetailPageProps) => {
+  const { categorySlug } = useParams()
   const [searchParams] = useSearchParams()
-  const food = content.foods.find((candidate) => candidate.slug === foodSlug)
+  const category = content.categories.find((candidate) => candidate.slug === categorySlug)
+  const index = createContentIndex(content.categories, content.assessments)
 
-  if (!food) {
+  if (!category || !index.assessedCategoryIds.has(category.id)) {
     return (
       <main className="page-content content-width" id="main-content" tabIndex={-1}>
-        <h1>Food not found</h1>
-        <p>This food is not in the current guide or may have been removed.</p>
+        <h1>Category not found</h1>
+        <p>This category is not an assessed part of the current guide or may have been removed.</p>
         <Link to="/">Return to the food guide</Link>
       </main>
     )
@@ -28,19 +29,22 @@ export const FoodDetailPage = ({ content, disclaimer }: FoodDetailPageProps) => 
   const { state: queryState } = parseCatalogueQuery(
     searchParams,
     content.guidanceLists,
-    new Set(content.categories.map((category) => category.slug)),
+    new Set(content.categories.map((candidate) => candidate.slug)),
   )
   const selectedGuidanceLists = content.guidanceLists.filter((guidanceList) =>
     queryState.scopeSlugs.includes(guidanceList.slug),
   )
   const returnSearch = buildCatalogueQuery(queryState, content.guidanceLists).toString()
-  const index = createContentIndex(content.categories, content.assessments)
+  const breadcrumb = index.tree.pathByCategoryId.get(category.id)!
+    .map((candidate) => candidate.name)
+    .join(' > ')
 
   return (
     <main className="page-content content-width food-detail" id="main-content" tabIndex={-1}>
       <Link className="back-link" to={`/?${returnSearch}`}>Back to the food guide</Link>
-      <p className="eyebrow">Food guidance</p>
-      <h1>{food.name}</h1>
+      <p className="eyebrow">Category guidance</p>
+      <p className="breadcrumb">{breadcrumb}</p>
+      <h1>{category.name}</h1>
       <section aria-labelledby="guidance-heading">
         <h2 id="guidance-heading">Guidance</h2>
         {selectedGuidanceLists.map((guidanceList) => (
@@ -48,7 +52,7 @@ export const FoodDetailPage = ({ content, disclaimer }: FoodDetailPageProps) => 
             content={content}
             guidanceList={guidanceList}
             key={guidanceList.id}
-            resolved={resolveAssessment({ kind: 'food', food }, guidanceList, index)}
+            resolved={resolveAssessment({ kind: 'category', category }, guidanceList, index)}
             returnSearch={returnSearch}
           />
         ))}
@@ -60,4 +64,3 @@ export const FoodDetailPage = ({ content, disclaimer }: FoodDetailPageProps) => 
     </main>
   )
 }
-

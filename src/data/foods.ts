@@ -13,20 +13,6 @@ type FoodGroup = {
 
 const foodGroups: FoodGroup[] = [
   {
-    categoryId: 'breads',
-    foods: [
-      { id: 'breads', name: 'Breads' },
-    ],
-  },
-  {
-    categoryId: 'plain-cakes-slices-and-muffins',
-    foods: [{ id: 'plain-cakes-slices-and-muffins', name: 'Plain cakes, slices and muffins' }],
-  },
-  {
-    categoryId: 'cakes-slices-and-muffins-with-cream-or-custard',
-    foods: [{ id: 'cakes-slices-and-muffins-with-cream-or-custard', name: 'Cakes, slices and muffins with cream or custard' }],
-  },
-  {
     categoryId: 'cereals',
     foods: [
       { id: 'breakfast-cereals', name: 'Breakfast cereals', aliases: ['cereal', 'cereals'] },
@@ -53,6 +39,7 @@ const foodGroups: FoodGroup[] = [
     foods: [
       { id: 'cheddar', name: 'Cheddar', aliases: ['cheddar cheese'] },
       { id: 'parmesan', name: 'Parmesan', aliases: ['parmigiano-reggiano'] },
+      { id: 'gouda', name: 'Gouda' },
     ],
   },
   {

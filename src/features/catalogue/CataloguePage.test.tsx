@@ -11,6 +11,10 @@ const renderCatalogue = (initialEntry = '/', catalogueContent = content) => rend
   </MemoryRouter>,
 )
 
+const hardCheesePregnancyAssessment = content.assessments.find((assessment) =>
+  assessment.subject.kind === 'category' && assessment.subject.categoryId === 'hard-cheese' && assessment.guidanceListId === 'pregnancy-food-safety',
+)!
+
 const contentWithAdditionalScope: ContentData = {
   ...content,
   guidanceLists: [
@@ -20,8 +24,8 @@ const contentWithAdditionalScope: ContentData = {
   assessments: [
     ...content.assessments,
     {
-      ...content.assessments.find((assessment) => assessment.foodId === 'cheddar')!,
-      id: 'cheddar-alternative-pregnancy',
+      ...hardCheesePregnancyAssessment,
+      id: 'hard-cheese-alternative-pregnancy',
       guidanceListId: 'alternative-pregnancy-food-safety',
     },
   ],
@@ -30,7 +34,7 @@ const contentWithAdditionalScope: ContentData = {
 const contentWithUncitedVegetarianAssessment: ContentData = {
   ...content,
   assessments: content.assessments.map((assessment) => (
-    assessment.foodId === 'parmesan' && assessment.guidanceListId === 'vegetarian-suitability'
+    assessment.subject.kind === 'food' && assessment.subject.foodId === 'parmesan' && assessment.guidanceListId === 'vegetarian-suitability'
       ? { ...assessment, citations: [] }
       : assessment
   )),
@@ -59,7 +63,7 @@ describe('CataloguePage', () => {
     const disclosure = container.querySelector('details')
     expect(disclosure).not.toHaveAttribute('open')
     expect(screen.getByRole('searchbox', { name: 'Search foods' })).toBeInTheDocument()
-    expect(screen.getByText('140 foods in the guide')).toBeInTheDocument()
+    expect(screen.getByText('143 results in the guide')).toBeInTheDocument()
 
     disclosure!.open = true
     fireEvent(disclosure!, new Event('toggle', { bubbles: true }))
@@ -110,7 +114,7 @@ describe('CataloguePage', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Unavailable shared filters were removed.')
     expect(screen.getByRole('link', { name: 'Pasteurised yoghurt' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Cheddar' })).not.toBeInTheDocument()
-    expect(screen.getByText('1 food in the guide')).toBeInTheDocument()
+    expect(screen.getByText('1 result in the guide')).toBeInTheDocument()
   })
 
   it('uses source row names as separate food titles rather than combined example cards', () => {
@@ -173,5 +177,40 @@ describe('CataloguePage', () => {
     const parmesanCard = screen.getByRole('link', { name: 'Parmesan' }).closest('.food-card') as HTMLElement
     expect(within(parmesanCard).queryByRole('link', { name: /Primary source/ })).not.toBeInTheDocument()
     expect(screen.getAllByText(/Reflects general vegetarian knowledge/)).toHaveLength(1)
+  })
+
+  it('shows a category entry heading with its own resolved guidance and detail link', () => {
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety,vegetarian-suitability&category=hard-cheese')
+
+    const hardCheeseHeading = screen.getByRole('heading', { name: 'Hard cheese' })
+    const hardCheeseLink = within(hardCheeseHeading).getByRole('link', { name: 'Hard cheese' })
+    expect(hardCheeseLink).toHaveAttribute(
+      'href',
+      '/category/hard-cheese?v=1&scope=pregnancy-food-safety%2Cvegetarian-suitability&category=hard-cheese',
+    )
+    const categoryGroup = hardCheeseHeading.closest('.category-group') as HTMLElement
+    expect(within(categoryGroup).getByText('Pregnancy food safety: OK to eat')).toBeInTheDocument()
+    expect(within(categoryGroup).getByText('Vegetarian suitability: Check ingredients')).toBeInTheDocument()
+  })
+
+  it('shows Gouda inheriting hard-cheese guidance with disclosed provenance, and Parmesan keeping its own override', () => {
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety,vegetarian-suitability&category=hard-cheese')
+
+    const goudaCard = screen.getByRole('link', { name: 'Gouda' }).closest('.food-card') as HTMLElement
+    expect(within(goudaCard).getByText('OK to eat')).toBeInTheDocument()
+    expect(within(goudaCard).getByText('Check ingredients')).toBeInTheDocument()
+    expect(within(goudaCard).getAllByText(/Applies to all hard cheese\./)).toHaveLength(2)
+    expect(within(goudaCard).getAllByRole('link', { name: 'See Hard cheese guidance' })).toHaveLength(2)
+
+    const parmesanCard = screen.getByRole('link', { name: 'Parmesan' }).closest('.food-card') as HTMLElement
+    expect(within(parmesanCard).getByText('Contains animal-derived ingredients')).toBeInTheDocument()
+    expect(within(parmesanCard).getAllByText(/Applies to all hard cheese\./)).toHaveLength(1)
+  })
+
+  it('counts matched category entries alongside foods in the announced result count', () => {
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety&q=hard%20cheese')
+
+    expect(screen.getByText('4 results in the guide')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Hard cheese' })).toBeInTheDocument()
   })
 })

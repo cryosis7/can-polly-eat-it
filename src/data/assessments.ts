@@ -1,4 +1,4 @@
-import type { FoodAssessment } from '../domain/schemas'
+import type { Assessment } from '../domain/schemas'
 
 type Condition = {
   kind: 'preparation' | 'storage' | 'serving' | 'frequency' | 'composition' | 'other'
@@ -7,6 +7,16 @@ type Condition = {
 
 type AssessmentSpec = {
   foodIds: string[]
+  statusId: 'pregnancy-ok' | 'pregnancy-conditions' | 'pregnancy-avoid'
+  summary: string
+  locator: string
+  instruction?: string
+  conditions?: Condition[]
+}
+
+type CategoryAssessmentSpec = {
+  categoryId: string
+  scopeStatement: string
   statusId: 'pregnancy-ok' | 'pregnancy-conditions' | 'pregnancy-avoid'
   summary: string
   locator: string
@@ -24,42 +34,91 @@ const veggyMaltaCitation = {
   url: 'https://veggymalta.com/15-products-not-vegetarian/',
 }
 
-const createAssessments = (spec: AssessmentSpec): FoodAssessment[] =>
+const guidanceScenariosFor = (subjectId: string, spec: Pick<AssessmentSpec, 'instruction' | 'conditions'>) =>
+  spec.instruction === undefined
+    ? []
+    : [{
+        id: `${subjectId}-guidance`,
+        applicability: 'When preparing or serving this food',
+        instruction: spec.instruction,
+        conditions: (spec.conditions ?? []).map((condition, index) => ({
+          id: `${subjectId}-condition-${index + 1}`,
+          ...condition,
+        })),
+      }]
+
+const createAssessments = (spec: AssessmentSpec): Assessment[] =>
   spec.foodIds.map((foodId) => ({
     id: `${foodId}-pregnancy`,
-    foodId,
+    subject: { kind: 'food', foodId },
     guidanceListId: 'pregnancy-food-safety',
     statusId: spec.statusId,
     summary: spec.summary,
-    guidanceScenarios: spec.instruction === undefined
-      ? []
-      : [{
-          id: `${foodId}-guidance`,
-          applicability: 'When preparing or serving this food',
-          instruction: spec.instruction,
-          conditions: (spec.conditions ?? []).map((condition, index) => ({
-            id: `${foodId}-condition-${index + 1}`,
-            ...condition,
-          })),
-        }],
+    guidanceScenarios: guidanceScenariosFor(foodId, spec),
     reasonLinks: [],
     citations: [{ ...mpiCitation, locator: spec.locator }],
   }))
 
-const assessmentSpecs: AssessmentSpec[] = [
+const createCategoryAssessment = (spec: CategoryAssessmentSpec): Assessment => ({
+  id: `${spec.categoryId}-pregnancy`,
+  subject: { kind: 'category', categoryId: spec.categoryId },
+  guidanceListId: 'pregnancy-food-safety',
+  statusId: spec.statusId,
+  summary: spec.summary,
+  scopeStatement: spec.scopeStatement,
+  guidanceScenarios: guidanceScenariosFor(spec.categoryId, spec),
+  reasonLinks: [],
+  citations: [{ ...mpiCitation, locator: spec.locator }],
+})
+
+const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
   {
-    foodIds: ['breads', 'plain-cakes-slices-and-muffins', 'breakfast-cereals', 'rice', 'pasta'],
+    categoryId: 'breads',
+    scopeStatement: 'Applies to all breads.',
     statusId: 'pregnancy-ok',
     summary: 'The guide lists this food as okay to eat.',
-    locator: 'Breads and cereals: Breads; Cakes, slices, muffins etc — Plain; Cereals — Breakfast cereals, rice, pasta, and similar',
+    locator: 'Breads and cereals: Breads',
   },
   {
-    foodIds: ['cakes-slices-and-muffins-with-cream-or-custard'],
+    categoryId: 'plain-cakes-slices-and-muffins',
+    scopeStatement: 'Applies to all plain cakes, slices and muffins.',
+    statusId: 'pregnancy-ok',
+    summary: 'The guide lists this food as okay to eat.',
+    locator: 'Breads and cereals: Cakes, slices, muffins etc — Plain',
+  },
+  {
+    categoryId: 'cakes-slices-and-muffins-with-cream-or-custard',
+    scopeStatement: 'Applies to all cakes, slices and muffins with added cream or custard.',
     statusId: 'pregnancy-conditions',
     summary: 'Avoid these unless the cream is newly opened and the custard is freshly made at home.',
     locator: 'Breads and cereals: Cakes, slices, muffins etc — With added cream or custard',
     instruction: 'Choose only when the cream is newly opened and the custard is freshly made at home.',
     conditions: [{ kind: 'composition', instruction: 'Do not eat if either condition is not met.' }],
+  },
+  {
+    categoryId: 'low-acid-soft-pasteurised-cheese',
+    scopeStatement: 'Applies to all low-acid soft pasteurised cheese.',
+    statusId: 'pregnancy-conditions',
+    summary: 'Eat low-acid soft pasteurised cheese only when it is cooked.',
+    locator: 'Dairy: Cheese — Low acid soft pasteurised cheese',
+    instruction: 'Cook thoroughly before eating.',
+    conditions: [{ kind: 'preparation', instruction: 'Do not eat it uncooked.' }],
+  },
+  {
+    categoryId: 'hard-cheese',
+    scopeStatement: 'Applies to all hard cheese.',
+    statusId: 'pregnancy-ok',
+    summary: 'The guide lists hard cheese as okay to eat when refrigerated.',
+    locator: 'Dairy: Cheese — Hard cheese',
+  },
+]
+
+const assessmentSpecs: AssessmentSpec[] = [
+  {
+    foodIds: ['breakfast-cereals', 'rice', 'pasta'],
+    statusId: 'pregnancy-ok',
+    summary: 'The guide lists this food as okay to eat.',
+    locator: 'Breads and cereals: Cereals — Breakfast cereals, rice, pasta, and similar',
   },
   {
     foodIds: ['fresh-filled-pasta'],
@@ -68,20 +127,6 @@ const assessmentSpecs: AssessmentSpec[] = [
     locator: 'Breads and cereals: Cereals',
     instruction: 'Follow the advice specific to the filling.',
     conditions: [{ kind: 'composition', instruction: 'Do not treat the general pasta advice as applying to fresh filled pasta.' }],
-  },
-  {
-    foodIds: ['brie', 'camembert', 'blue-cheese', 'ricotta', 'mozzarella', 'feta', 'halloumi', 'paneer'],
-    statusId: 'pregnancy-conditions',
-    summary: 'Eat low-acid soft pasteurised cheese only when it is cooked.',
-    locator: 'Dairy: Cheese — Low acid soft pasteurised cheese',
-    instruction: 'Cook thoroughly before eating.',
-    conditions: [{ kind: 'preparation', instruction: 'Do not eat it uncooked.' }],
-  },
-  {
-    foodIds: ['cheddar', 'parmesan'],
-    statusId: 'pregnancy-ok',
-    summary: 'The guide lists hard cheese as okay to eat when refrigerated.',
-    locator: 'Dairy: Cheese — Hard cheese',
   },
   {
     foodIds: ['cottage-cheese', 'cream-cheese'],
@@ -392,10 +437,10 @@ const assessmentSpecs: AssessmentSpec[] = [
   },
 ]
 
-const vegetarianAssessments: FoodAssessment[] = [
+const vegetarianAssessments: Assessment[] = [
   {
     id: 'apple-pie-vegetarian',
-    foodId: 'apple-pie',
+    subject: { kind: 'food', foodId: 'apple-pie' },
     guidanceListId: 'vegetarian-suitability',
     statusId: 'vegetarian-check-ingredients',
     summary: 'Traditional apple pie crust can contain lard, so check the ingredients.',
@@ -405,7 +450,7 @@ const vegetarianAssessments: FoodAssessment[] = [
   },
   {
     id: 'french-fries-vegetarian',
-    foodId: 'french-fries',
+    subject: { kind: 'food', foodId: 'french-fries' },
     guidanceListId: 'vegetarian-suitability',
     statusId: 'vegetarian-check-ingredients',
     summary: 'Restaurant fries can be cooked in animal fats, so ask how they are prepared.',
@@ -415,7 +460,7 @@ const vegetarianAssessments: FoodAssessment[] = [
   },
   {
     id: 'gelatin-vegetarian',
-    foodId: 'gelatin',
+    subject: { kind: 'food', foodId: 'gelatin' },
     guidanceListId: 'vegetarian-suitability',
     statusId: 'vegetarian-animal-derived',
     summary: 'Gelatin is an animal-derived gelling ingredient.',
@@ -425,7 +470,7 @@ const vegetarianAssessments: FoodAssessment[] = [
   },
   {
     id: 'gummy-bears-vegetarian',
-    foodId: 'gummy-bears',
+    subject: { kind: 'food', foodId: 'gummy-bears' },
     guidanceListId: 'vegetarian-suitability',
     statusId: 'vegetarian-check-ingredients',
     summary: 'Gummy bears can contain gelatin; gelatin-free alternatives exist.',
@@ -435,7 +480,7 @@ const vegetarianAssessments: FoodAssessment[] = [
   },
   {
     id: 'jelly-vegetarian',
-    foodId: 'jelly',
+    subject: { kind: 'food', foodId: 'jelly' },
     guidanceListId: 'vegetarian-suitability',
     statusId: 'vegetarian-check-ingredients',
     summary: 'Check whether jelly contains animal-derived ingredients; vegan alternatives exist.',
@@ -445,7 +490,7 @@ const vegetarianAssessments: FoodAssessment[] = [
   },
   {
     id: 'marshmallows-vegetarian',
-    foodId: 'marshmallows',
+    subject: { kind: 'food', foodId: 'marshmallows' },
     guidanceListId: 'vegetarian-suitability',
     statusId: 'vegetarian-animal-derived',
     summary: 'Marshmallows traditionally contain animal-derived gelatin.',
@@ -455,7 +500,7 @@ const vegetarianAssessments: FoodAssessment[] = [
   },
   {
     id: 'orange-juice-vegetarian',
-    foodId: 'orange-juice',
+    subject: { kind: 'food', foodId: 'orange-juice' },
     guidanceListId: 'vegetarian-suitability',
     statusId: 'vegetarian-check-ingredients',
     summary: 'Some orange juice brands add omega-3 derived from fish.',
@@ -465,7 +510,7 @@ const vegetarianAssessments: FoodAssessment[] = [
   },
   {
     id: 'panna-cotta-vegetarian',
-    foodId: 'panna-cotta',
+    subject: { kind: 'food', foodId: 'panna-cotta' },
     guidanceListId: 'vegetarian-suitability',
     statusId: 'vegetarian-animal-derived',
     summary: 'Panna cotta traditionally uses gelatin to set.',
@@ -475,7 +520,7 @@ const vegetarianAssessments: FoodAssessment[] = [
   },
   {
     id: 'parmesan-vegetarian',
-    foodId: 'parmesan',
+    subject: { kind: 'food', foodId: 'parmesan' },
     guidanceListId: 'vegetarian-suitability',
     statusId: 'vegetarian-animal-derived',
     summary: 'Traditional Parmesan uses animal-derived rennet.',
@@ -485,7 +530,7 @@ const vegetarianAssessments: FoodAssessment[] = [
   },
   {
     id: 'pasteurised-yoghurt-vegetarian',
-    foodId: 'pasteurised-yoghurt',
+    subject: { kind: 'food', foodId: 'pasteurised-yoghurt' },
     guidanceListId: 'vegetarian-suitability',
     statusId: 'vegetarian-check-ingredients',
     summary: 'Some yoghurts use gelatin as a gelling agent, so check the label.',
@@ -495,7 +540,7 @@ const vegetarianAssessments: FoodAssessment[] = [
   },
   {
     id: 'starburst-vegetarian',
-    foodId: 'starburst',
+    subject: { kind: 'food', foodId: 'starburst' },
     guidanceListId: 'vegetarian-suitability',
     statusId: 'vegetarian-animal-derived',
     summary: 'The article identifies Starburst as containing gelatin.',
@@ -505,7 +550,7 @@ const vegetarianAssessments: FoodAssessment[] = [
   },
   {
     id: 'tortillas-vegetarian',
-    foodId: 'tortillas',
+    subject: { kind: 'food', foodId: 'tortillas' },
     guidanceListId: 'vegetarian-suitability',
     statusId: 'vegetarian-check-ingredients',
     summary: 'Some tortillas use lard, so check the ingredients or ask the cook.',
@@ -515,7 +560,7 @@ const vegetarianAssessments: FoodAssessment[] = [
   },
   {
     id: 'vegetable-soup-vegetarian',
-    foodId: 'vegetable-soup',
+    subject: { kind: 'food', foodId: 'vegetable-soup' },
     guidanceListId: 'vegetarian-suitability',
     statusId: 'vegetarian-check-ingredients',
     summary: 'Restaurant vegetable soup can contain chicken broth, so ask about the ingredients.',
@@ -525,7 +570,7 @@ const vegetarianAssessments: FoodAssessment[] = [
   },
   {
     id: 'white-sugar-vegetarian',
-    foodId: 'white-sugar',
+    subject: { kind: 'food', foodId: 'white-sugar' },
     guidanceListId: 'vegetarian-suitability',
     statusId: 'vegetarian-check-ingredients',
     summary: 'White sugar can be refined using bone char, so check how it is processed.',
@@ -535,7 +580,7 @@ const vegetarianAssessments: FoodAssessment[] = [
   },
   {
     id: 'wine-and-beer-vegetarian',
-    foodId: 'wine-and-beer',
+    subject: { kind: 'food', foodId: 'wine-and-beer' },
     guidanceListId: 'vegetarian-suitability',
     statusId: 'vegetarian-check-ingredients',
     summary: 'Some wines and beers use fish-derived isinglass; vegetarian alternatives exist.',
@@ -545,7 +590,7 @@ const vegetarianAssessments: FoodAssessment[] = [
   },
   {
     id: 'worcestershire-sauce-vegetarian',
-    foodId: 'worcestershire-sauce',
+    subject: { kind: 'food', foodId: 'worcestershire-sauce' },
     guidanceListId: 'vegetarian-suitability',
     statusId: 'vegetarian-check-ingredients',
     summary: 'Worcestershire sauce can contain anchovies; vegan alternatives exist.',
@@ -555,7 +600,23 @@ const vegetarianAssessments: FoodAssessment[] = [
   },
 ]
 
+const vegetarianCategoryAssessments: Assessment[] = [
+  {
+    id: 'hard-cheese-vegetarian',
+    subject: { kind: 'category', categoryId: 'hard-cheese' },
+    guidanceListId: 'vegetarian-suitability',
+    statusId: 'vegetarian-check-ingredients',
+    summary: 'Traditional hard cheese can be set using animal-derived rennet, so check the label.',
+    scopeStatement: 'Applies to all hard cheese.',
+    guidanceScenarios: [],
+    reasonLinks: [],
+    citations: [],
+  },
+]
+
 export const assessments = [
   ...assessmentSpecs.flatMap(createAssessments),
+  ...categoryAssessmentSpecs.map(createCategoryAssessment),
   ...vegetarianAssessments,
+  ...vegetarianCategoryAssessments,
 ]

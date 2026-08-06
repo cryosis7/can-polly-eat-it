@@ -1,21 +1,21 @@
 import {
+  assessmentSchema,
   categorySchema,
-  foodAssessmentSchema,
   foodSchema,
   guidanceListSchema,
+  type Assessment,
   type Category,
   type Food,
-  type FoodAssessment,
   type GuidanceList,
   type StatusDefinition,
 } from './schemas'
-import { buildCategoryTree } from './categoryTree'
+import { createContentIndex, subjectKey, type ContentIndex } from './contentIndex'
 
 export type ContentData = {
   categories: Category[]
   foods: Food[]
   guidanceLists: GuidanceList[]
-  assessments: FoodAssessment[]
+  assessments: Assessment[]
 }
 
 const fail = (message: string): never => {
@@ -101,15 +101,37 @@ const validateGuidanceLists = (guidanceLists: GuidanceList[], categoryIds: Set<s
   }
 }
 
-const validateAssessments = (assessments: FoodAssessment[], foods: Food[], guidanceLists: GuidanceList[]) => {
+const validateAssessments = (
+  assessments: Assessment[],
+  foods: Food[],
+  categories: Category[],
+  guidanceLists: GuidanceList[],
+  index: ContentIndex,
+) => {
   assertUnique(assessments.map((assessment) => assessment.id), 'assessment ID')
-  assertUnique(assessments.map((assessment) => `${assessment.foodId}:${assessment.guidanceListId}`), 'food/list assessment pair')
+  assertUnique(
+    assessments.map((assessment) => `${subjectKey(assessment.subject)}:${assessment.guidanceListId}`),
+    'subject/list assessment pair',
+  )
   const foodIds = new Set(foods.map((food) => food.id))
+  const categoryIds = new Set(categories.map((category) => category.id))
+  const categoriesById = new Map(categories.map((category) => [category.id, category]))
+  const foodsById = new Map(foods.map((food) => [food.id, food]))
   const listsById = new Map(guidanceLists.map((list) => [list.id, list]))
 
   for (const assessment of assessments) {
-    if (!foodIds.has(assessment.foodId)) {
+    const { subject } = assessment
+    if (subject.kind === 'food' && !foodIds.has(subject.foodId)) {
       fail(`assessment "${assessment.id}" references an unknown food.`)
+    }
+    if (subject.kind === 'category' && !categoryIds.has(subject.categoryId)) {
+      fail(`assessment "${assessment.id}" references an unknown category.`)
+    }
+    if (subject.kind === 'category' && !assessment.scopeStatement) {
+      fail(`assessment "${assessment.id}" is for a category subject and must declare a scopeStatement.`)
+    }
+    if (subject.kind === 'food' && assessment.scopeStatement) {
+      fail(`assessment "${assessment.id}" is for a food subject and must not declare a scopeStatement.`)
     }
     const guidanceList = listsById.get(assessment.guidanceListId)
     if (!guidanceList) {
@@ -122,10 +144,17 @@ const validateAssessments = (assessments: FoodAssessment[], foods: Food[], guida
       if (guidanceList.citationPolicy === 'required' && assessment.citations.length === 0) {
         fail(`assessment "${assessment.id}" belongs to a guidance list that requires citations.`)
       }
+      const isCovered = subject.kind === 'food'
+        ? isFoodCovered(foodsById.get(subject.foodId)!, guidanceList, index)
+        : isCategoryCovered(categoriesById.get(subject.categoryId)!, guidanceList, index)
+      if (!isCovered) {
+        fail(`assessment "${assessment.id}" is outside its guidance list's declared coverage.`)
+      }
     }
     assertUnique(assessment.reasonLinks.map((link) => `${link.kind}:${link.targetFoodId}`), `reason link in "${assessment.id}"`)
     for (const link of assessment.reasonLinks) {
-      if (!foodIds.has(link.targetFoodId) || link.targetFoodId === assessment.foodId) {
+      const selfReference = subject.kind === 'food' && link.targetFoodId === subject.foodId
+      if (!foodIds.has(link.targetFoodId) || selfReference) {
         fail(`assessment "${assessment.id}" has an invalid reason-link target.`)
       }
     }
@@ -136,7 +165,7 @@ export const validateContent = (rawContent: ContentData): ContentData => {
   const categories = rawContent.categories.map((record) => categorySchema.parse(record))
   const foods = rawContent.foods.map((record) => foodSchema.parse(record))
   const guidanceLists = rawContent.guidanceLists.map((record) => guidanceListSchema.parse(record))
-  const assessments = rawContent.assessments.map((record) => foodAssessmentSchema.parse(record))
+  const assessments = rawContent.assessments.map((record) => assessmentSchema.parse(record))
 
   validateCategories(categories)
   const categoryIds = new Set(categories.map((category) => category.id))
@@ -147,7 +176,8 @@ export const validateContent = (rawContent: ContentData): ContentData => {
     fail('a food references an unknown primary category.')
   }
   validateGuidanceLists(guidanceLists, categoryIds, foodIds)
-  validateAssessments(assessments, foods, guidanceLists)
+  const index = createContentIndex(categories, assessments)
+  validateAssessments(assessments, foods, categories, guidanceLists, index)
   return { categories, foods, guidanceLists, assessments }
 }
 
@@ -155,15 +185,23 @@ export const getStatusById = (guidanceList: GuidanceList, statusId: string): Sta
   guidanceList.statuses.find((status) => status.id === statusId)
   ?? fail(`guidance list "${guidanceList.id}" does not own status "${statusId}".`)
 
-export const isFoodCovered = (food: Food, guidanceList: GuidanceList, categories: Category[]) => {
+export const isFoodCovered = (food: Food, guidanceList: GuidanceList, index: ContentIndex) => {
   if (guidanceList.coverage.mode === 'all-catalogue') {
     return true
   }
   if (guidanceList.coverage.foodIds.includes(food.id)) {
     return true
   }
-  const tree = buildCategoryTree(categories)
-  return (tree.pathByCategoryId.get(food.primaryCategoryId) ?? []).some((category) =>
+  return (index.tree.pathByCategoryId.get(food.primaryCategoryId) ?? []).some((category) =>
     guidanceList.coverage.categoryIds.includes(category.id),
+  )
+}
+
+export const isCategoryCovered = (category: Category, guidanceList: GuidanceList, index: ContentIndex) => {
+  if (guidanceList.coverage.mode === 'all-catalogue') {
+    return true
+  }
+  return (index.tree.pathByCategoryId.get(category.id) ?? []).some((candidate) =>
+    guidanceList.coverage.categoryIds.includes(candidate.id),
   )
 }

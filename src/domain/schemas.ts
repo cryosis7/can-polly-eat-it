@@ -81,12 +81,18 @@ export const assessmentReasonLinkSchema = z.object({
   statement: z.string().trim().min(1),
 })
 
-export const foodAssessmentSchema = z.object({
+export const assessmentSubjectSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('food'), foodId: identifier }),
+  z.object({ kind: z.literal('category'), categoryId: identifier }),
+])
+
+export const assessmentSchema = z.object({
   id: identifier,
-  foodId: identifier,
+  subject: assessmentSubjectSchema,
   guidanceListId: identifier,
   statusId: identifier,
   summary: z.string().trim().min(1),
+  scopeStatement: z.string().trim().min(1).optional(),
   guidanceScenarios: z.array(guidanceScenarioSchema),
   reasonLinks: z.array(assessmentReasonLinkSchema),
   citations: z.array(sourceCitationSchema),
@@ -95,7 +101,8 @@ export const foodAssessmentSchema = z.object({
 export type Category = z.infer<typeof categorySchema>
 export type Food = z.infer<typeof foodSchema>
 export type GuidanceList = z.infer<typeof guidanceListSchema>
-export type FoodAssessment = z.infer<typeof foodAssessmentSchema>
+export type AssessmentSubject = z.infer<typeof assessmentSubjectSchema>
+export type Assessment = z.infer<typeof assessmentSchema>
 export type StatusDefinition = z.infer<typeof statusDefinitionSchema>
 export type OutcomeBand = StatusDefinition['outcomeBand']
 export type SourceCitation = z.infer<typeof sourceCitationSchema>

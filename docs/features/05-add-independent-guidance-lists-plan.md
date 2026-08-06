@@ -4,7 +4,9 @@
 
 Add one `vegetarian-suitability` guidance list to the existing shared catalogue. It is limited to the
 maintainer-vetted Veggy Malta “15 Products Not Vegetarian” article supplied on 2026-08-05. Preserve
-one `Food` record per item; suitability remains a list-specific `FoodAssessment`.
+one `Food` record per item; suitability remains a list-specific `Assessment` (named `FoodAssessment`
+when this plan was written; [F-09](<09-assess-and-browse-food-categories.md>) renamed it and made its
+subject a food **or** a category).
 
 The list uses the status vocabulary approved by the maintainer:
 

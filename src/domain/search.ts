@@ -1,3 +1,4 @@
+import type { CategoryTree } from './categoryTree'
 import type { Category, Food } from './schemas'
 
 export const normaliseSearchText = (value: string) =>
@@ -11,24 +12,32 @@ export const normaliseSearchText = (value: string) =>
 
 export const searchTokens = (query: string) => normaliseSearchText(query).split(' ').filter(Boolean)
 
-export const foodSearchText = (food: Food, categories: Category[]) => {
-  const categoryById = new Map(categories.map((category) => [category.id, category]))
-  const categoryTerms: string[] = []
-  let category = categoryById.get(food.primaryCategoryId)
-
-  while (category) {
-    categoryTerms.push(category.name, ...category.aliases)
-    category = category.parentId === null ? undefined : categoryById.get(category.parentId)
-  }
+export const foodSearchText = (food: Food, tree: CategoryTree) => {
+  const categoryPath = tree.pathByCategoryId.get(food.primaryCategoryId) ?? []
+  const categoryTerms = categoryPath.flatMap((category) => [category.name, ...category.aliases])
 
   return normaliseSearchText([food.name, ...food.aliases, ...categoryTerms].join(' '))
 }
 
-export const matchesSearchQuery = (food: Food, categories: Category[], query: string) => {
+export const matchesSearchQuery = (food: Food, tree: CategoryTree, query: string) => {
   const tokens = searchTokens(query)
   if (tokens.length === 0) {
     return true
   }
-  const searchableText = foodSearchText(food, categories)
+  const searchableText = foodSearchText(food, tree)
+  return tokens.every((token) => searchableText.includes(token))
+}
+
+export const categorySearchText = (category: Category, tree: CategoryTree) => {
+  const categoryPath = tree.pathByCategoryId.get(category.id) ?? [category]
+  return normaliseSearchText(categoryPath.flatMap((ancestor) => [ancestor.name, ...ancestor.aliases]).join(' '))
+}
+
+export const matchesCategoryQuery = (category: Category, tree: CategoryTree, query: string) => {
+  const tokens = searchTokens(query)
+  if (tokens.length === 0) {
+    return true
+  }
+  const searchableText = categorySearchText(category, tree)
   return tokens.every((token) => searchableText.includes(token))
 }

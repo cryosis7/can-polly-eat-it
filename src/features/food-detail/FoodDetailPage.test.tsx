@@ -10,7 +10,7 @@ const disclaimer = 'This guide is general information, not medical advice.'
 const detailedContent: ContentData = {
   ...content,
   assessments: content.assessments.map((assessment) => (
-    assessment.foodId === 'leftover-cooked-foods'
+    assessment.subject.kind === 'food' && assessment.subject.foodId === 'leftover-cooked-foods'
       ? {
           ...assessment,
           guidanceScenarios: [
@@ -64,7 +64,7 @@ const outsideCoverageContent: ContentData = {
 const uncitedVegetarianContent: ContentData = {
   ...content,
   assessments: content.assessments.map((assessment) => (
-    assessment.foodId === 'parmesan' && assessment.guidanceListId === 'vegetarian-suitability'
+    assessment.subject.kind === 'food' && assessment.subject.foodId === 'parmesan' && assessment.guidanceListId === 'vegetarian-suitability'
       ? { ...assessment, citations: [] }
       : assessment
   )),
@@ -80,6 +80,21 @@ describe('FoodDetailPage', () => {
     expect(screen.getByRole('link', { name: 'New Zealand Food Safety: Pullout guide to food safety in pregnancy' })).toHaveAttribute(
       'href',
       'https://www.mpi.govt.nz/food-safety-home/food-pregnancy/list-safe-food-pregnancy',
+    )
+  })
+
+  it('discloses inherited hard-cheese guidance for Gouda, which has no assessment of its own', () => {
+    renderDetail('/food/gouda?v=1&scope=pregnancy-food-safety,vegetarian-suitability')
+
+    expect(screen.getByRole('heading', { name: 'Gouda' })).toBeInTheDocument()
+    expect(screen.getByText('OK to eat')).toBeInTheDocument()
+    expect(screen.getByText('Check ingredients')).toBeInTheDocument()
+    expect(screen.getAllByText(/Applies to all hard cheese\./)).toHaveLength(2)
+    const categoryLinks = screen.getAllByRole('link', { name: 'See Hard cheese guidance' })
+    expect(categoryLinks).toHaveLength(2)
+    expect(categoryLinks[0]).toHaveAttribute(
+      'href',
+      '/category/hard-cheese?v=1&scope=pregnancy-food-safety%2Cvegetarian-suitability',
     )
   })
 

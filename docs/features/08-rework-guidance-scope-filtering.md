@@ -55,6 +55,13 @@ classDiagram
     primaryCategoryId
   }
 
+  class Category {
+    id
+    slug
+    name
+    parentId
+  }
+
   class GuidanceList {
     id
     slug
@@ -69,16 +76,18 @@ classDiagram
     outcomeBand
   }
 
-  class FoodAssessment {
-    foodId
+  class Assessment {
+    subject
     guidanceListId
     statusId
   }
 
-  FoodAssessment --> Food : assesses
-  FoodAssessment --> GuidanceList : belongs to
+  Assessment --> Food : assesses (subject.kind = food)
+  Assessment --> Category : assesses (subject.kind = category)
+  Food --> Category : primary category
+  Assessment --> GuidanceList : belongs to
   GuidanceList --> StatusDefinition : owns
-  FoodAssessment --> StatusDefinition : maps to outcome band
+  Assessment --> StatusDefinition : maps to outcome band
 ```
 
 ## Required behaviour
