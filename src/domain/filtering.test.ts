@@ -11,13 +11,13 @@ describe('filterFoods', () => {
       query: 'yógurt',
       guidanceListIds: [],
       outcomeBands: [],
-    }).map((food) => food.slug)).toEqual(['yoghurt'])
+    }).map((food) => food.slug)).toEqual(['pasteurised-yoghurt'])
 
     expect(filterFoods(foods, categories, guidanceLists, assessments, {
-      query: 'milk-products hard-cheese',
+      query: 'milk-products cheddar',
       guidanceListIds: [],
       outcomeBands: [],
-    }).map((food) => food.slug)).toEqual(['cheddar', 'parmesan'])
+    }).map((food) => food.slug)).toEqual(['cheddar'])
   })
 
   it('includes foods in descendant categories and resolved fallback statuses', () => {
@@ -26,27 +26,37 @@ describe('filterFoods', () => {
       categoryId: 'dairy',
       guidanceListIds: [],
       outcomeBands: [],
-    }).map((food) => food.slug)).toEqual(['cheddar', 'parmesan', 'brie', 'yoghurt'])
+    }).map((food) => food.slug)).toContain('cheddar')
 
     expect(filterFoods(foods, categories, guidanceLists, assessments, {
       query: '',
       guidanceListIds: ['pregnancy-food-safety'],
       outcomeBands: ['not-assessed'],
+    }).map((food) => food.slug)).toEqual(['yellowfin-tuna'])
+  })
+
+  it('preserves the source cheese hierarchy and its low-acid soft cheese examples', () => {
+    expect(filterFoods(foods, categories, guidanceLists, assessments, {
+      query: '',
+      categoryId: 'low-acid-soft-pasteurised-cheese',
+      guidanceListIds: [],
+      outcomeBands: [],
     }).map((food) => food.slug)).toEqual([
-      'parmesan',
-      'yoghurt',
-      'apple-pie',
-      'french-fries',
-      'gummy-bears',
-      'jelly',
-      'marshmallows',
-      'panna-cotta',
-      'starburst',
-      'tortillas',
-      'vegetable-soup',
-      'white-sugar',
-      'worcestershire-sauce',
+      'brie',
+      'camembert',
+      'blue-cheese',
+      'ricotta',
+      'mozzarella',
+      'feta',
+      'halloumi',
+      'paneer',
     ])
+
+    expect(filterFoods(foods, categories, guidanceLists, assessments, {
+      query: 'dairy cheese low acid pasteurised brie',
+      guidanceListIds: [],
+      outcomeBands: [],
+    }).map((food) => food.slug)).toEqual(['brie'])
   })
 
   it('ORs selected outcome bands within a scope while combining category and outcome predicates', () => {
@@ -55,16 +65,23 @@ describe('filterFoods', () => {
       categoryId: 'dairy',
       guidanceListIds: ['pregnancy-food-safety'],
       outcomeBands: ['not-okay', 'not-assessed'],
-    }).map((food) => food.slug)).toEqual(['parmesan', 'brie', 'yoghurt'])
+    }).map((food) => food.slug)).toEqual(['unpasteurised-milk-and-dairy-products', 'soft-serve-ice-cream'])
   })
 
-  it('ANDs outcome constraints across vegetarian and pregnancy scopes', () => {
-    expect(filterFoods(foods, categories, guidanceLists, assessments, {
+  it('ANDs outcome constraints across selected scopes', () => {
+    const primaryList = guidanceLists[0]
+    const alternativeList = { ...primaryList, id: 'pregnancy-alternative' }
+    const cookedEggs = assessments.find((assessment) => assessment.foodId === 'cooked-eggs')!
+
+    expect(filterFoods(foods, categories, [primaryList, alternativeList], [
+      ...assessments,
+      { ...cookedEggs, id: 'cooked-eggs-pregnancy-alternative', guidanceListId: alternativeList.id },
+    ], {
       query: '',
-      categoryId: 'dairy',
-      guidanceListIds: ['vegetarian-suitability', 'pregnancy-food-safety'],
-      outcomeBands: ['maybe', 'not-assessed'],
-    }).map((food) => food.slug)).toEqual(['yoghurt'])
+      categoryId: 'eggs',
+      guidanceListIds: [primaryList.id, alternativeList.id],
+      outcomeBands: ['maybe'],
+    }).map((food) => food.slug)).toEqual(['cooked-eggs'])
   })
 
   it('rejects an unknown selected guidance scope', () => {

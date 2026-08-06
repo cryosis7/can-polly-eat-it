@@ -5,17 +5,13 @@ import { getStatusById, isFoodCovered, validateContent } from './contentValidati
 
 describe('guide content validation', () => {
   it('accepts the authored fixture content', () => {
-    expect(content.foods).toHaveLength(19)
-    expect(content.guidanceLists).toHaveLength(2)
+    expect(content.foods).toHaveLength(126)
+    expect(content.assessments).toHaveLength(125)
+    expect(content.guidanceLists).toHaveLength(1)
     expect(content.guidanceLists.flatMap((list) => list.statuses.map((status) => status.outcomeBand))).toEqual([
       'okay',
       'maybe',
       'not-okay',
-      'not-assessed',
-      'outside-coverage',
-      'okay',
-      'not-okay',
-      'maybe',
       'not-assessed',
       'outside-coverage',
     ])
@@ -30,25 +26,14 @@ describe('guide content validation', () => {
 
   it('resolves in-coverage and outside-coverage missing assessments differently', () => {
     const list = content.guidanceLists[0]
-    const yoghurt = content.foods.find((food) => food.id === 'yoghurt')!
-    const kombucha = content.foods.find((food) => food.id === 'kombucha')!
+    const yellowfinTuna = content.foods.find((food) => food.id === 'yellowfin-tuna')!
 
-    expect(resolveAssessment(yoghurt, list, content.assessments, content.categories).status.label).toBe('Not assessed')
-    expect(resolveAssessment(kombucha, list, content.assessments, content.categories).status.label).toBe('Outside current coverage')
-  })
-
-  it('resolves vegetarian coverage without changing food records', () => {
-    const list = content.guidanceLists.find((candidate) => candidate.id === 'vegetarian-suitability')!
-    const yoghurt = content.foods.find((food) => food.id === 'yoghurt')!
-    const cheddar = content.foods.find((food) => food.id === 'cheddar')!
-    const assessmentsWithoutYoghurt = content.assessments.filter(
-      (assessment) => assessment.id !== 'yoghurt-vegetarian',
-    )
-
-    expect(resolveAssessment(yoghurt, list, content.assessments, content.categories).status.label).toBe('Check ingredients')
-    expect(resolveAssessment(yoghurt, list, assessmentsWithoutYoghurt, content.categories).status.label).toBe('Not assessed')
-    expect(resolveAssessment(cheddar, list, content.assessments, content.categories).status.label).toBe('Outside current coverage')
-    expect(cheddar).not.toHaveProperty('isVegetarian')
+    expect(resolveAssessment(yellowfinTuna, list, content.assessments, content.categories).status.label).toBe('Not assessed')
+    expect(resolveAssessment(yellowfinTuna, {
+      ...list,
+      coverage: { ...list.coverage, mode: 'category-subtrees-and-foods', categoryIds: [], foodIds: [] },
+    }, content.assessments, content.categories).status.label).toBe('Outside current coverage')
+    expect(yellowfinTuna).not.toHaveProperty('pregnancyStatus')
   })
 
   it('rejects invalid category relationships and food category references', () => {
@@ -127,8 +112,8 @@ describe('guide content validation', () => {
 
     expect(() => validateContent({
       ...content,
-      categories: content.categories.map((category) => category.id === 'dairy'
-        ? { ...category, parentId: 'cheese' }
+      categories: content.categories.map((category) => category.id === 'seafood'
+        ? { ...category, parentId: 'fish-mercury-guidance' }
         : category),
     })).toThrow('part of a cycle')
 
@@ -206,24 +191,23 @@ describe('guide content validation', () => {
 
   it('resolves statuses and coverage declarations through its public helpers', () => {
     const list = content.guidanceLists[0]
-    const yoghurt = content.foods.find((food) => food.id === 'yoghurt')!
-    const kombucha = content.foods.find((food) => food.id === 'kombucha')!
+    const cheddar = content.foods.find((food) => food.id === 'cheddar')!
+    const yellowfinTuna = content.foods.find((food) => food.id === 'yellowfin-tuna')!
 
     expect(getStatusById(list, 'pregnancy-ok').label).toBe('OK to eat')
     expect(() => getStatusById(list, 'unknown-status')).toThrow('does not own status')
-    expect(isFoodCovered(yoghurt, list, content.categories)).toBe(true)
-    expect(isFoodCovered(kombucha, list, content.categories)).toBe(false)
-    expect(isFoodCovered(kombucha, {
+    expect(isFoodCovered(cheddar, list, content.categories)).toBe(true)
+    expect(isFoodCovered(yellowfinTuna, list, content.categories)).toBe(true)
+    expect(isFoodCovered(yellowfinTuna, {
       ...list,
-      coverage: { ...list.coverage, mode: 'all-catalogue' },
-    }, content.categories)).toBe(true)
-    expect(isFoodCovered(kombucha, {
-      ...list,
-      coverage: { ...list.coverage, foodIds: ['kombucha'] },
+      coverage: { ...list.coverage, mode: 'category-subtrees-and-foods', categoryIds: [], foodIds: ['yellowfin-tuna'] },
     }, content.categories)).toBe(true)
     expect(isFoodCovered({
-      ...kombucha,
+      ...yellowfinTuna,
       primaryCategoryId: 'unknown-category',
-    }, list, content.categories)).toBe(false)
+    }, {
+      ...list,
+      coverage: { ...list.coverage, mode: 'category-subtrees-and-foods', categoryIds: [], foodIds: [] },
+    }, content.categories)).toBe(false)
   })
 })

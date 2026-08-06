@@ -10,7 +10,7 @@ const disclaimer = 'This guide is general information, not medical advice.'
 const detailedContent: ContentData = {
   ...content,
   assessments: content.assessments.map((assessment) => (
-    assessment.foodId === 'leftovers'
+    assessment.foodId === 'leftover-cooked-foods'
       ? {
           ...assessment,
           guidanceScenarios: [
@@ -53,21 +53,29 @@ const renderDetail = (path: string, detailContent = content) => render(
   </MemoryRouter>,
 )
 
+const outsideCoverageContent: ContentData = {
+  ...content,
+  guidanceLists: content.guidanceLists.map((list) => ({
+    ...list,
+    coverage: { ...list.coverage, mode: 'category-subtrees-and-foods', categoryIds: [], foodIds: [] },
+  })),
+}
+
 describe('FoodDetailPage', () => {
   it('renders an assessed food with its status, summary, and citation', () => {
     renderDetail('/food/cheddar?v=1&scope=pregnancy-food-safety')
 
     expect(screen.getByRole('heading', { name: 'Cheddar' })).toBeInTheDocument()
     expect(screen.getByText('OK to eat')).toBeInTheDocument()
-    expect(screen.getByText('Hard cheese is included in the reviewed guidance.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'MPI: Food and pregnancy' })).toHaveAttribute(
+    expect(screen.getByText('The guide lists hard cheese as okay to eat when refrigerated.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'New Zealand Food Safety: Pullout guide to food safety in pregnancy' })).toHaveAttribute(
       'href',
-      'https://www.mpi.govt.nz/food-safety-home/food-pregnancy/list-safe-food-pregnancy/',
+      'https://www.mpi.govt.nz/food-safety-home/food-pregnancy/list-safe-food-pregnancy',
     )
   })
 
   it('renders distinct guidance scenarios, optional facts, and authored reason links', () => {
-    renderDetail('/food/leftovers?v=1&scope=pregnancy-food-safety', detailedContent)
+    renderDetail('/food/leftover-cooked-foods?v=1&scope=pregnancy-food-safety', detailedContent)
 
     expect(screen.getByRole('heading', { name: 'How to follow this guidance' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'When reheating leftovers' })).toBeInTheDocument()
@@ -82,35 +90,29 @@ describe('FoodDetailPage', () => {
   })
 
   it('renders the in-coverage not-assessed state with coverage sources and retained catalogue context', () => {
-    renderDetail('/food/yoghurt?v=1&scope=pregnancy-food-safety&q=yogurt&category=dairy')
+    renderDetail('/food/yellowfin-tuna?v=1&scope=pregnancy-food-safety&q=yellowfin&category=fish-mercury-guidance')
 
     expect(screen.getByText('Not assessed')).toBeInTheDocument()
     expect(screen.getByText(/has not been individually assessed/i)).toBeInTheDocument()
-    expect(screen.getByText('Dairy and prepared foods reviewed for this initial guide.')).toBeInTheDocument()
+    expect(screen.getByText('All food categories and named foods in the June 2026 MPI pullout guide are covered.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Back to the food guide' })).toHaveAttribute(
       'href',
-      '/?v=1&scope=pregnancy-food-safety&q=yogurt&category=dairy',
+      '/?v=1&scope=pregnancy-food-safety&q=yellowfin&category=fish-mercury-guidance',
     )
   })
 
-  it('renders all independently resolved guidance, including vegetarian assessment details', () => {
-    renderDetail('/food/yoghurt?v=1&scope=vegetarian-suitability')
+  it('renders source-backed conditions and their citation', () => {
+    renderDetail('/food/cooked-eggs?v=1&scope=pregnancy-food-safety')
 
-    expect(screen.getByText('Vegetarian suitability')).toBeInTheDocument()
     expect(screen.getByText('Pregnancy food safety')).toBeInTheDocument()
-    expect(screen.getByText('Check ingredients')).toBeInTheDocument()
-    expect(screen.getByText('Some yoghurts use gelatin as a gelling agent, so check the label.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Veggy Malta: 15 Products Not Vegetarian' })).toHaveAttribute(
-      'href',
-      'https://veggymalta.com/15-products-not-vegetarian/',
-    )
-    expect(screen.getByText(/15 non-vegetarian foods: Yogurt/)).toBeInTheDocument()
+    expect(screen.getByText('Only with conditions')).toBeInTheDocument()
+    expect(screen.getByText('Ensure yolks and scrambled eggs are firm.')).toBeInTheDocument()
   })
 
   it('renders the outside-coverage state with the medical-information disclaimer', () => {
-    renderDetail('/food/kombucha?v=1&scope=pregnancy-food-safety')
+    renderDetail('/food/yellowfin-tuna?v=1&scope=pregnancy-food-safety', outsideCoverageContent)
 
-    expect(screen.getAllByText('Outside current coverage')).toHaveLength(2)
+    expect(screen.getByText('Outside current coverage')).toBeInTheDocument()
     expect(screen.getByLabelText('Medical information disclaimer')).toHaveTextContent(disclaimer)
   })
 
