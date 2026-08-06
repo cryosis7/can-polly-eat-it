@@ -5,8 +5,8 @@ import { getStatusById, isFoodCovered, validateContent } from './contentValidati
 
 describe('guide content validation', () => {
   it('accepts the authored fixture content', () => {
-    expect(content.foods).toHaveLength(139)
-    expect(content.assessments).toHaveLength(140)
+    expect(content.foods).toHaveLength(140)
+    expect(content.assessments).toHaveLength(141)
     expect(content.guidanceLists.map((list) => list.id)).toEqual(['pregnancy-food-safety', 'vegetarian-suitability'])
     expect(content.guidanceLists[0].statuses.map((status) => status.outcomeBand)).toEqual([
       'okay',

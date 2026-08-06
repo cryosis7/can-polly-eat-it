@@ -285,6 +285,7 @@ const foodGroups: FoodGroup[] = [
     foods: [
       { id: 'apple-pie', name: 'Apple pie' },
       { id: 'french-fries', name: 'French fries', aliases: ['chips'] },
+      { id: 'gelatin', name: 'Gelatin', aliases: ['gelatine'] },
       { id: 'gummy-bears', name: 'Gummy bears' },
       { id: 'jelly', name: 'Jelly', aliases: ['jello'] },
       { id: 'marshmallows', name: 'Marshmallows' },

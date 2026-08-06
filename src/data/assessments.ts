@@ -414,13 +414,23 @@ const vegetarianAssessments: FoodAssessment[] = [
     citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: French fries' }],
   },
   {
+    id: 'gelatin-vegetarian',
+    foodId: 'gelatin',
+    guidanceListId: 'vegetarian-suitability',
+    statusId: 'vegetarian-animal-derived',
+    summary: 'Gelatin is an animal-derived gelling ingredient.',
+    guidanceScenarios: [],
+    reasonLinks: [],
+    citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Gummy Bears; Marshmallows; Panna Cotta; Starburst' }],
+  },
+  {
     id: 'gummy-bears-vegetarian',
     foodId: 'gummy-bears',
     guidanceListId: 'vegetarian-suitability',
     statusId: 'vegetarian-check-ingredients',
     summary: 'Gummy bears can contain gelatin; gelatin-free alternatives exist.',
     guidanceScenarios: [],
-    reasonLinks: [],
+    reasonLinks: [{ kind: 'contains', targetFoodId: 'gelatin', statement: 'Can contain gelatin.' }],
     citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Gummy Bears' }],
   },
   {
@@ -440,7 +450,7 @@ const vegetarianAssessments: FoodAssessment[] = [
     statusId: 'vegetarian-animal-derived',
     summary: 'Marshmallows traditionally contain animal-derived gelatin.',
     guidanceScenarios: [],
-    reasonLinks: [],
+    reasonLinks: [{ kind: 'contains', targetFoodId: 'gelatin', statement: 'Contains gelatin.' }],
     citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Marshmallows' }],
   },
   {
@@ -460,7 +470,7 @@ const vegetarianAssessments: FoodAssessment[] = [
     statusId: 'vegetarian-animal-derived',
     summary: 'Panna cotta traditionally uses gelatin to set.',
     guidanceScenarios: [],
-    reasonLinks: [],
+    reasonLinks: [{ kind: 'contains', targetFoodId: 'gelatin', statement: 'Contains gelatin.' }],
     citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Panna Cotta' }],
   },
   {
@@ -490,7 +500,7 @@ const vegetarianAssessments: FoodAssessment[] = [
     statusId: 'vegetarian-animal-derived',
     summary: 'The article identifies Starburst as containing gelatin.',
     guidanceScenarios: [],
-    reasonLinks: [],
+    reasonLinks: [{ kind: 'contains', targetFoodId: 'gelatin', statement: 'Contains gelatin.' }],
     citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Starburst' }],
   },
   {

@@ -55,6 +55,7 @@ export const guidanceLists: GuidanceList[] = [
       foodIds: [
         'apple-pie',
         'french-fries',
+        'gelatin',
         'gummy-bears',
         'jelly',
         'marshmallows',
