@@ -69,4 +69,5 @@ export const categories: Category[] = [
   { id: 'fruit-juice-kombucha-and-cider', slug: 'fruit-juice-kombucha-and-cider', name: 'Fruit juice, kombucha and cider (non-alcoholic)', parentId: 'miscellaneous', aliases: [], sortOrder: 9 },
   { id: 'pasteurised-fruit-juice-kombucha-and-cider', slug: 'pasteurised-fruit-juice-kombucha-and-cider', name: 'Pasteurised fruit juice, kombucha and cider', parentId: 'fruit-juice-kombucha-and-cider', aliases: [], sortOrder: 1 },
   { id: 'unpasteurised-fruit-juice-kombucha-and-cider', slug: 'unpasteurised-fruit-juice-kombucha-and-cider', name: 'Unpasteurised fruit juice, kombucha and cider', parentId: 'fruit-juice-kombucha-and-cider', aliases: ['raw fruit juice', 'raw kombucha', 'raw cider'], sortOrder: 2 },
+  { id: 'foods-that-may-contain-animal-derived-ingredients', slug: 'foods-that-may-contain-animal-derived-ingredients', name: 'Foods that may contain animal-derived ingredients', parentId: null, aliases: [], sortOrder: 8 },
 ]

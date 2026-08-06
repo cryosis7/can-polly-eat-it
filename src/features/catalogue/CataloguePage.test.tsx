@@ -34,6 +34,7 @@ describe('CataloguePage', () => {
     expect(screen.getByRole('heading', { name: "Polly's Food Guide" })).toBeInTheDocument()
     expect(screen.getByRole('checkbox', { name: 'Pregnancy food safety' })).toBeChecked()
     expect(screen.getByRole('checkbox', { name: 'Pregnancy food safety' })).toBeDisabled()
+    expect(screen.getByRole('checkbox', { name: 'Vegetarian suitability' })).not.toBeChecked()
     expect(screen.queryByRole('checkbox', { name: 'Not assessed' })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Low-acid soft pasteurised cheese' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Cheddar' })).toHaveAttribute(
@@ -49,7 +50,7 @@ describe('CataloguePage', () => {
     const disclosure = container.querySelector('details')
     expect(disclosure).not.toHaveAttribute('open')
     expect(screen.getByRole('searchbox', { name: 'Search foods' })).toBeInTheDocument()
-    expect(screen.getByText('126 foods in the guide')).toBeInTheDocument()
+    expect(screen.getByText('139 foods in the guide')).toBeInTheDocument()
 
     disclosure!.open = true
     fireEvent(disclosure!, new Event('toggle', { bubbles: true }))

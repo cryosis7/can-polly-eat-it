@@ -7,6 +7,7 @@ test.describe('Food catalogue', () => {
     await expect(page.getByRole('heading', { name: "Polly's Food Guide" })).toBeVisible()
     await expect(page.getByRole('checkbox', { name: 'Pregnancy food safety' })).toBeChecked()
     await expect(page.getByRole('checkbox', { name: 'Pregnancy food safety' })).toBeDisabled()
+    await expect(page.getByRole('checkbox', { name: 'Vegetarian suitability' })).not.toBeChecked()
     await expect(page.locator('.breadcrumb', { hasText: 'Dairy > Cheese > Low-acid soft pasteurised cheese' })).toBeVisible()
     await expect(page.getByText('OK to eat').first()).toBeVisible()
     await expect(page.getByText('Only with conditions').first()).toBeVisible()
@@ -57,7 +58,7 @@ test.describe('Food catalogue', () => {
     await page.keyboard.press('Tab')
     await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused()
     await expect(page.getByRole('searchbox', { name: 'Search foods' })).toBeVisible()
-    await expect(page.getByText('126 foods in the guide')).toBeVisible()
+    await expect(page.getByText('139 foods in the guide')).toBeVisible()
     await expect(page.locator('details')).not.toHaveAttribute('open', '')
 
     await page.getByText('Filters', { exact: true }).click()

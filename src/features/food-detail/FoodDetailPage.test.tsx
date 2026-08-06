@@ -109,6 +109,15 @@ describe('FoodDetailPage', () => {
     expect(screen.getByText('Ensure yolks and scrambled eggs are firm.')).toBeInTheDocument()
   })
 
+  it('renders only the selected non-default guidance scope', () => {
+    renderDetail('/food/parmesan?v=1&scope=vegetarian-suitability')
+
+    expect(screen.getByRole('heading', { name: 'Vegetarian suitability' })).toBeInTheDocument()
+    expect(screen.getByText('Contains animal-derived ingredients')).toBeInTheDocument()
+    expect(screen.getByText('Traditional Parmesan uses animal-derived rennet.')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Pregnancy food safety' })).not.toBeInTheDocument()
+  })
+
   it('renders the outside-coverage state with the medical-information disclaimer', () => {
     renderDetail('/food/yellowfin-tuna?v=1&scope=pregnancy-food-safety', outsideCoverageContent)
 

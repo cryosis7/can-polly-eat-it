@@ -131,6 +131,9 @@ export const FoodDetailPage = ({ content, disclaimer }: FoodDetailPageProps) => 
     content.guidanceLists,
     new Set(content.categories.map((category) => category.slug)),
   )
+  const selectedGuidanceLists = content.guidanceLists.filter((guidanceList) =>
+    queryState.scopeSlugs.includes(guidanceList.slug),
+  )
   const returnSearch = buildCatalogueQuery(queryState, content.guidanceLists).toString()
 
   return (
@@ -140,7 +143,7 @@ export const FoodDetailPage = ({ content, disclaimer }: FoodDetailPageProps) => 
       <h1>{food.name}</h1>
       <section aria-labelledby="guidance-heading">
         <h2 id="guidance-heading">Guidance</h2>
-        {content.guidanceLists.map((guidanceList) => (
+        {selectedGuidanceLists.map((guidanceList) => (
           <GuidanceSection
             content={content}
             guidanceList={guidanceList}

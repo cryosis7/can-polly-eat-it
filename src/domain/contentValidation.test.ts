@@ -5,10 +5,10 @@ import { getStatusById, isFoodCovered, validateContent } from './contentValidati
 
 describe('guide content validation', () => {
   it('accepts the authored fixture content', () => {
-    expect(content.foods).toHaveLength(126)
-    expect(content.assessments).toHaveLength(125)
-    expect(content.guidanceLists).toHaveLength(1)
-    expect(content.guidanceLists.flatMap((list) => list.statuses.map((status) => status.outcomeBand))).toEqual([
+    expect(content.foods).toHaveLength(139)
+    expect(content.assessments).toHaveLength(140)
+    expect(content.guidanceLists.map((list) => list.id)).toEqual(['pregnancy-food-safety', 'vegetarian-suitability'])
+    expect(content.guidanceLists[0].statuses.map((status) => status.outcomeBand)).toEqual([
       'okay',
       'maybe',
       'not-okay',
@@ -27,8 +27,10 @@ describe('guide content validation', () => {
   it('resolves in-coverage and outside-coverage missing assessments differently', () => {
     const list = content.guidanceLists[0]
     const yellowfinTuna = content.foods.find((food) => food.id === 'yellowfin-tuna')!
+    const applePie = content.foods.find((food) => food.id === 'apple-pie')!
 
     expect(resolveAssessment(yellowfinTuna, list, content.assessments, content.categories).status.label).toBe('Not assessed')
+    expect(resolveAssessment(applePie, list, content.assessments, content.categories).status.label).toBe('Outside current coverage')
     expect(resolveAssessment(yellowfinTuna, {
       ...list,
       coverage: { ...list.coverage, mode: 'category-subtrees-and-foods', categoryIds: [], foodIds: [] },
@@ -163,10 +165,11 @@ describe('guide content validation', () => {
 
     expect(() => validateContent({
       ...content,
-      assessments: content.assessments.map((assessment) => ({
-        ...assessment,
+      assessments: [...content.assessments, {
+        ...content.assessments[0],
+        id: 'unknown-list-assessment',
         guidanceListId: 'unknown-list',
-      })),
+      }],
     })).toThrow('unknown guidance list')
 
     expect(() => validateContent({
@@ -196,6 +199,10 @@ describe('guide content validation', () => {
 
     expect(getStatusById(list, 'pregnancy-ok').label).toBe('OK to eat')
     expect(() => getStatusById(list, 'unknown-status')).toThrow('does not own status')
+    expect(isFoodCovered(cheddar, {
+      ...list,
+      coverage: { ...list.coverage, mode: 'all-catalogue', categoryIds: [], foodIds: [] },
+    }, content.categories)).toBe(true)
     expect(isFoodCovered(cheddar, list, content.categories)).toBe(true)
     expect(isFoodCovered(yellowfinTuna, list, content.categories)).toBe(true)
     expect(isFoodCovered(yellowfinTuna, {
