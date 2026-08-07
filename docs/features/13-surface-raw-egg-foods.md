@@ -42,9 +42,11 @@ which presumes a manufacturer that a home-made sauce does not have.
 - `Sauces, dressings and spreads` keeps the source's heading as a plain browse heading, with
   `Commercial sauces, dressings and spreads` and `Home-made sauces` as its assessed children.
 - A `Desserts` root category with a `Cold desserts` child is added. `Desserts` is a root, a sibling of
-  `Dairy` and `Miscellaneous`, and needs an authored `sortOrder` that positions it deliberately among
-  the existing roots. `Cold desserts` carries the raw-egg guidance so that a cold dessert added later
-  inherits it rather than reading as unassessed.
+  `Dairy` and `Miscellaneous`. `Cold desserts` carries the raw-egg guidance so that a cold dessert added
+  later inherits it rather than reading as unassessed.
+- Root categories are ordered alphabetically by name, so `Desserts` and `Drinks` take a position a
+  reader can predict rather than one chosen by hand. This reassigns every root's `sortOrder` and moves
+  some existing roots up or down the browse view; it changes no guidance and no child ordering.
 - The existing `Ice cream` category moves from `Dairy` to `Cold desserts`, keeping its `Packaged` and
   `Soft-serve` children, and gains a `Home-made ice cream` child.
 - `Panna cotta` moves from `foods-that-may-contain-animal-derived-ingredients` into `Cold desserts`.
@@ -145,6 +147,21 @@ which presumes a manufacturer that a home-made sauce does not have.
 - Resolved: `Panna cotta` moves from `foods-that-may-contain-animal-derived-ingredients` into
   `Cold desserts`. Its vegetarian assessment is unchanged, and the vegetarian
   coverage lists it by `foodIds`, so that coverage still holds after the move.
+- **Consequence of that move, accepted deliberately:** `Panna cotta` leaves a root that is outside
+  pregnancy coverage and enters one that is inside it, so its pregnancy result changes from
+  `Outside current coverage` to the inherited amber `Cold desserts` rule with its origin disclosed.
+  That is the correct result under the existing resolution order and the same treatment every other
+  unassessed cold dessert receives, but it is a visible change to an existing entry and is asserted
+  rather than discovered.
+- Resolved: root categories are ordered alphabetically. The alternative was to hand-pick a position for
+  `Desserts` and `Drinks` in the existing sequence, which encodes nothing a reader can perceive and
+  would reopen the same argument for every future root.
+
+## Implementation plan
+
+[F-13 implementation plan](<13-surface-raw-egg-foods-plan.md>), approved and blocked on
+[F-12](<12-lift-group-guidance-onto-categories.md>) reaching `Done`, because F-13 authors on top of
+F-12's migrated sauces, raw-eggs, and cooked-eggs records and edits the same data files.
 
 ## Acceptance criteria
 
@@ -170,7 +187,10 @@ which presumes a manufacturer that a home-made sauce does not have.
   renders
   as "Outside current coverage".
 - Every food moved between categories keeps its existing per-list assessments unchanged, including
-  `Panna cotta`'s vegetarian assessment.
+  `Panna cotta`'s vegetarian assessment, and `Panna cotta` shows the inherited amber cold-dessert rule
+  for pregnancy with its origin disclosed instead of `Outside current coverage`.
+- Root categories appear in alphabetical order, with `Desserts` and `Drinks` in their alphabetical
+  positions, and no child ordering inside a root changes.
 - Content validation passes, including citation-required, `scopeStatement` ownership, subject
   uniqueness per list, and coverage containment.
 

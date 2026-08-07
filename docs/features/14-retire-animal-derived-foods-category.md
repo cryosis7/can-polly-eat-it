@@ -81,9 +81,10 @@ removing any guidance.
   inside the pregnancy guide's declared scope and simply has no reviewed pregnancy rule.
 - No pregnancy assessment is authored for any migrated food, including `Wine and beer`. Authoring one
   would be new guidance from an unreviewed source, which F-04's curation rules forbid.
-- Every new category needs an authored `sortOrder` that positions it deliberately among its siblings,
-  and the roots vacated by the retirement are re-numbered so no gap or duplicate `sortOrder` is left
-  behind.
+- Every new category needs an authored `sortOrder` that positions it deliberately among its siblings.
+  Any new root takes its alphabetical position under the root ordering
+  [F-13](<13-surface-raw-egg-foods.md>) establishes, and the roots are re-numbered after the retirement
+  so no gap or duplicate `sortOrder` is left behind.
 - Search continues to reach every migrated food by its existing name and aliases. Because category-path
   labels are searchable, a food's matchable text changes with its new ancestry; no alias is added,
   removed, or edited to compensate.
