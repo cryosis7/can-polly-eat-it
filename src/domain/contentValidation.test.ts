@@ -8,9 +8,9 @@ const index = createContentIndex(content.categories, content.assessments)
 
 describe('guide content validation', () => {
   it('accepts the authored fixture content', () => {
-    expect(content.categories).toHaveLength(70)
-    expect(content.foods).toHaveLength(102)
-    expect(content.assessments).toHaveLength(131)
+    expect(content.categories).toHaveLength(76)
+    expect(content.foods).toHaveLength(110)
+    expect(content.assessments).toHaveLength(142)
     expect(content.guidanceLists.map((list) => list.id)).toEqual(['pregnancy-food-safety', 'vegetarian-suitability'])
     expect(content.guidanceLists[0].statuses.map((status) => status.outcomeBand)).toEqual([
       'okay',

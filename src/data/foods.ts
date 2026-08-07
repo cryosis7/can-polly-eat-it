@@ -74,13 +74,36 @@ const foodGroups: FoodGroup[] = [
       { id: 'jelly', name: 'Jelly', aliases: ['jello'] },
       { id: 'marshmallows', name: 'Marshmallows' },
       { id: 'orange-juice', name: 'Orange juice' },
-      { id: 'panna-cotta', name: 'Panna cotta' },
       { id: 'starburst', name: 'Starburst' },
       { id: 'tortillas', name: 'Tortillas' },
       { id: 'vegetable-soup', name: 'Vegetable soup', aliases: ['vegetable soups'] },
       { id: 'white-sugar', name: 'White sugar' },
       { id: 'wine-and-beer', name: 'Wine and beer', aliases: ['wine', 'beer'] },
       { id: 'worcestershire-sauce', name: 'Worcestershire sauce' },
+    ],
+  },
+  {
+    categoryId: 'home-made-sauces',
+    foods: [
+      { id: 'mayonnaise', name: 'Mayonnaise', aliases: ['home-made mayonnaise', 'dressings containing mayonnaise'] },
+      { id: 'hollandaise-sauce', name: 'Hollandaise sauce', aliases: ['hollandaise'] },
+      { id: 'caesar-dressing', name: 'Caesar dressing' },
+    ],
+  },
+  {
+    categoryId: 'cold-desserts',
+    foods: [
+      { id: 'mousse', name: 'Mousse' },
+      { id: 'tiramisu', name: 'Tiramisu' },
+      { id: 'panna-cotta', name: 'Panna cotta' },
+    ],
+  },
+  {
+    categoryId: 'home-made-drinks',
+    foods: [
+      { id: 'eggnog', name: 'Eggnog' },
+      { id: 'egg-flips', name: 'Egg flips' },
+      { id: 'smoothies', name: 'Smoothies' },
     ],
   },
   {

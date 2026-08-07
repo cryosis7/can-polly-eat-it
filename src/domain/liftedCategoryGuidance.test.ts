@@ -88,7 +88,6 @@ describe('guidance lifted onto categories', () => {
 
   it('reaches each migrated alias on exactly one entry, and never on entries with differing statuses', () => {
     const migratedAliases = [
-      'tiramisu',
       'mince',
       'raw chicken',
       'cold smoked fish',

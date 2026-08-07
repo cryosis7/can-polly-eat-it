@@ -188,6 +188,22 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
     locator: 'Eggs: Raw eggs',
   },
   {
+    categories: [
+      { categoryId: 'home-made-sauces', scopeStatement: 'Applies to all home-made sauces and dressings, because only some of them contain raw egg.' },
+      { categoryId: 'cold-desserts', scopeStatement: 'Applies to all cold desserts, because only some of them contain raw egg.' },
+      { categoryId: 'home-made-ice-cream', scopeStatement: 'Applies to all home-made ice cream, because only some of it contains raw egg.' },
+      { categoryId: 'home-made-drinks', scopeStatement: 'Applies to all home-made drinks, because only some of them contain raw egg.' },
+    ],
+    statusId: 'pregnancy-conditions',
+    summary: 'The guide says not to eat foods containing raw eggs, so check whether this one contains raw egg.',
+    locator: 'Eggs: Raw eggs',
+    instruction: 'Check whether the food contains raw egg before eating it.',
+    conditions: [
+      { kind: 'composition', instruction: 'Do not eat it if it contains raw egg.' },
+      { kind: 'preparation', instruction: 'If the egg in it is cooked, follow the guide’s cooked eggs advice instead.' },
+    ],
+  },
+  {
     categories: [{ categoryId: 'cooked-eggs', scopeStatement: 'Applies to all cooked eggs.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Cook eggs until the yolk and scrambled egg are firm.',
@@ -379,6 +395,12 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
 ]
 
 const assessmentSpecs: AssessmentSpec[] = [
+  {
+    foodIds: ['mayonnaise', 'hollandaise-sauce', 'caesar-dressing', 'mousse', 'tiramisu', 'eggnog', 'egg-flips'],
+    statusId: 'pregnancy-avoid',
+    summary: 'The guide names this among the foods containing raw eggs that it says not to eat.',
+    locator: 'Eggs: Raw eggs',
+  },
   {
     foodIds: ['fresh-filled-pasta'],
     statusId: 'pregnancy-conditions',

@@ -66,7 +66,7 @@ describe('CataloguePage', () => {
     const disclosure = container.querySelector('details')
     expect(disclosure).not.toHaveAttribute('open')
     expect(screen.getByRole('searchbox', { name: 'Search foods' })).toBeInTheDocument()
-    expect(screen.getByText('147 results in the guide')).toBeInTheDocument()
+    expect(screen.getByText('159 results in the guide')).toBeInTheDocument()
 
     disclosure!.open = true
     fireEvent(disclosure!, new Event('toggle', { bubbles: true }))
@@ -198,6 +198,43 @@ describe('CataloguePage', () => {
     expect(within(entry).getByRole('heading', { name: 'Vegetarian suitability' })).toBeInTheDocument()
     expect(within(entry).getByText('Check ingredients')).toBeInTheDocument()
     expect(within(entry).getAllByRole('link', { name: /^Primary source:/ }).length).toBeGreaterThan(0)
+  })
+
+  it('splits sauces into commercial and home-made groups without either showing the other rule', () => {
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=sauces-dressings-and-spreads')
+
+    const commercial = screen.getByRole('heading', { name: 'Commercial sauces, dressings and spreads' })
+      .closest('.category-group') as HTMLElement
+    expect(within(commercial).getByText(/follow their manufacturer storage and heating instructions/)).toBeInTheDocument()
+    expect(within(commercial).queryByText(/contains raw egg/)).not.toBeInTheDocument()
+
+    const homeMade = screen.getByRole('button', { name: /^Home-made sauces, level \d+$/ })
+      .closest('.category-group') as HTMLElement
+    expect(within(homeMade).getByText(/check whether this one contains raw egg/)).toBeInTheDocument()
+    expect(within(homeMade).queryByText(/manufacturer storage/)).not.toBeInTheDocument()
+    expect(within(homeMade).getByRole('link', { name: 'Mayonnaise' })).toBeInTheDocument()
+  })
+
+  it('shows an unassessed cold dessert inheriting the amber group rule with its origin named', () => {
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=cold-desserts')
+
+    const pannaCottaCard = screen.getByRole('link', { name: 'Panna cotta' }).closest('.food-card') as HTMLElement
+    expect(within(pannaCottaCard).getByText('Only with conditions')).toBeInTheDocument()
+    expect(within(pannaCottaCard).getByText(/Applies to all cold desserts/)).toBeInTheDocument()
+    expect(within(pannaCottaCard).getByRole('link', { name: 'See Cold desserts guidance' })).toBeInTheDocument()
+    expect(within(pannaCottaCard).queryByText('Outside current coverage')).not.toBeInTheDocument()
+  })
+
+  it('moves ice cream out of Dairy and fruit juice out of Miscellaneous', () => {
+    renderCatalogue()
+    expandGroup('Dairy')
+    expect(screen.queryByRole('button', { name: /^Ice cream, level \d+$/ })).not.toBeInTheDocument()
+
+    expandGroup('Miscellaneous')
+    expect(screen.queryByRole('button', { name: /^Fruit juice, kombucha and cider \(non-alcoholic\), level \d+$/ })).not.toBeInTheDocument()
+
+    expandGroup('Drinks')
+    expect(screen.getByRole('button', { name: /^Fruit juice, kombucha and cider \(non-alcoholic\), level 2$/ })).toBeInTheDocument()
   })
 
   it('renders root categories in alphabetical order', () => {
