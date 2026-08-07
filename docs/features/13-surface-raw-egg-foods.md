@@ -126,11 +126,13 @@ which presumes a manufacturer that a home-made sauce does not have.
   `Home-made drinks` child, with eggnog and egg flips red and smoothies inheriting amber.
 - Resolved: `Fruit juice, kombucha and cider (non-alcoholic)` moves from `Miscellaneous` into
   `Drinks`, so the new root is not shipped obviously incomplete.
-- Open, and likely its own feature: `orange-juice` and `wine-and-beer` sit in
+- Resolved, now its own feature: `orange-juice`, `wine-and-beer`, and `apple-pie` sit in
   `foods-that-may-contain-animal-derived-ingredients`, which groups foods by *why they were assessed*
   rather than by *what they are* — the same latent problem `Panna cotta` had. Orange juice also now
   overlaps the fruit-juice category. Untangling that category is a coherent piece of work in its own
-  right and is deliberately not attempted here.
+  right, is deliberately not attempted here, and is now
+  [F-14](<14-retire-animal-derived-foods-category.md>), which depends on this feature for the
+  `Desserts` and `Drinks` roots it needs.
 - **Needs the closest review:** the amber group rules are the one place this feature goes beyond
   restating the source. The source says these foods are do-not-eat; it does not say "check your
   home-made sauce". The amber summary must therefore be phrased as applying the cited rule
