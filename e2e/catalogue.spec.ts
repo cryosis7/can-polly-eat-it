@@ -37,7 +37,7 @@ test.describe('Food catalogue', () => {
 
     await expect(page.getByRole('button', { name: 'Dairy, level 1' })).toHaveAttribute('aria-expanded', 'false')
     await expect(page.getByRole('button', { name: 'Cheese, level 2' })).toHaveCount(0)
-    await expect(page.getByText('143 results in the guide')).toBeVisible()
+    await expect(page.getByText('147 results in the guide')).toBeVisible()
 
     const collapsedHeight = await page.evaluate(() => document.body.scrollHeight)
     expect(collapsedHeight).toBeLessThan(6000)
@@ -65,15 +65,24 @@ test.describe('Food catalogue', () => {
     await expect(page.getByText('1 result in the guide')).toBeVisible()
   })
 
-  test('finds a food through an alias search', async ({ page }) => {
+  test('finds a merged entry through an alias search', async ({ page }) => {
     await page.goto('/')
 
     await page.getByRole('searchbox', { name: 'Search foods' }).fill('yogurt')
 
-    await expect(page.getByRole('link', { name: 'Yoghurt' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Pasteurised yoghurt guidance', exact: true })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Cheddar' })).not.toBeVisible()
     await expect(page.getByText('1 result in the guide')).toBeVisible()
     await expect(page).toHaveURL(/q=yogurt/)
+  })
+
+  test('reaches a migrated alias of a retired food on its merged category entry', async ({ page }) => {
+    await page.goto('/?v=1&scope=pregnancy-food-safety&q=tiramisu')
+
+    await expect(page.getByText('1 result in the guide')).toBeVisible()
+    const rawEggsGroup = page.locator('.category-group', { hasText: 'Raw eggs' })
+    await expect(rawEggsGroup.getByRole('link', { name: 'Raw eggs guidance', exact: true })).toBeVisible()
+    await expect(rawEggsGroup.getByText('Avoid').first()).toBeVisible()
   })
 
   test('includes descendant foods when filtering by a parent category', async ({ page }) => {
@@ -83,8 +92,8 @@ test.describe('Food catalogue', () => {
     await expect(page.getByRole('button', { name: 'Category: Dairy' })).toBeVisible()
     await expect(page.locator('.breadcrumb', { hasText: 'Dairy > Cheese > Hard cheese' })).toBeVisible()
     await expect(foodCard(page, 'Cheddar')).toBeVisible()
-    await expect(foodCard(page, 'Pasteurised yoghurt')).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Cooked eggs', exact: true })).toHaveCount(0)
+    await expect(page.getByRole('link', { name: 'Pasteurised yoghurt guidance', exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Cooked eggs guidance', exact: true })).toHaveCount(0)
   })
 
   test('reproduces selected outcomes from a direct URL', async ({ page }) => {
@@ -108,12 +117,14 @@ test.describe('Food catalogue', () => {
     await expect(page.getByRole('button', { name: 'Dietary scope: Vegetarian suitability' })).toBeVisible()
     await expect(page.getByText('1 result in the guide')).toBeVisible()
 
-    const yoghurtCard = foodCard(page, 'Pasteurised yoghurt')
-    await expect(yoghurtCard).toBeVisible()
-    await expect(yoghurtCard.getByRole('heading', { name: 'Pregnancy food safety' })).toBeVisible()
-    await expect(yoghurtCard.getByText('Only with conditions')).toBeVisible()
-    await expect(yoghurtCard.getByRole('heading', { name: 'Vegetarian suitability' })).toBeVisible()
-    await expect(yoghurtCard.getByText('Check ingredients')).toBeVisible()
+    const yoghurtEntry = page.locator('.category-group', {
+      has: page.getByRole('link', { name: 'Pasteurised yoghurt guidance', exact: true }),
+    }).locator('.category-entry')
+    await expect(yoghurtEntry).toBeVisible()
+    await expect(yoghurtEntry.getByRole('heading', { name: 'Pregnancy food safety' })).toBeVisible()
+    await expect(yoghurtEntry.getByText('Only with conditions')).toBeVisible()
+    await expect(yoghurtEntry.getByRole('heading', { name: 'Vegetarian suitability' })).toBeVisible()
+    await expect(yoghurtEntry.getByText('Check ingredients')).toBeVisible()
     await expect(page.getByRole('link', { name: 'Cheddar', exact: true })).toHaveCount(0)
     await expect(page.getByRole('link', { name: 'Parmesan', exact: true })).toHaveCount(0)
   })
@@ -157,7 +168,7 @@ test.describe('Food catalogue', () => {
     await page.keyboard.press('Tab')
     await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused()
     await expect(page.getByRole('searchbox', { name: 'Search foods' })).toBeVisible()
-    await expect(page.getByText('143 results in the guide')).toBeVisible()
+    await expect(page.getByText('147 results in the guide')).toBeVisible()
     await expect(page.locator('details')).not.toHaveAttribute('open', '')
 
     await page.getByText('Filters', { exact: true }).click()
@@ -167,8 +178,8 @@ test.describe('Food catalogue', () => {
     await expect(page).toHaveURL(/category=dairy/)
   })
 
-  test('shows source-backed conditions on a direct food-detail route', async ({ page }) => {
-    await page.goto('/food/cooked-eggs?v=1&scope=pregnancy-food-safety&q=eggs&category=eggs')
+  test('shows source-backed conditions on a retired record’s new category-detail route', async ({ page }) => {
+    await page.goto('/category/cooked-eggs?v=1&scope=pregnancy-food-safety&q=eggs&category=eggs')
 
     await expect(page.getByRole('heading', { name: 'Cooked eggs' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Pregnancy food safety' })).toBeVisible()
@@ -186,8 +197,8 @@ test.describe('Food catalogue', () => {
     await expect(page.getByLabel('Medical information disclaimer')).toContainText('general information, not medical advice')
   })
 
-  test('shows independently resolved selected scopes on a direct food-detail route', async ({ page }) => {
-    await page.goto('/food/pasteurised-yoghurt?v=1&scope=pregnancy-food-safety,vegetarian-suitability&outcome=maybe&q=yogurt&category=dairy')
+  test('shows independently resolved selected scopes on a direct category-detail route', async ({ page }) => {
+    await page.goto('/category/pasteurised-yoghurt?v=1&scope=pregnancy-food-safety,vegetarian-suitability&outcome=maybe&q=yogurt&category=dairy')
 
     await expect(page.getByRole('heading', { name: 'Pasteurised yoghurt' })).toBeVisible()
 
@@ -246,7 +257,7 @@ test.describe('Food catalogue', () => {
     await page.goto('/?v=2&scope=unknown&outcome=unknown&q=yogurt')
 
     await expect(page.getByRole('status')).toContainText('Unavailable shared filters were removed.')
-    await expect(page.getByRole('link', { name: 'Pasteurised yoghurt' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Pasteurised yoghurt guidance', exact: true })).toBeVisible()
     await expect(page).toHaveURL(/scope=pregnancy-food-safety/)
   })
 

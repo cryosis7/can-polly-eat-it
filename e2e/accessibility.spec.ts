@@ -15,7 +15,7 @@ const scannedStates = [
   {
     name: 'a searched and category-filtered catalogue',
     url: '/?v=1&scope=pregnancy-food-safety&q=yogurt&category=dairy',
-    settled: (page: Page) => page.getByRole('link', { name: 'Pasteurised yoghurt' }),
+    settled: (page: Page) => page.getByRole('link', { name: 'Pasteurised yoghurt guidance', exact: true }),
   },
   {
     name: 'the no-results state',
@@ -28,8 +28,13 @@ const scannedStates = [
     settled: (page: Page) => page.getByText('Unavailable shared filters were removed.'),
   },
   {
-    name: 'a food detail page with conditions and a citation',
-    url: '/food/cooked-eggs?v=1&scope=pregnancy-food-safety',
+    name: 'a food detail page inheriting a lifted category rule',
+    url: '/food/cottage-cheese?v=1&scope=pregnancy-food-safety',
+    settled: (page: Page) => page.getByRole('heading', { name: 'Pasteurised cottage cheese' }),
+  },
+  {
+    name: 'a migrated category detail page with conditions and a citation',
+    url: '/category/cooked-eggs?v=1&scope=pregnancy-food-safety',
     settled: (page: Page) => page.getByRole('heading', { name: 'Cooked eggs' }),
   },
   {

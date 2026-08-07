@@ -10,11 +10,11 @@ const index = createContentIndex(categories, assessments)
 
 describe('filterFoods', () => {
   it('matches aliases and normalised category-path text', () => {
-    expect(filterFoods(foods, guidanceLists, index, {
+    expect(filterCategoryEntries(categories, guidanceLists, index, {
       query: 'yógurt',
       guidanceListIds: [],
       outcomeBands: [],
-    }).map((food) => food.slug)).toEqual(['pasteurised-yoghurt'])
+    }).map((category) => category.slug)).toEqual(['pasteurised-yoghurt'])
 
     expect(filterFoods(foods, guidanceLists, index, {
       query: 'milk-products cheddar',
@@ -81,29 +81,36 @@ describe('filterFoods', () => {
   it('ORs selected outcome bands within a scope while combining category and outcome predicates', () => {
     expect(filterFoods(foods, guidanceLists, index, {
       query: '',
-      categoryId: 'dairy',
+      categoryId: 'cereals',
       guidanceListIds: ['pregnancy-food-safety'],
-      outcomeBands: ['not-okay', 'not-assessed'],
-    }).map((food) => food.slug)).toEqual(['unpasteurised-milk-and-dairy-products', 'soft-serve-ice-cream'])
+      outcomeBands: ['okay'],
+    }).map((food) => food.slug)).toEqual(['breakfast-cereals', 'rice', 'pasta'])
+
+    expect(filterFoods(foods, guidanceLists, index, {
+      query: '',
+      categoryId: 'cereals',
+      guidanceListIds: ['pregnancy-food-safety'],
+      outcomeBands: ['okay', 'maybe'],
+    }).map((food) => food.slug)).toEqual(['breakfast-cereals', 'rice', 'pasta', 'fresh-filled-pasta'])
   })
 
   it('ANDs outcome constraints across selected scopes', () => {
     const primaryList = guidanceLists[0]
     const alternativeList = { ...primaryList, id: 'pregnancy-alternative' }
-    const cookedEggs = assessments.find((assessment) =>
-      assessment.subject.kind === 'food' && assessment.subject.foodId === 'cooked-eggs',
+    const freshFilledPasta = assessments.find((assessment) =>
+      assessment.subject.kind === 'food' && assessment.subject.foodId === 'fresh-filled-pasta',
     )!
     const alternativeIndex = createContentIndex(categories, [
       ...assessments,
-      { ...cookedEggs, id: 'cooked-eggs-pregnancy-alternative', guidanceListId: alternativeList.id },
+      { ...freshFilledPasta, id: 'fresh-filled-pasta-pregnancy-alternative', guidanceListId: alternativeList.id },
     ])
 
     expect(filterFoods(foods, [primaryList, alternativeList], alternativeIndex, {
       query: '',
-      categoryId: 'eggs',
+      categoryId: 'cereals',
       guidanceListIds: [primaryList.id, alternativeList.id],
       outcomeBands: ['maybe'],
-    }).map((food) => food.slug)).toEqual(['cooked-eggs'])
+    }).map((food) => food.slug)).toEqual(['fresh-filled-pasta'])
   })
 
   it('rejects an unknown selected guidance scope', () => {
@@ -146,6 +153,13 @@ describe('filterCategoryEntries', () => {
     expect(filterCategoryEntries(categories, guidanceLists, index, {
       query: '',
       categoryId: 'seafood',
+      guidanceListIds: [],
+      outcomeBands: [],
+    }).map((category) => category.id)).toEqual(['raw-fish', 'raw-shellfish', 'smoked-seafood'])
+
+    expect(filterCategoryEntries(categories, guidanceLists, index, {
+      query: '',
+      categoryId: 'fish-mercury-guidance',
       guidanceListIds: [],
       outcomeBands: [],
     })).toEqual([])

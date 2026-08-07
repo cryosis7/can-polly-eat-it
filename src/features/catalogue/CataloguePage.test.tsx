@@ -66,7 +66,7 @@ describe('CataloguePage', () => {
     const disclosure = container.querySelector('details')
     expect(disclosure).not.toHaveAttribute('open')
     expect(screen.getByRole('searchbox', { name: 'Search foods' })).toBeInTheDocument()
-    expect(screen.getByText('143 results in the guide')).toBeInTheDocument()
+    expect(screen.getByText('147 results in the guide')).toBeInTheDocument()
 
     disclosure!.open = true
     fireEvent(disclosure!, new Event('toggle', { bubbles: true }))
@@ -115,7 +115,7 @@ describe('CataloguePage', () => {
     renderCatalogue('/?v=2&scope=retired-list&outcome=unknown&category=retired-category&q=yogurt')
 
     expect(screen.getByRole('status')).toHaveTextContent('Unavailable shared filters were removed.')
-    expect(screen.getByRole('link', { name: 'Pasteurised yoghurt' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Pasteurised yoghurt guidance' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Cheddar' })).not.toBeInTheDocument()
     expect(screen.getByText('1 result in the guide')).toBeInTheDocument()
   })
@@ -242,7 +242,7 @@ describe('CataloguePage', () => {
 
     fireEvent.change(searchField, { target: { value: '' } })
     expect(screen.queryByRole('link', { name: 'Gouda' })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^Cooked eggs, level 2$/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Cooked eggs' })).toBeInTheDocument()
   })
 
   it('collapses an expanded nested group without affecting its siblings', () => {
@@ -254,7 +254,7 @@ describe('CataloguePage', () => {
 
     expect(screen.getByRole('button', { name: /^Cheese, level 2$/ })).toHaveAttribute('aria-expanded', 'false')
     expect(screen.queryByRole('link', { name: 'Cheddar' })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^Butter, level 2$/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Butter' })).toBeInTheDocument()
   })
 
   it('keeps the announced result count unchanged when a group is collapsed', () => {
@@ -285,5 +285,24 @@ describe('CataloguePage', () => {
 
     expect(screen.getByText('4 results in the guide')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Hard cheese' })).toBeInTheDocument()
+  })
+
+  it('shows a food beneath a newly assessed category inheriting its rule with the origin disclosed', () => {
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=pasteurised-cottage-and-cream-cheese')
+
+    const cottageCheeseCard = screen.getByRole('link', { name: 'Pasteurised cottage cheese' }).closest('.food-card') as HTMLElement
+    expect(within(cottageCheeseCard).getByText('Only with conditions')).toBeInTheDocument()
+    expect(within(cottageCheeseCard).getByText(/Applies to pasteurised cottage cheese, cream cheese and similar pasteurised cheese\./)).toBeInTheDocument()
+    expect(within(cottageCheeseCard).getByRole('link', { name: 'See Pasteurised cottage cheese, cream cheese, etc guidance' })).toBeInTheDocument()
+  })
+
+  it('renders a merged category entry with its own status, summary, and source', () => {
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=pasteurised-cottage-and-cream-cheese')
+
+    const toggle = screen.getByRole('button', { name: /^Pasteurised cottage cheese, cream cheese, etc, level \d+$/ })
+    const entry = toggle.closest('.category-group')!.querySelector('.category-entry') as HTMLElement
+    expect(within(entry).getByText('Only with conditions')).toBeInTheDocument()
+    expect(within(entry).getByText(/Use pasteurised cheese from sealed packs within two days of opening/)).toBeInTheDocument()
+    expect(within(entry).getByRole('link', { name: /^Primary source:/ })).toBeInTheDocument()
   })
 })

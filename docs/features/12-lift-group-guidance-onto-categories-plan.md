@@ -1,7 +1,7 @@
 # F-12 Implementation Plan: Lift Group-Level Guidance onto Categories
 
 **Feature:** [F-12](<12-lift-group-guidance-onto-categories.md>)
-**Status:** Approved, not started
+**Status:** Implemented
 
 **Governing decisions:** [assess categories as first-class subjects with inherited guidance](<../decisions/2026-08-06 ADR - assess categories as first-class subjects with inherited guidance.md>), [model food groups as an unbounded category tree](<../decisions/2026-08-04 ADR - model food groups as an unbounded category tree.md>), [store reviewed guide content as version-controlled static data](<../decisions/2026-08-04 ADR - store reviewed guide content as version-controlled static data.md>), and [enforce complete coverage for application source](<../decisions/2026-08-05 ADR - enforce complete coverage for application source.md>)
 

@@ -54,7 +54,7 @@ export const guidanceLists: GuidanceList[] = [
     ],
     coverage: {
       mode: 'category-subtrees-and-foods',
-      categoryIds: ['hard-cheese'],
+      categoryIds: ['hard-cheese', 'pasteurised-yoghurt'],
       foodIds: [
         'apple-pie',
         'french-fries',
@@ -65,7 +65,6 @@ export const guidanceLists: GuidanceList[] = [
         'orange-juice',
         'panna-cotta',
         'parmesan',
-        'pasteurised-yoghurt',
         'starburst',
         'tortillas',
         'vegetable-soup',
@@ -73,7 +72,7 @@ export const guidanceLists: GuidanceList[] = [
         'wine-and-beer',
         'worcestershire-sauce',
       ],
-      description: 'Foods explicitly named in the reviewed Veggy Malta article, plus the hard cheese category assessed for animal-derived rennet, are covered.',
+      description: 'Foods explicitly named in the reviewed Veggy Malta article, plus the hard cheese and pasteurised yoghurt categories assessed for animal-derived ingredients, are covered.',
       citations: [{
         title: 'Veggy Malta: 15 Products Not Vegetarian',
         url: 'https://veggymalta.com/15-products-not-vegetarian/',

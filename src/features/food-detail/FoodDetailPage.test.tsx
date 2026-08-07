@@ -10,32 +10,32 @@ const disclaimer = 'This guide is general information, not medical advice.'
 const detailedContent: ContentData = {
   ...content,
   assessments: content.assessments.map((assessment) => (
-    assessment.subject.kind === 'food' && assessment.subject.foodId === 'leftover-cooked-foods'
+    assessment.subject.kind === 'food' && assessment.subject.foodId === 'fresh-filled-pasta'
       ? {
           ...assessment,
           guidanceScenarios: [
             {
-              id: 'reheated-leftovers',
-              applicability: 'When reheating leftovers',
-              instruction: 'Reheat until steaming hot before serving.',
+              id: 'cooked-filling',
+              applicability: 'When the filling is cooked through',
+              instruction: 'Serve it steaming hot.',
               conditions: [
                 {
-                  id: 'heat-leftovers',
+                  id: 'heat-filling',
                   kind: 'preparation',
                   instruction: 'Heat all parts thoroughly.',
                   facts: [{ label: 'Temperature', valueText: '75 degC' }],
                 },
                 {
-                  id: 'serve-leftovers',
+                  id: 'serve-filling',
                   kind: 'serving',
-                  instruction: 'Serve immediately after reheating.',
+                  instruction: 'Serve immediately after cooking.',
                 },
               ],
             },
             {
-              id: 'discard-leftovers',
-              applicability: 'When leftovers cannot be reheated',
-              instruction: 'Discard them instead.',
+              id: 'unknown-filling',
+              applicability: 'When the filling cannot be identified',
+              instruction: 'Do not eat it.',
               conditions: [],
             },
           ],
@@ -99,14 +99,14 @@ describe('FoodDetailPage', () => {
   })
 
   it('renders distinct guidance scenarios, optional facts, and authored reason links', () => {
-    renderDetail('/food/leftover-cooked-foods?v=1&scope=pregnancy-food-safety', detailedContent)
+    renderDetail('/food/fresh-filled-pasta?v=1&scope=pregnancy-food-safety', detailedContent)
 
     expect(screen.getByRole('heading', { name: 'How to follow this guidance' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'When reheating leftovers' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'When the filling is cooked through' })).toBeInTheDocument()
     expect(screen.getByText('Heat all parts thoroughly.')).toBeInTheDocument()
     expect(screen.getByText('Temperature')).toBeInTheDocument()
     expect(screen.getByText('75 degC')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'When leftovers cannot be reheated' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'When the filling cannot be identified' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Cheddar' })).toHaveAttribute(
       'href',
       '/food/cheddar?v=1&scope=pregnancy-food-safety',
@@ -125,12 +125,18 @@ describe('FoodDetailPage', () => {
     )
   })
 
-  it('renders source-backed conditions and their citation', () => {
-    renderDetail('/food/cooked-eggs?v=1&scope=pregnancy-food-safety')
+  it('renders source-backed conditions and their citation for a food inheriting a newly assessed category', () => {
+    renderDetail('/food/cottage-cheese?v=1&scope=pregnancy-food-safety')
 
     expect(screen.getByText('Pregnancy food safety')).toBeInTheDocument()
     expect(screen.getByText('Only with conditions')).toBeInTheDocument()
-    expect(screen.getByText('Ensure yolks and scrambled eggs are firm.')).toBeInTheDocument()
+    expect(screen.getByText('Keep in its sealed pack and eat cold within two days of opening.')).toBeInTheDocument()
+    expect(screen.getByText(/Applies to pasteurised cottage cheese, cream cheese and similar pasteurised cheese\./)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'See Pasteurised cottage cheese, cream cheese, etc guidance' })).toHaveAttribute(
+      'href',
+      '/category/pasteurised-cottage-and-cream-cheese?v=1&scope=pregnancy-food-safety',
+    )
+    expect(screen.getByRole('link', { name: 'New Zealand Food Safety: Pullout guide to food safety in pregnancy' })).toBeInTheDocument()
   })
 
   it('renders only the selected non-default guidance scope', () => {

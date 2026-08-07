@@ -1,6 +1,6 @@
 # F-12: Lift Group-Level Guidance onto Categories
 
-**Status:** Planned
+**Status:** Done
 
 **Depends on:** [F-04: Maintain Trustworthy Guidance Content](<04-maintain-trustworthy-guidance-content.md>), [F-09: Assess and Browse Food Categories](<09-assess-and-browse-food-categories.md>), [F-11: Make the Browse Hierarchy Legible and Collapsible](<11-make-browse-hierarchy-legible.md>)
 
@@ -168,7 +168,33 @@ content still contains:
 
 [F-12 Implementation Plan](<12-lift-group-guidance-onto-categories-plan.md>).
 
+## Outcome
 
+Migration completed. Record counts before and after:
+
+| Measure | Before | After | Change |
+| --- | --- | --- | --- |
+| Categories | 69 | 70 | +1 `Commercial sauces, dressings and spreads` |
+| Foods | 138 | 102 | −38 mirror foods retired, +2 sprouts split |
+| Assessments | 134 | 131 | −43 food assessments lifted or merged, +40 category assessments |
+| Pregnancy category assessments | 5 | 45 | +40 |
+| Announced guide-entry count | 143 | 147 | +2 sprouts foods, +1 `Cereals`, +1 `Pasteurised cottage cheese, cream cheese, etc` |
+
+Entry-by-entry reconciliation of the +4:
+
+- 38 mirror foods left the catalogue and 38 categories became guide entries in their place, a net
+  change of zero.
+- `Seed sprouts` and `Enoki mushrooms` are new distinct foods beneath the single sprouts rule: +2.
+- `Cereals` became an entry while `Breakfast cereals`, `Rice` and `Pasta` kept their records: +1.
+- `Pasteurised cottage cheese, cream cheese, etc` became an entry while `Pasteurised cottage cheese`
+  and `Pasteurised cream cheese` kept theirs: +1.
+
+A migration-invariant test in `src/domain/migrationInvariant.test.ts` compares every retained food's
+fully resolved status, summary, scenarios, conditions and citations against the pre-migration
+baseline in `src/test/preMigrationResolution.ts`, excluding synthetic record ids. It also asserts the
+departed and introduced food sets exactly. No food's displayed guidance changed.
+
+## Acceptance criteria
 
 - `Pasteurised cottage cheese` and `Pasteurised cream cheese` have no assessment of their own, and
   both display the category's rule with its status, summary, conditions, citation, and a statement of
@@ -198,3 +224,26 @@ for a retired record's new `/category/<slug>` URL and for search by a migrated a
 before-and-after record counts are stated in this brief on completion, as F-09 did. A subagent runs the
 `prepare` skill after implementation and targeted validation, before the pull request is opened and
 before this feature moves to `Done`.
+
+### Results
+
+All gates passed on the implemented migration:
+
+- `npm test` — 101 tests across 12 files, including the migration invariant and the new
+  `src/domain/liftedCategoryGuidance.test.ts` cases.
+- `npm run typecheck` and `npm run lint` — clean.
+- `npm run test:coverage` — 100% statements, branches, functions, and lines retained.
+- `npm run test:e2e` — 39 Chromium tests, including the re-pointed `/category/cooked-eggs` and
+  `/category/pasteurised-yoghurt` routes, a migrated-alias search, and the WCAG 2.2 AA axe scans at
+  both viewports with zero violations.
+- `npm run build` — production build succeeded.
+
+### Pre-PR `prepare` review
+
+A subagent ran the `prepare` skill against the branch diff. It reported no dependency-version issues
+and no missing ADR, confirming the migration applies the existing category-assessment decision rather
+than making a new one. It raised two documentation-drift findings, both now resolved:
+
+- F-12 was still marked `Planned` in this brief and in the feature register while the brief recorded
+  the completed migration. Both are now `Done`.
+- The implementation plan was still marked `Approved, not started`. It is now `Implemented`.

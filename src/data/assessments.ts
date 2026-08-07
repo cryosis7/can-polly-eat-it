@@ -14,9 +14,13 @@ type AssessmentSpec = {
   conditions?: Condition[]
 }
 
-type CategoryAssessmentSpec = {
+type CategorySubject = {
   categoryId: string
   scopeStatement: string
+}
+
+type CategoryAssessmentSpec = {
+  categories: CategorySubject[]
   statusId: 'pregnancy-ok' | 'pregnancy-conditions' | 'pregnancy-avoid'
   summary: string
   locator: string
@@ -59,36 +63,34 @@ const createAssessments = (spec: AssessmentSpec): Assessment[] =>
     citations: [{ ...mpiCitation, locator: spec.locator }],
   }))
 
-const createCategoryAssessment = (spec: CategoryAssessmentSpec): Assessment => ({
-  id: `${spec.categoryId}-pregnancy`,
-  subject: { kind: 'category', categoryId: spec.categoryId },
-  guidanceListId: 'pregnancy-food-safety',
-  statusId: spec.statusId,
-  summary: spec.summary,
-  scopeStatement: spec.scopeStatement,
-  guidanceScenarios: guidanceScenariosFor(spec.categoryId, spec),
-  reasonLinks: [],
-  citations: [{ ...mpiCitation, locator: spec.locator }],
-})
+const createCategoryAssessments = (spec: CategoryAssessmentSpec): Assessment[] =>
+  spec.categories.map(({ categoryId, scopeStatement }) => ({
+    id: `${categoryId}-pregnancy`,
+    subject: { kind: 'category', categoryId },
+    guidanceListId: 'pregnancy-food-safety',
+    statusId: spec.statusId,
+    summary: spec.summary,
+    scopeStatement,
+    guidanceScenarios: guidanceScenariosFor(categoryId, spec),
+    reasonLinks: [],
+    citations: [{ ...mpiCitation, locator: spec.locator }],
+  }))
 
 const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
   {
-    categoryId: 'breads',
-    scopeStatement: 'Applies to all breads.',
+    categories: [{ categoryId: 'breads', scopeStatement: 'Applies to all breads.' }],
     statusId: 'pregnancy-ok',
     summary: 'The guide lists this food as okay to eat.',
     locator: 'Breads and cereals: Breads',
   },
   {
-    categoryId: 'plain-cakes-slices-and-muffins',
-    scopeStatement: 'Applies to all plain cakes, slices and muffins.',
+    categories: [{ categoryId: 'plain-cakes-slices-and-muffins', scopeStatement: 'Applies to all plain cakes, slices and muffins.' }],
     statusId: 'pregnancy-ok',
     summary: 'The guide lists this food as okay to eat.',
     locator: 'Breads and cereals: Cakes, slices, muffins etc — Plain',
   },
   {
-    categoryId: 'cakes-slices-and-muffins-with-cream-or-custard',
-    scopeStatement: 'Applies to all cakes, slices and muffins with added cream or custard.',
+    categories: [{ categoryId: 'cakes-slices-and-muffins-with-cream-or-custard', scopeStatement: 'Applies to all cakes, slices and muffins with added cream or custard.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Avoid these unless the cream is newly opened and the custard is freshly made at home.',
     locator: 'Breads and cereals: Cakes, slices, muffins etc — With added cream or custard',
@@ -96,8 +98,13 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
     conditions: [{ kind: 'composition', instruction: 'Do not eat if either condition is not met.' }],
   },
   {
-    categoryId: 'low-acid-soft-pasteurised-cheese',
-    scopeStatement: 'Applies to all low-acid soft pasteurised cheese.',
+    categories: [{ categoryId: 'cereals', scopeStatement: 'Applies to breakfast cereals, rice, pasta and similar cereal foods.' }],
+    statusId: 'pregnancy-ok',
+    summary: 'The guide lists this food as okay to eat.',
+    locator: 'Breads and cereals: Cereals — Breakfast cereals, rice, pasta, and similar',
+  },
+  {
+    categories: [{ categoryId: 'low-acid-soft-pasteurised-cheese', scopeStatement: 'Applies to all low-acid soft pasteurised cheese.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Eat low-acid soft pasteurised cheese only when it is cooked.',
     locator: 'Dairy: Cheese — Low acid soft pasteurised cheese',
@@ -105,31 +112,13 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
     conditions: [{ kind: 'preparation', instruction: 'Do not eat it uncooked.' }],
   },
   {
-    categoryId: 'hard-cheese',
-    scopeStatement: 'Applies to all hard cheese.',
+    categories: [{ categoryId: 'hard-cheese', scopeStatement: 'Applies to all hard cheese.' }],
     statusId: 'pregnancy-ok',
     summary: 'The guide lists hard cheese as okay to eat when refrigerated.',
     locator: 'Dairy: Cheese — Hard cheese',
   },
-]
-
-const assessmentSpecs: AssessmentSpec[] = [
   {
-    foodIds: ['breakfast-cereals', 'rice', 'pasta'],
-    statusId: 'pregnancy-ok',
-    summary: 'The guide lists this food as okay to eat.',
-    locator: 'Breads and cereals: Cereals — Breakfast cereals, rice, pasta, and similar',
-  },
-  {
-    foodIds: ['fresh-filled-pasta'],
-    statusId: 'pregnancy-conditions',
-    summary: 'Check the guidance for the filling before eating fresh filled pasta.',
-    locator: 'Breads and cereals: Cereals',
-    instruction: 'Follow the advice specific to the filling.',
-    conditions: [{ kind: 'composition', instruction: 'Do not treat the general pasta advice as applying to fresh filled pasta.' }],
-  },
-  {
-    foodIds: ['cottage-cheese', 'cream-cheese'],
+    categories: [{ categoryId: 'pasteurised-cottage-and-cream-cheese', scopeStatement: 'Applies to pasteurised cottage cheese, cream cheese and similar pasteurised cheese.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Use pasteurised cheese from sealed packs within two days of opening, or cook it before its best-before date.',
     locator: 'Dairy: Cheese — Pasteurised cottage cheese, cream cheese, etc',
@@ -140,13 +129,16 @@ const assessmentSpecs: AssessmentSpec[] = [
     ],
   },
   {
-    foodIds: ['butter', 'packaged-ice-cream'],
+    categories: [
+      { categoryId: 'butter', scopeStatement: 'Applies to all butter.' },
+      { categoryId: 'packaged-ice-cream', scopeStatement: 'Applies to all packaged ice cream.' },
+    ],
     statusId: 'pregnancy-ok',
     summary: 'The guide lists this food as okay to eat.',
     locator: 'Dairy: Butter; Ice cream — Packaged',
   },
   {
-    foodIds: ['cream'],
+    categories: [{ categoryId: 'cream', scopeStatement: 'Applies to all cream.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Use cream from a sealed pack and eat it within two days of opening.',
     locator: 'Dairy: Cream',
@@ -154,7 +146,7 @@ const assessmentSpecs: AssessmentSpec[] = [
     conditions: [{ kind: 'storage', instruction: 'Eat within two days of opening the pack.' }],
   },
   {
-    foodIds: ['ready-made-chilled-custard'],
+    categories: [{ categoryId: 'ready-made-chilled-custard', scopeStatement: 'Applies to all ready-made chilled custard.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Keep packaged chilled custard refrigerated and eat it within two days of opening.',
     locator: 'Dairy: Custard — Ready-made chilled (packaged)',
@@ -162,7 +154,7 @@ const assessmentSpecs: AssessmentSpec[] = [
     conditions: [{ kind: 'storage', instruction: 'Eat within two days of opening.' }],
   },
   {
-    foodIds: ['home-made-custard'],
+    categories: [{ categoryId: 'home-made-custard', scopeStatement: 'Applies to all home-made custard.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Eat home-made custard hot after cooking; reheat leftovers until piping hot.',
     locator: 'Dairy: Custard — Home-made',
@@ -170,7 +162,10 @@ const assessmentSpecs: AssessmentSpec[] = [
     conditions: [{ kind: 'serving', instruction: 'Reheat leftovers above 75°C and eat immediately.' }],
   },
   {
-    foodIds: ['pasteurised-milk', 'pasteurised-yoghurt'],
+    categories: [
+      { categoryId: 'pasteurised-milk', scopeStatement: 'Applies to all pasteurised milk.' },
+      { categoryId: 'pasteurised-yoghurt', scopeStatement: 'Applies to all pasteurised yoghurt.' },
+    ],
     statusId: 'pregnancy-conditions',
     summary: 'Use pasteurised dairy under the manufacturer’s storage guidance.',
     locator: 'Dairy: Milk — Pasteurised; Yoghurt — Pasteurised',
@@ -178,19 +173,22 @@ const assessmentSpecs: AssessmentSpec[] = [
     conditions: [{ kind: 'storage', instruction: 'Follow the package best-before and storage instructions.' }],
   },
   {
-    foodIds: ['unpasteurised-milk-and-dairy-products', 'soft-serve-ice-cream'],
+    categories: [
+      { categoryId: 'unpasteurised-milk-and-dairy-products', scopeStatement: 'Applies to all unpasteurised milk and dairy products.' },
+      { categoryId: 'soft-serve-ice-cream', scopeStatement: 'Applies to all soft-serve ice cream.' },
+    ],
     statusId: 'pregnancy-avoid',
     summary: 'The guide says not to eat this during pregnancy.',
     locator: 'Dairy: Unpasteurised milk and dairy products; Ice cream — Soft serve',
   },
   {
-    foodIds: ['raw-eggs-and-raw-egg-foods'],
+    categories: [{ categoryId: 'raw-eggs', scopeStatement: 'Applies to raw eggs and to any food containing raw eggs.' }],
     statusId: 'pregnancy-avoid',
     summary: 'The guide says not to eat raw eggs or foods made with them.',
     locator: 'Eggs: Raw eggs',
   },
   {
-    foodIds: ['cooked-eggs'],
+    categories: [{ categoryId: 'cooked-eggs', scopeStatement: 'Applies to all cooked eggs.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Cook eggs until the yolk and scrambled egg are firm.',
     locator: 'Eggs: Cooked eggs',
@@ -198,7 +196,7 @@ const assessmentSpecs: AssessmentSpec[] = [
     conditions: [{ kind: 'preparation', instruction: 'Ensure yolks and scrambled eggs are firm.' }],
   },
   {
-    foodIds: ['cooked-meat-and-poultry'],
+    categories: [{ categoryId: 'cooked-meats', scopeStatement: 'Applies to all cooked meat and poultry.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Cook meat and poultry thoroughly, eat it hot, and reheat leftovers before serving.',
     locator: 'Meat and poultry: Cooked meats',
@@ -210,7 +208,10 @@ const assessmentSpecs: AssessmentSpec[] = [
     ],
   },
   {
-    foodIds: ['processed-meats', 'cold-cooked-poultry'],
+    categories: [
+      { categoryId: 'processed-meats', scopeStatement: 'Applies to all processed meats.' },
+      { categoryId: 'cold-cooked-poultry', scopeStatement: 'Applies to all cold cooked poultry.' },
+    ],
     statusId: 'pregnancy-conditions',
     summary: 'Eat only after heating until piping hot.',
     locator: 'Meat and poultry: Processed meats; Cold cooked poultry',
@@ -218,19 +219,22 @@ const assessmentSpecs: AssessmentSpec[] = [
     conditions: [{ kind: 'serving', instruction: 'Heat above 75°C.' }],
   },
   {
-    foodIds: ['raw-meat-and-poultry'],
+    categories: [{ categoryId: 'raw-meat', scopeStatement: 'Applies to all raw meat and poultry.' }],
     statusId: 'pregnancy-avoid',
     summary: 'Do not eat or taste raw meat or poultry.',
     locator: 'Meat and poultry: Raw meat',
   },
   {
-    foodIds: ['raw-fish', 'raw-shellfish'],
+    categories: [
+      { categoryId: 'raw-fish', scopeStatement: 'Applies to all raw fish.' },
+      { categoryId: 'raw-shellfish', scopeStatement: 'Applies to all raw shellfish.' },
+    ],
     statusId: 'pregnancy-avoid',
     summary: 'The guide says not to eat raw seafood.',
     locator: 'Seafood: Raw fish; Raw shellfish',
   },
   {
-    foodIds: ['chilled-smoked-or-pre-cooked-seafood'],
+    categories: [{ categoryId: 'smoked-seafood', scopeStatement: 'Applies to all chilled smoked or pre-cooked fish, shellfish and crustacea.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Eat chilled smoked or pre-cooked seafood only after heating until piping hot.',
     locator: 'Seafood: Smoked fish, shellfish and crustacea',
@@ -238,22 +242,18 @@ const assessmentSpecs: AssessmentSpec[] = [
     conditions: [{ kind: 'serving', instruction: 'Heat above 75°C.' }],
   },
   {
-    foodIds: ['freshly-cooked-seafood'],
-    statusId: 'pregnancy-conditions',
-    summary: 'Cook seafood thoroughly and eat it while hot.',
-    locator: 'Seafood: Freshly cooked fish, mussels, oysters, crayfish, scallops, etc',
-    instruction: 'Cook thoroughly and serve while hot.',
-    conditions: [{ kind: 'preparation', instruction: 'Cook above 75°C throughout.' }],
-  },
-  {
-    foodIds: ['fresh-fruit', 'fresh-vegetables', 'home-made-salads'],
+    categories: [
+      { categoryId: 'fresh-fruit', scopeStatement: 'Applies to all fresh fruit.' },
+      { categoryId: 'fresh-vegetables', scopeStatement: 'Applies to all fresh vegetables.' },
+      { categoryId: 'home-made-salads', scopeStatement: 'Applies to all home-made salads.' },
+    ],
     statusId: 'pregnancy-conditions',
     summary: 'Wash this food carefully before use.',
     locator: 'Vegetables, salads and fruits: Fruit; Vegetables; Salads — Home-made',
     instruction: 'Wash well before eating raw or before cooking.',
   },
   {
-    foodIds: ['dried-herbs'],
+    categories: [{ categoryId: 'dried-herbs', scopeStatement: 'Applies to all dried herbs.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Cook dried herbs thoroughly before eating.',
     locator: 'Vegetables, salads and fruits: Herbs — Dried herbs',
@@ -261,14 +261,17 @@ const assessmentSpecs: AssessmentSpec[] = [
     conditions: [{ kind: 'preparation', instruction: 'Do not use dried herbs uncooked.' }],
   },
   {
-    foodIds: ['fresh-herbs'],
+    categories: [{ categoryId: 'fresh-herbs', scopeStatement: 'Applies to all fresh home-grown and store-bought herbs.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Wash fresh herbs well before using.',
     locator: 'Vegetables, salads and fruits: Herbs — Fresh home-grown and store-bought',
     instruction: 'Wash well before using.',
   },
   {
-    foodIds: ['imported-frozen-berries', 'frozen-vegetables'],
+    categories: [
+      { categoryId: 'imported-frozen-berries', scopeStatement: 'Applies to all imported frozen berries.' },
+      { categoryId: 'frozen-vegetables', scopeStatement: 'Applies to all frozen vegetables.' },
+    ],
     statusId: 'pregnancy-conditions',
     summary: 'Cook before eating.',
     locator: 'Vegetables, salads and fruits: Fruit — Imported frozen berries; Vegetables — Frozen vegetables',
@@ -276,13 +279,13 @@ const assessmentSpecs: AssessmentSpec[] = [
     conditions: [{ kind: 'preparation', instruction: 'Do not eat uncooked frozen produce.' }],
   },
   {
-    foodIds: ['pre-packaged-and-ready-made-salads'],
+    categories: [{ categoryId: 'pre-packaged-and-ready-made-salads', scopeStatement: 'Applies to all pre-packaged and ready-made salads.' }],
     statusId: 'pregnancy-avoid',
     summary: 'The guide says not to eat pre-packaged or ready-made salads.',
     locator: 'Vegetables, salads and fruits: Salads — Pre-packaged and ready-made',
   },
   {
-    foodIds: ['leftover-cooked-foods'],
+    categories: [{ categoryId: 'leftover-cooked-foods', scopeStatement: 'Applies to all leftover cooked foods.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Keep refrigerated leftovers for no more than two days and reheat them before eating.',
     locator: 'Miscellaneous: Leftovers — Cooked foods',
@@ -293,7 +296,7 @@ const assessmentSpecs: AssessmentSpec[] = [
     ],
   },
   {
-    foodIds: ['chicken-or-turkey-stuffing'],
+    categories: [{ categoryId: 'stuffing', scopeStatement: 'Applies to chicken and turkey stuffing.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Eat chicken or turkey stuffing only when it is cooked separately and served hot.',
     locator: 'Miscellaneous: Stuffing',
@@ -304,7 +307,7 @@ const assessmentSpecs: AssessmentSpec[] = [
     ],
   },
   {
-    foodIds: ['canned-foods'],
+    categories: [{ categoryId: 'canned-foods', scopeStatement: 'Applies to all canned foods.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Remove leftovers from the can, refrigerate them covered, and eat them within two days.',
     locator: 'Miscellaneous: Canned foods',
@@ -312,7 +315,7 @@ const assessmentSpecs: AssessmentSpec[] = [
     conditions: [{ kind: 'storage', instruction: 'Store covered leftovers in the fridge and eat them within two days.' }],
   },
   {
-    foodIds: ['commercial-sauces-dressings-and-spreads'],
+    categories: [{ categoryId: 'commercial-sauces-dressings-and-spreads', scopeStatement: 'Applies to commercially manufactured sauces, dressings and spreads.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Refrigerate opened products and follow their manufacturer storage and heating instructions.',
     locator: 'Miscellaneous: Sauces, dressings and spreads',
@@ -320,13 +323,16 @@ const assessmentSpecs: AssessmentSpec[] = [
     conditions: [{ kind: 'storage', instruction: 'Refrigerate opened products and observe the stated storage limit.' }],
   },
   {
-    foodIds: ['store-bought-sushi', 'hummus-and-tahini-dips'],
+    categories: [
+      { categoryId: 'store-bought-sushi', scopeStatement: 'Applies to all store-bought sushi.' },
+      { categoryId: 'hummus-and-tahini-dips', scopeStatement: 'Applies to hummus and other dips containing tahini.' },
+    ],
     statusId: 'pregnancy-avoid',
     summary: 'The guide says not to eat this during pregnancy.',
     locator: 'Miscellaneous: Sushi — Store-bought; Hummus and other dips containing tahini',
   },
   {
-    foodIds: ['home-made-sushi'],
+    categories: [{ categoryId: 'home-made-sushi', scopeStatement: 'Applies to all home-made sushi.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Use freshly cooked rice, avoid raw or cold cooked meat or seafood, and eat immediately.',
     locator: 'Miscellaneous: Sushi — Home-made',
@@ -337,7 +343,7 @@ const assessmentSpecs: AssessmentSpec[] = [
     ],
   },
   {
-    foodIds: ['brown-seaweed'],
+    categories: [{ categoryId: 'brown-seaweed', scopeStatement: 'Applies to all brown seaweed.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Limit brown seaweed to one serve each week.',
     locator: 'Miscellaneous: Seaweed — Brown seaweed',
@@ -345,13 +351,13 @@ const assessmentSpecs: AssessmentSpec[] = [
     conditions: [{ kind: 'frequency', instruction: 'Have no more than one serving per week.' }],
   },
   {
-    foodIds: ['red-and-green-seaweed'],
+    categories: [{ categoryId: 'red-and-green-seaweed', scopeStatement: 'Applies to all red or green seaweed.' }],
     statusId: 'pregnancy-ok',
     summary: 'The guide lists red and green seaweed as okay to eat; sushi advice still applies when relevant.',
     locator: 'Miscellaneous: Seaweed — Red or green seaweed',
   },
   {
-    foodIds: ['seed-sprouts-and-enoki-mushrooms'],
+    categories: [{ categoryId: 'sprouts-and-enoki-mushrooms', scopeStatement: 'Applies to all seed sprouts and enoki mushrooms.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Do not eat these raw; cook them first.',
     locator: 'Miscellaneous: Sprouts and enoki mushrooms',
@@ -359,16 +365,35 @@ const assessmentSpecs: AssessmentSpec[] = [
     conditions: [{ kind: 'preparation', instruction: 'Do not eat raw.' }],
   },
   {
-    foodIds: ['pasteurised-fruit-juice-kombucha-and-cider'],
+    categories: [{ categoryId: 'pasteurised-fruit-juice-kombucha-and-cider', scopeStatement: 'Applies to all pasteurised fruit juice, kombucha and cider.' }],
     statusId: 'pregnancy-ok',
     summary: 'The guide lists pasteurised drinks in this group as okay to drink.',
     locator: 'Miscellaneous: Fruit juice, kombucha and cider (non-alcoholic) — Pasteurised',
   },
   {
-    foodIds: ['unpasteurised-fruit-juice-kombucha-and-cider'],
+    categories: [{ categoryId: 'unpasteurised-fruit-juice-kombucha-and-cider', scopeStatement: 'Applies to all unpasteurised (raw) fruit juice, kombucha and cider.' }],
     statusId: 'pregnancy-avoid',
     summary: 'The guide says not to drink unpasteurised drinks in this group.',
     locator: 'Miscellaneous: Fruit juice, kombucha and cider (non-alcoholic) — Unpasteurised (raw)',
+  },
+]
+
+const assessmentSpecs: AssessmentSpec[] = [
+  {
+    foodIds: ['fresh-filled-pasta'],
+    statusId: 'pregnancy-conditions',
+    summary: 'Check the guidance for the filling before eating fresh filled pasta.',
+    locator: 'Breads and cereals: Cereals',
+    instruction: 'Follow the advice specific to the filling.',
+    conditions: [{ kind: 'composition', instruction: 'Do not treat the general pasta advice as applying to fresh filled pasta.' }],
+  },
+  {
+    foodIds: ['freshly-cooked-seafood'],
+    statusId: 'pregnancy-conditions',
+    summary: 'Cook seafood thoroughly and eat it while hot.',
+    locator: 'Seafood: Freshly cooked fish, mussels, oysters, crayfish, scallops, etc',
+    instruction: 'Cook thoroughly and serve while hot.',
+    conditions: [{ kind: 'preparation', instruction: 'Cook above 75°C throughout.' }],
   },
   {
     foodIds: [
@@ -529,16 +554,6 @@ const vegetarianAssessments: Assessment[] = [
     citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Parmesan' }],
   },
   {
-    id: 'pasteurised-yoghurt-vegetarian',
-    subject: { kind: 'food', foodId: 'pasteurised-yoghurt' },
-    guidanceListId: 'vegetarian-suitability',
-    statusId: 'vegetarian-check-ingredients',
-    summary: 'Some yoghurts use gelatin as a gelling agent, so check the label.',
-    guidanceScenarios: [],
-    reasonLinks: [],
-    citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Yogurt' }],
-  },
-  {
     id: 'starburst-vegetarian',
     subject: { kind: 'food', foodId: 'starburst' },
     guidanceListId: 'vegetarian-suitability',
@@ -612,11 +627,22 @@ const vegetarianCategoryAssessments: Assessment[] = [
     reasonLinks: [],
     citations: [],
   },
+  {
+    id: 'pasteurised-yoghurt-vegetarian',
+    subject: { kind: 'category', categoryId: 'pasteurised-yoghurt' },
+    guidanceListId: 'vegetarian-suitability',
+    statusId: 'vegetarian-check-ingredients',
+    summary: 'Some yoghurts use gelatin as a gelling agent, so check the label.',
+    scopeStatement: 'Applies to all pasteurised yoghurt.',
+    guidanceScenarios: [],
+    reasonLinks: [],
+    citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Yogurt' }],
+  },
 ]
 
 export const assessments = [
   ...assessmentSpecs.flatMap(createAssessments),
-  ...categoryAssessmentSpecs.map(createCategoryAssessment),
+  ...categoryAssessmentSpecs.flatMap(createCategoryAssessments),
   ...vegetarianAssessments,
   ...vegetarianCategoryAssessments,
 ]
