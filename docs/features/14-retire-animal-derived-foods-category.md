@@ -2,9 +2,9 @@
 
 **Status:** Proposed
 
-**Depends on:** [F-04: Maintain Trustworthy Guidance Content](<04-maintain-trustworthy-guidance-content.md>), [F-12: Lift Group-Level Guidance onto Categories](<12-lift-group-guidance-onto-categories.md>), [F-13: Surface Raw-Egg Foods Where People Browse for Them](<13-surface-raw-egg-foods.md>)
+**Depends on:** [F-04: Maintain Trustworthy Guidance Content](<04-maintain-trustworthy-guidance-content.md>), [F-12: Lift Group-Level Guidance onto Categories](<12-lift-group-guidance-onto-categories.md>), [F-13: Surface Raw-Egg Foods Where People Browse for Them](<13-surface-raw-egg-foods.md>), [F-15: Retire the Outside-Coverage State](<15-retire-outside-coverage-state.md>)
 
-**Governing decisions:** [model food groups as an unbounded category tree](<../decisions/2026-08-04 ADR - model food groups as an unbounded category tree.md>), [use independent guidance lists for food assessments](<../decisions/2026-08-04 ADR - use independent guidance lists for food assessments.md>), [assess categories as first-class subjects with inherited guidance](<../decisions/2026-08-06 ADR - assess categories as first-class subjects with inherited guidance.md>), and [store reviewed guide content as version-controlled static data](<../decisions/2026-08-04 ADR - store reviewed guide content as version-controlled static data.md>)
+**Governing decisions:** [model food groups as an unbounded category tree](<../decisions/2026-08-04 ADR - model food groups as an unbounded category tree.md>), [use independent guidance lists for food assessments](<../decisions/2026-08-04 ADR - use independent guidance lists for food assessments.md>), [assess categories as first-class subjects with inherited guidance](<../decisions/2026-08-06 ADR - assess categories as first-class subjects with inherited guidance.md>), [store reviewed guide content as version-controlled static data](<../decisions/2026-08-04 ADR - store reviewed guide content as version-controlled static data.md>), and [resolve unassessed guidance from a single not-assessed state](<../decisions/2026-08-07 ADR - resolve unassessed guidance from a single not-assessed state.md>)
 
 ## Goal
 
@@ -56,9 +56,9 @@ removing any guidance.
   | --- | --- |
   | `apple-pie` | new `Baked desserts` beneath the `Desserts` root F-13 creates |
   | `panna-cotta` | `Cold desserts` — already carried out by F-13, not repeated here |
-  | `gummy-bears`, `jelly`, `marshmallows`, `starburst` | new `Confectionery` |
-  | `gelatin`, `white-sugar` | new `Ingredients and additives` |
-  | `vegetable-soup` | new `Soups` |
+  | `gummy-bears`, `jelly`, `marshmallows`, `starburst` | new `Confectionery` root |
+  | `gelatin`, `white-sugar` | new `Ingredients and additives` root |
+  | `vegetable-soup` | new `Soups` root |
   | `french-fries` | `Miscellaneous` directly |
   | `tortillas` | `Breads` |
   | `orange-juice` | `Fruit juice, kombucha and cider (non-alcoholic)` |
@@ -67,18 +67,22 @@ removing any guidance.
 
 - Each new category is a plain browse heading with no assessment of its own. This feature authors no
   guidance, so it authors no `scopeStatement` and no citation.
+- `Confectionery`, `Ingredients and additives`, and `Soups` are authored as root categories, siblings
+  of `Breads and cereals`, `Dairy`, `Desserts`, `Drinks`, and the rest. They are ordinary food groups
+  a reader would expect to browse, not a corner of `Miscellaneous`, and F-15 removes the coverage
+  containment that previously made a new root a display problem.
 - `Orange juice` becomes a food beneath `Fruit juice, kombucha and cider (non-alcoholic)`, alongside
   the existing `Pasteurised…` and `Unpasteurised…` children. It is deliberately not filed beneath
   either of those, because the vegetarian rule about added fish-derived omega-3 has nothing to do with
   pasteurisation and the article does not say which kind of juice it means.
-- The vegetarian list's coverage is declared by `foodIds`, not by category, so every migrated food
-  stays inside vegetarian coverage across the move with no coverage edit at all. The declared coverage
-  `description` still describes the article's foods accurately and is not rewritten.
-- Because the retired root sits outside pregnancy coverage today, every migrated food currently renders
-  as `Outside current coverage` in the pregnancy list. After the move each one sits inside a
-  pregnancy-covered subtree and renders as `Not assessed` instead. This is accepted deliberately: the
-  two states are distinct, neither means safe, and `Not assessed` is the honest one — the food is now
-  inside the pregnancy guide's declared scope and simply has no reviewed pregnancy rule.
+- Every migrated food keeps its existing vegetarian assessment and continues to display it unchanged.
+  Because F-15 removes coverage declarations entirely, no coverage edit of any kind is needed for
+  this migration.
+- Every migrated food that has no reviewed pregnancy rule displays the pregnancy list's single
+  `Not assessed` state, both before and after the move, and that state does not change with the
+  food's new parent. This is the behaviour F-15 establishes, and it is why F-15 is a prerequisite
+  rather than a convenience: without it, foods moved under a new root would read
+  `Outside current coverage` purely because of where they now sit.
 - No pregnancy assessment is authored for any migrated food, including `Wine and beer`. Authoring one
   would be new guidance from an unreviewed source, which F-04's curation rules forbid.
 - Every new category needs an authored `sortOrder` that positions it deliberately among its siblings.
@@ -98,7 +102,8 @@ removing any guidance.
   `Commercial sauces, dressings and spreads`. Those come from F-12 and F-13; this feature consumes
   them and fails fast if they are absent.
 - Moving `Panna cotta`, which F-13 already moves.
-- Extending either guidance list's coverage, or adding a new guidance list.
+- Extending what either guidance list assesses, or adding a new guidance list. No migrated food gains
+  an assessment in any list.
 - Restructuring `Breads` or `Miscellaneous`. `Tortillas` under `Breads` and `French fries` under
   `Miscellaneous` are accepted as good-enough homes now, and a later feature may refine either.
 - Introducing a redirect for the retired category URL. The application is unreleased, consistent with
@@ -107,18 +112,27 @@ removing any guidance.
 ## Assumptions and open questions
 
 - This applies accepted ADRs rather than making a new decision, so it needs no new ADR. The category
-  tree is authored data under an existing ADR, and re-parenting a food is a content change.
+  tree is authored data under an existing ADR, and re-parenting a food is a content change. The one
+  architectural question this feature raised — whether a new root category should change a food's
+  displayed state — is decided by the
+  [single not-assessed state ADR](<../decisions/2026-08-07 ADR - resolve unassessed guidance from a single not-assessed state.md>)
+  and delivered by F-15.
 - The dependency on F-12 and F-13 is a real prerequisite, not an affinity: six of the fourteen foods
-  land in categories that only exist once those features ship. This feature must not move to `Planned`
-  until both are `Done`.
+  land in categories that only exist once those features ship. The dependency on F-15 is equally
+  real: without it, filing foods under new roots would flip them to `Outside current coverage`. This
+  feature must not move to `Planned` until all three are `Done`.
 - Retiring the category removes `/category/foods-that-may-contain-animal-derived-ingredients`. No
   content is lost, because the category carries no assessment.
 - Resolved: `French fries` goes to `Miscellaneous` rather than under `Vegetables`. It is a prepared
   food rather than a vegetable as a reader thinks of one.
 - Resolved: `Tortillas` goes to `Breads`, accepted as provisional pending any later bread or flatbread
   restructure.
-- Resolved: migrated foods are allowed to render as `Not assessed` in the pregnancy list, and no
-  pregnancy guidance is authored to avoid that.
+- Resolved: `Confectionery`, `Ingredients and additives`, and `Soups` are root categories rather than
+  children of `Miscellaneous`. They read as ordinary food groups, and once F-15 lands there is no
+  coverage consequence to weigh against that legibility. This supersedes the earlier open question
+  about roots versus children.
+- Resolved: migrated foods with no reviewed pregnancy rule display `Not assessed`, and no pregnancy
+  guidance is authored to avoid that.
 - **Needs review before publication:** `Confectionery`, `Ingredients and additives`, `Soups`,
   `Baked desserts`, and `Alcoholic drinks` are editorial groupings this feature invents, not headings
   any reviewed source states. They must read as neutral browse headings and must never be presented as
@@ -126,9 +140,6 @@ removing any guidance.
 - Open: `Gelatin` and `White sugar` are ingredients rather than dishes, and `Ingredients and
   additives` is the weakest of the new headings. If review prefers it, both could sit directly under
   `Miscellaneous` instead, at the cost of a less legible browse tree.
-- Open: whether `Ingredients and additives` and `Confectionery` are roots or children of
-  `Miscellaneous`. Making them roots is more legible; making them children keeps the root list short
-  and keeps them inside pregnancy coverage as they already will be.
 
 ## Acceptance criteria
 
@@ -139,25 +150,24 @@ removing any guidance.
 - `Orange juice` appears once in the guide, beneath `Fruit juice, kombucha and cider
   (non-alcoholic)`, and no juice entry appears outside the drinks subtree.
 - Every migrated food's vegetarian status, summary, conditions, citation, and reason links are
-  byte-identical to what they were before the migration, and each still resolves inside vegetarian
-  coverage.
+  byte-identical to what they were before the migration.
 - Filtering by the vegetarian scope returns the same set of guide entries and the same result count as
   before the migration.
 - Searching each migrated food's existing name and aliases still reaches that food.
-- Migrated foods show the pregnancy list's `Not assessed` state, not `Outside current coverage`, and
-  neither state is presented as safe.
+- Every migrated food with no reviewed pregnancy rule shows the pregnancy list's `Not assessed` state,
+  the same state it showed before the move, and that state is not presented as safe.
 - Content validation passes, including unknown-parent, unknown-category-reference, orphaned-category,
-  duplicate-identifier, coverage-containment, and subject-uniqueness rules, and fails if a food is left
-  pointing at the retired category.
+  duplicate-identifier, and subject-uniqueness rules, and fails if a food is left pointing at the
+  retired category.
 
 ## Validation
 
 Domain and content-validation unit tests covering the retired category's absence, each food's new
-parent, coverage containment for the migrated foods in both lists, and unchanged vegetarian resolution.
-React Testing Library tests for the browse view without the retired heading and for a migrated food's
-category path. Chromium Playwright coverage for browsing to a migrated food through its new category
-and for a vegetarian-scoped filtered URL returning the unchanged entry set; the existing
-`e2e/catalogue.spec.ts` scenario that expands the retired heading is updated to a real food group.
-Repository-wide 100% statements, branches, functions, and lines coverage for application source is
-retained. A subagent runs the `prepare` skill after implementation and targeted validation, before the
-pull request is opened and before this feature moves to `Done`.
+parent, and unchanged vegetarian resolution across the move. React Testing Library tests for the
+browse view without the retired heading and for a migrated food's category path. Chromium Playwright
+coverage for browsing to a migrated food through its new category and for a vegetarian-scoped filtered
+URL returning the unchanged entry set; the existing `e2e/catalogue.spec.ts` scenario that expands the
+retired heading is updated to a real food group. Repository-wide 100% statements, branches, functions,
+and lines coverage for application source is retained. A subagent runs the `prepare` skill after
+implementation and targeted validation, before the pull request is opened and before this feature
+moves to `Done`.

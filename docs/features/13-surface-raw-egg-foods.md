@@ -156,6 +156,12 @@ which presumes a manufacturer that a home-made sauce does not have.
 - Resolved: root categories are ordered alphabetically. The alternative was to hand-pick a position for
   `Desserts` and `Drinks` in the existing sequence, which encodes nothing a reader can perceive and
   would reopen the same argument for every future root.
+- Forward note, no change required here: [F-15](<15-retire-outside-coverage-state.md>) removes
+  guidance-list coverage declarations altogether and is sequenced to land after this feature. The
+  `coverage.categoryIds` additions of `desserts` and `drinks` above remain mandatory for this
+  feature, because coverage containment still applies while it ships; F-15 then deletes them along
+  with the rest of the declaration, and every remaining `Outside current coverage` result described
+  above becomes `Not assessed`. Do not pre-empt F-15 from within this feature.
 
 ## Implementation plan
 
