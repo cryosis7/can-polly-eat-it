@@ -1,6 +1,8 @@
 # F-16: Express Guidance That Accumulates Across Subject Levels
 
-**Status:** Proposed
+**Status:** Planned
+
+**Implementation plan:** [F-16 implementation plan](<16-express-accumulating-guidance-plan.md>), approved.
 
 **Depends on:** [F-04: Maintain Trustworthy Guidance Content](<04-maintain-trustworthy-guidance-content.md>), [F-09: Assess and Browse Food Categories](<09-assess-and-browse-food-categories.md>)
 
