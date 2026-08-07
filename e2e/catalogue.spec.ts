@@ -9,6 +9,9 @@ const foodCard = (page: Page, name: string) =>
 test.describe('Food catalogue', () => {
   test('shows pregnancy guidance by default with neutral fallback states', async ({ page }) => {
     await page.goto('/')
+    await page.getByRole('button', { name: 'Dairy, level 1' }).click()
+    await page.getByRole('button', { name: 'Seafood, level 1' }).click()
+    await page.getByRole('button', { name: 'Foods that may contain animal-derived ingredients, level 1' }).click()
 
     await expect(page.getByRole('heading', { name: "Polly's Food Guide" })).toBeVisible()
     await expect(page.getByRole('checkbox', { name: 'Pregnancy food safety' })).toBeChecked()
@@ -27,6 +30,39 @@ test.describe('Food catalogue', () => {
       'href',
       mpiSourceUrl,
     )
+  })
+
+  test('lands with top-level groups collapsed and a much shorter page', async ({ page }) => {
+    await page.goto('/')
+
+    await expect(page.getByRole('button', { name: 'Dairy, level 1' })).toHaveAttribute('aria-expanded', 'false')
+    await expect(page.getByRole('button', { name: 'Cheese, level 2' })).toHaveCount(0)
+    await expect(page.getByText('143 results in the guide')).toBeVisible()
+
+    const collapsedHeight = await page.evaluate(() => document.body.scrollHeight)
+    expect(collapsedHeight).toBeLessThan(6000)
+  })
+
+  test('expands a group by keyboard and shows its nested headings with visible focus', async ({ page }) => {
+    await page.goto('/')
+
+    const breadsToggle = page.getByRole('button', { name: 'Breads and cereals, level 1' })
+    await breadsToggle.focus()
+    await expect(breadsToggle).toBeFocused()
+    await page.keyboard.press('Enter')
+
+    await expect(breadsToggle).toHaveAttribute('aria-expanded', 'true')
+    await expect(page.getByRole('button', { name: 'Cakes, slices and muffins, level 2' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Plain cakes, slices and muffins' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Dairy, level 1' })).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  test('reveals a searched entry that sits inside a collapsed group', async ({ page }) => {
+    await page.goto('/?v=1&scope=pregnancy-food-safety&q=gouda')
+
+    await expect(foodCard(page, 'Gouda')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Cheese, level 2' })).toBeVisible()
+    await expect(page.getByText('1 result in the guide')).toBeVisible()
   })
 
   test('finds a food through an alias search', async ({ page }) => {
@@ -234,9 +270,11 @@ test.describe('Food catalogue', () => {
   test('shows an inheritance-only food and its origin category as guide entries on a filtered URL', async ({ page }) => {
     await page.goto('/?v=1&scope=pregnancy-food-safety,vegetarian-suitability&category=hard-cheese')
 
-    const hardCheeseHeading = page.getByRole('heading', { name: 'Hard cheese' })
-    await expect(hardCheeseHeading.getByRole('link', { name: 'Hard cheese' })).toBeVisible()
-    await expect(page.getByText('Pregnancy food safety: OK to eat')).toBeVisible()
+    const hardCheeseGroup = page.locator('.category-group', {
+      has: page.getByRole('button', { name: 'Hard cheese, level 3' }),
+    })
+    await expect(hardCheeseGroup.getByRole('link', { name: 'Hard cheese guidance', exact: true })).toBeVisible()
+    await expect(hardCheeseGroup.locator('.category-entry').getByText('OK to eat')).toBeVisible()
 
     const goudaCard = foodCard(page, 'Gouda')
     await expect(goudaCard).toBeVisible()

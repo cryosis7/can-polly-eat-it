@@ -40,9 +40,12 @@ const contentWithUncitedVegetarianAssessment: ContentData = {
   )),
 }
 
+const expandGroup = (name: string) => fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${name}, level \\d+$`) }))
+
 describe('CataloguePage', () => {
   it('defaults to pregnancy scope and renders its list-specific card guidance', () => {
     renderCatalogue()
+    expandGroup('Dairy')
 
     expect(screen.getByRole('heading', { name: "Polly's Food Guide" })).toBeInTheDocument()
     expect(screen.getByRole('checkbox', { name: 'Pregnancy food safety' })).toBeChecked()
@@ -182,15 +185,85 @@ describe('CataloguePage', () => {
   it('shows a category entry heading with its own resolved guidance and detail link', () => {
     renderCatalogue('/?v=1&scope=pregnancy-food-safety,vegetarian-suitability&category=hard-cheese')
 
-    const hardCheeseHeading = screen.getByRole('heading', { name: 'Hard cheese' })
-    const hardCheeseLink = within(hardCheeseHeading).getByRole('link', { name: 'Hard cheese' })
+    const hardCheeseToggle = screen.getByRole('button', { name: /^Hard cheese, level \d+$/ })
+    const categoryGroup = hardCheeseToggle.closest('.category-group') as HTMLElement
+    const hardCheeseLink = within(categoryGroup).getByRole('link', { name: 'Hard cheese guidance' })
     expect(hardCheeseLink).toHaveAttribute(
       'href',
       '/category/hard-cheese?v=1&scope=pregnancy-food-safety%2Cvegetarian-suitability&category=hard-cheese',
     )
-    const categoryGroup = hardCheeseHeading.closest('.category-group') as HTMLElement
-    expect(within(categoryGroup).getByText('Pregnancy food safety: OK to eat')).toBeInTheDocument()
-    expect(within(categoryGroup).getByText('Vegetarian suitability: Check ingredients')).toBeInTheDocument()
+    const entry = categoryGroup.querySelector('.category-entry') as HTMLElement
+    expect(within(entry).getByRole('heading', { name: 'Pregnancy food safety' })).toBeInTheDocument()
+    expect(within(entry).getByText('OK to eat')).toBeInTheDocument()
+    expect(within(entry).getByRole('heading', { name: 'Vegetarian suitability' })).toBeInTheDocument()
+    expect(within(entry).getByText('Check ingredients')).toBeInTheDocument()
+    expect(within(entry).getAllByRole('link', { name: /^Primary source:/ }).length).toBeGreaterThan(0)
+  })
+
+  it('renders every ancestor heading so a nested entry is never shown under an unrelated group', () => {
+    renderCatalogue()
+    expandGroup('Breads and cereals')
+
+    const parentHeading = screen.getByRole('button', { name: /^Cakes, slices and muffins, level 2$/ })
+    const nested = screen.getByRole('heading', { name: 'Plain cakes, slices and muffins' })
+    expect(parentHeading).toBeInTheDocument()
+    expect(parentHeading.compareDocumentPosition(nested) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('renders a category that has no direct foods but has content beneath it', () => {
+    renderCatalogue()
+    expandGroup('Dairy')
+
+    expect(screen.getByRole('button', { name: /^Cheese, level 2$/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Custard, level 2$/ })).toBeInTheDocument()
+  })
+
+  it('collapses top-level groups by default and reveals descendants when one is expanded', () => {
+    renderCatalogue()
+
+    const dairyToggle = screen.getByRole('button', { name: /^Dairy, level 1$/ })
+    expect(dairyToggle).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('button', { name: /^Cheese, level 2$/ })).not.toBeInTheDocument()
+
+    fireEvent.click(dairyToggle)
+
+    expect(dairyToggle).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('button', { name: /^Cheese, level 2$/ })).toBeInTheDocument()
+  })
+
+  it('reveals a match inside a collapsed group and restores manual expansion when the search clears', () => {
+    renderCatalogue()
+    expandGroup('Eggs')
+    const searchField = screen.getByLabelText('Search foods')
+
+    fireEvent.change(searchField, { target: { value: 'gouda' } })
+    expect(screen.getByRole('link', { name: 'Gouda' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Cheese, level 2$/ })).toBeInTheDocument()
+
+    fireEvent.change(searchField, { target: { value: '' } })
+    expect(screen.queryByRole('link', { name: 'Gouda' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Cooked eggs, level 2$/ })).toBeInTheDocument()
+  })
+
+  it('collapses an expanded nested group without affecting its siblings', () => {
+    renderCatalogue()
+    expandGroup('Dairy')
+    expect(screen.getByRole('link', { name: 'Cheddar' })).toBeInTheDocument()
+
+    expandGroup('Cheese')
+
+    expect(screen.getByRole('button', { name: /^Cheese, level 2$/ })).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('link', { name: 'Cheddar' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Butter, level 2$/ })).toBeInTheDocument()
+  })
+
+  it('keeps the announced result count unchanged when a group is collapsed', () => {
+    renderCatalogue()
+    const countBefore = screen.getByText(/results in the guide/).textContent
+
+    expandGroup('Dairy')
+
+    expect(screen.getByText(/results in the guide/)).toHaveTextContent(countBefore!)
   })
 
   it('shows Gouda inheriting hard-cheese guidance with disclosed provenance, and Parmesan keeping its own override', () => {

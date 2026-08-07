@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { buildCatalogueQuery, parseCatalogueQuery, type CatalogueQueryState } from '../../app/catalogueQuery'
+import { GuideEntrySummary } from '../../components/GuideEntrySummary'
 import { resolveAssessment } from '../../domain/assessment'
-import { flattenCategoryRows, foodsByCategoryId } from '../../domain/categoryTree'
+import { flattenCategoryRows, foodsByCategoryId, visibleCategoryRows, withAncestorIds } from '../../domain/categoryTree'
 import { createContentIndex } from '../../domain/contentIndex'
 import { filterCategoryEntries, filterFoods } from '../../domain/filtering'
 import type { ContentData } from '../../domain/contentValidation'
@@ -11,13 +12,6 @@ import type { OutcomeBand } from '../../domain/schemas'
 type CataloguePageProps = {
   content: ContentData
 }
-
-const statusIcon = {
-  green: 'OK',
-  amber: '!',
-  red: 'X',
-  grey: '?',
-} as const
 
 const primaryOutcomes: { value: OutcomeBand, label: string }[] = [
   { value: 'okay', label: 'Okay' },
@@ -38,6 +32,9 @@ const defaultScopeSlug = 'pregnancy-food-safety'
 export const CataloguePage = ({ content }: CataloguePageProps) => {
   const [searchParams, setSearchParams] = useSearchParams()
   const [filterRemovalAnnouncement, setFilterRemovalAnnouncement] = useState('')
+  const [collapsedCategoryIds, setCollapsedCategoryIds] = useState(
+    () => new Set(content.categories.filter((category) => category.parentId === null).map((category) => category.id)),
+  )
   const index = createContentIndex(content.categories, content.assessments)
   const categoryRows = flattenCategoryRows(index.tree)
   const categoryBySlug = new Map(content.categories.map((category) => [category.slug, category]))
@@ -58,6 +55,27 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
   const matchedCategoryEntryIds = new Set(selectedCategoryEntries.map((category) => category.id))
   const resultCount = selectedFoods.length + selectedCategoryEntries.length
   const foodsInCategory = foodsByCategoryId(selectedFoods)
+  const contentCategoryIds = new Set([...foodsInCategory.keys(), ...matchedCategoryEntryIds])
+  const rowsWithContent = withAncestorIds(categoryRows, contentCategoryIds)
+  const isFiltering = Boolean(queryState.query || queryState.categorySlug || queryState.outcomeBands.length > 0)
+  const effectiveCollapsedIds = isFiltering
+    ? new Set([...collapsedCategoryIds].filter((id) => !rowsWithContent.has(id)))
+    : collapsedCategoryIds
+  const renderedRows = visibleCategoryRows(
+    categoryRows.filter((row) => rowsWithContent.has(row.category.id)),
+    effectiveCollapsedIds,
+  )
+  const toggleCategory = (categoryId: string) => {
+    setCollapsedCategoryIds((current) => {
+      const next = new Set(current)
+      if (next.has(categoryId)) {
+        next.delete(categoryId)
+      } else {
+        next.add(categoryId)
+      }
+      return next
+    })
+  }
   const hasNonDefaultScope = queryState.scopeSlugs.length !== 1 || queryState.scopeSlugs[0] !== defaultScopeSlug
   const hasActiveFilters = Boolean(
     queryState.query || queryState.categorySlug || queryState.outcomeBands.length > 0 || hasNonDefaultScope,
@@ -248,12 +266,11 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
           <p className="no-results">No foods match these filters. Try clearing a filter or searching for another name.</p>
         ) : (
           <div className="catalogue">
-            {categoryRows.map(({ category, breadcrumb, depth }) => {
+            {renderedRows.map(({ category, breadcrumb, depth, hasChildCategories }) => {
               const foods = foodsInCategory.get(category.id) ?? []
               const isCategoryEntry = matchedCategoryEntryIds.has(category.id)
-              if (foods.length === 0 && !isCategoryEntry) {
-                return null
-              }
+              const isExpandable = hasChildCategories || foods.length > 0
+              const isCollapsed = effectiveCollapsedIds.has(category.id)
               return (
                 <section
                   aria-labelledby={`category-${category.id}`}
@@ -261,61 +278,57 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                   key={category.id}
                   style={{ '--category-indent': `${Math.min(depth, 6)}rem` } as React.CSSProperties}
                 >
-                  <p className="breadcrumb">{breadcrumb}</p>
+                  {depth > 0 && <p className="breadcrumb">{breadcrumb}</p>}
                   <h3 id={`category-${category.id}`}>
-                    {isCategoryEntry ? (
-                      <Link to={`/category/${category.slug}?${returnSearch}`}>{category.name}</Link>
+                    {isExpandable ? (
+                      <button
+                        aria-expanded={!isCollapsed}
+                        aria-label={`${category.name}, level ${depth + 1}`}
+                        className="category-toggle"
+                        onClick={() => toggleCategory(category.id)}
+                        type="button"
+                      >
+                        <span aria-hidden="true" className="category-toggle-icon">{isCollapsed ? '+' : '-'}</span>
+                        <span>{category.name}</span>
+                      </button>
                     ) : category.name}
                   </h3>
                   {isCategoryEntry && (
-                    <div className="category-guidance">
-                      {selectedGuidanceLists.map((guidanceList) => {
-                        const resolved = resolveAssessment({ kind: 'category', category }, guidanceList, index)
-                        return (
-                          <p className={`status tone-${resolved.status.tone}`} key={guidanceList.id}>
-                            <span aria-hidden="true" className="status-icon">{statusIcon[resolved.status.tone]}</span>
-                            <span>{guidanceList.title}: {resolved.status.label}</span>
-                          </p>
-                        )
-                      })}
+                    <div className="category-entry">
+                      <p className="category-entry-link">
+                        <Link to={`/category/${category.slug}?${returnSearch}`}>
+                          {category.name} guidance
+                        </Link>
+                      </p>
+                      {selectedGuidanceLists.map((guidanceList) => (
+                        <GuideEntrySummary
+                          guidanceList={guidanceList}
+                          key={guidanceList.id}
+                          resolved={resolveAssessment({ kind: 'category', category }, guidanceList, index)}
+                          returnSearch={returnSearch}
+                        />
+                      ))}
                     </div>
                   )}
-                  <ul className="food-list">
-                    {foods.map((food) => (
-                      <li className="food-card" key={food.id}>
-                        <div className="food-card-header">
-                          <h4><Link to={`/food/${food.slug}?${returnSearch}`}>{food.name}</Link></h4>
-                        </div>
-                        {selectedGuidanceLists.map((guidanceList) => {
-                          const resolved = resolveAssessment({ kind: 'food', food }, guidanceList, index)
-                          const citations = resolved.assessment?.citations ?? guidanceList.coverage.citations
-                          return (
-                            <section className="food-guidance" key={guidanceList.id}>
-                              <h5>{guidanceList.title}</h5>
-                              <p className={`status tone-${resolved.status.tone}`}>
-                                <span aria-hidden="true" className="status-icon">{statusIcon[resolved.status.tone]}</span>
-                                <span>{resolved.status.label}</span>
-                              </p>
-                              <p>{resolved.assessment?.summary ?? 'This food has not been individually assessed in this guidance list.'}</p>
-                              {resolved.origin.kind === 'inherited' && (
-                                <p className="inherited-note">
-                                  {resolved.assessment!.scopeStatement}{' '}
-                                  <Link to={`/category/${resolved.origin.category.slug}?${returnSearch}`}>
-                                    See {resolved.origin.category.name} guidance
-                                  </Link>
-                                </p>
-                              )}
-                              {citations.length > 0 && (
-                                <a href={citations[0].url} target="_blank" rel="noreferrer">
-                                  Primary source: {citations[0].title}
-                                </a>
-                              )}
-                            </section>
-                          )
-                        })}
-                      </li>
-                    ))}
-                  </ul>
+                  {!isCollapsed && foods.length > 0 && (
+                    <ul className="food-list">
+                      {foods.map((food) => (
+                        <li className="food-card" key={food.id}>
+                          <div className="food-card-header">
+                            <h4><Link to={`/food/${food.slug}?${returnSearch}`}>{food.name}</Link></h4>
+                          </div>
+                          {selectedGuidanceLists.map((guidanceList) => (
+                            <GuideEntrySummary
+                              guidanceList={guidanceList}
+                              key={guidanceList.id}
+                              resolved={resolveAssessment({ kind: 'food', food }, guidanceList, index)}
+                              returnSearch={returnSearch}
+                            />
+                          ))}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </section>
               )
             })}

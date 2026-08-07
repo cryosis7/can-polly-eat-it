@@ -36,6 +36,9 @@ feature IDs below, must not reference the feature itself, and must not form a cy
 | F-08 | [Rework guidance-scope filtering](<08-rework-guidance-scope-filtering.md>) | Done | F-05 | Narrow one catalogue by selected dietary scopes and generic outcomes. |
 | F-09 | [Assess and browse food categories](<09-assess-and-browse-food-categories.md>) | Done | F-04, F-05, F-08, F-10 | Apply a source's group-level guidance to every food in that group, and browse the group itself. |
 | F-10 | [Vary citation expectations by guidance list](<10-vary-citation-expectations-by-list.md>) | Done | F-04, F-05 | Let each guidance list set its own source expectation instead of one global citation rule. |
+| F-11 | [Make the browse hierarchy legible and collapsible](<11-make-browse-hierarchy-legible.md>) | Done | F-01, F-09 | See every entry under the group it belongs to, and collapse the groups you do not need. |
+| F-12 | [Lift group-level guidance onto categories](<12-lift-group-guidance-onto-categories.md>) | Proposed | F-04, F-09, F-11 | Show a group-wide rule once against its group instead of repeating it on near-identical entries. |
+| F-13 | [Surface raw-egg foods where people browse for them](<13-surface-raw-egg-foods.md>) | Proposed | F-04, F-12 | Find raw-egg sauces, desserts, and drinks in the categories you browse, not only under eggs. |
 
 ## Maintaining this register
 

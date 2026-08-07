@@ -10,6 +10,8 @@ export type CategoryDisplayRow = {
   category: Category
   breadcrumb: string
   depth: number
+  ancestorIds: string[]
+  hasChildCategories: boolean
 }
 
 const sortByEditorialOrder = <T extends { sortOrder: number; name: string }>(items: T[]) =>
@@ -53,15 +55,38 @@ export const flattenCategoryRows = (tree: CategoryTree): CategoryDisplayRow[] =>
     const { id, depth } = stack.pop()!
     const category = tree.categoryById.get(id)!
     const path = tree.pathByCategoryId.get(id)!
-    rows.push({ category, breadcrumb: path.map((item) => item.name).join(' > '), depth })
-
     const children = tree.childIdsByParentId.get(id) ?? []
+    rows.push({
+      category,
+      breadcrumb: path.map((item) => item.name).join(' > '),
+      depth,
+      ancestorIds: path.slice(0, -1).map((item) => item.id),
+      hasChildCategories: children.length > 0,
+    })
+
     for (let index = children.length - 1; index >= 0; index -= 1) {
       stack.push({ id: children[index], depth: depth + 1 })
     }
   }
 
   return rows
+}
+
+export const visibleCategoryRows = (rows: CategoryDisplayRow[], collapsedIds: Set<string>) =>
+  rows.filter((row) => !row.ancestorIds.some((ancestorId) => collapsedIds.has(ancestorId)))
+
+export const withAncestorIds = (rows: CategoryDisplayRow[], categoryIds: Set<string>) => {
+  const retained = new Set<string>()
+  for (const row of rows) {
+    if (!categoryIds.has(row.category.id)) {
+      continue
+    }
+    retained.add(row.category.id)
+    for (const ancestorId of row.ancestorIds) {
+      retained.add(ancestorId)
+    }
+  }
+  return retained
 }
 
 export const foodsByCategoryId = (foods: Food[]) => {

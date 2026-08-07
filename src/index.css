@@ -91,8 +91,14 @@ h3 { font-size: 1.35rem; }
 
 .catalogue { display: grid; gap: var(--space-4); }
 .category-group { border-inline-start: .35rem solid var(--line); margin-inline-start: var(--category-indent); padding-inline-start: var(--space-3); }
-.breadcrumb { color: var(--muted-ink); font-size: .9rem; margin-bottom: .25rem; }
+.breadcrumb { color: var(--muted-ink); font-size: .78rem; letter-spacing: .01em; margin-bottom: .15rem; opacity: .75; }
 .category-group h3 { margin-bottom: var(--space-2); }
+.category-toggle { background: none; border: 0; color: inherit; cursor: pointer; display: flex; align-items: center; font: inherit; gap: .5rem; padding: 0; text-align: start; }
+.category-toggle:hover { color: var(--accent-ink, inherit); }
+.category-toggle:focus-visible { border-radius: var(--radius); outline: 3px solid var(--status-amber); outline-offset: 3px; }
+.category-toggle-icon { align-items: center; aspect-ratio: 1; background: var(--line); border-radius: .3rem; display: inline-flex; flex: 0 0 1.25rem; font-size: .85rem; font-weight: 900; height: 1.25rem; justify-content: center; line-height: 1; width: 1.25rem; }
+.category-entry { display: grid; gap: .3rem; margin-bottom: var(--space-3); }
+.category-entry-link { margin-bottom: .2rem; }
 .category-guidance { display: grid; gap: .3rem; margin-bottom: var(--space-3); }
 .category-guidance .status { font-size: .95rem; }
 .inherited-note { color: var(--muted-ink); font-size: .92rem; font-style: italic; }
@@ -127,7 +133,7 @@ h3 { font-size: 1.35rem; }
 
 @media (max-width: 47.99rem) {
   .page-content { padding-top: var(--space-4); }
-  .category-group { margin-inline-start: 0; }
+  .category-group { margin-inline-start: min(var(--category-indent), 1.5rem); padding-inline-start: var(--space-2); }
   .food-card-header { align-items: flex-start; flex-direction: column; }
   .filter-field { width: 100%; }
   .filter-controls { align-items: stretch; }
