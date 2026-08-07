@@ -21,6 +21,8 @@ export const guidanceLists: GuidanceList[] = [
       categoryIds: [
         'breads-and-cereals',
         'dairy',
+        'desserts',
+        'drinks',
         'eggs',
         'meat-and-poultry',
         'seafood',

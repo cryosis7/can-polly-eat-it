@@ -63,6 +63,28 @@ const introducedFoodIds: { id: string, inheritsFrom: string }[] = [
   { id: 'seed-sprouts', inheritsFrom: 'seed-sprouts-and-enoki-mushrooms' },
 ]
 
+/**
+ * Foods introduced by F-13, which surfaces the raw-egg foods the source names as browsable
+ * entries. They have no pre-migration baseline, because each existed only as an alias string.
+ */
+const rawEggFoodIds = [
+  'caesar-dressing',
+  'egg-flips',
+  'eggnog',
+  'hollandaise-sauce',
+  'mayonnaise',
+  'mousse',
+  'smoothies',
+  'tiramisu',
+]
+
+/**
+ * Foods whose guidance F-13 deliberately changes. Panna cotta moves from a root outside pregnancy
+ * coverage into `Cold desserts`, which is inside it, so its pregnancy result changes from
+ * `Outside current coverage` to the inherited amber cold-dessert rule.
+ */
+const intentionallyChangedFoodIds = ['panna-cotta']
+
 const baseline: Record<string, Record<string, ResolvedOutcome>> = preMigrationResolution
 
 const index = createContentIndex(content.categories, content.assessments)
@@ -99,7 +121,7 @@ describe('guidance migration invariant', () => {
 
   it('resolves every retained food to its pre-migration guidance, ignoring synthetic record ids', () => {
     for (const foodId of baselineFoodIds) {
-      if (!currentFoodIds.has(foodId)) {
+      if (!currentFoodIds.has(foodId) || intentionallyChangedFoodIds.includes(foodId)) {
         continue
       }
       expect(resolveForFood(foodId), `guidance changed for "${foodId}"`).toEqual(baseline[foodId])
@@ -110,12 +132,21 @@ describe('guidance migration invariant', () => {
     const departed = baselineFoodIds.filter((foodId) => !currentFoodIds.has(foodId))
     const arrived = [...currentFoodIds].filter((foodId) => !(foodId in baseline))
     expect([...departed].sort()).toEqual([...retiredFoodIds].sort())
-    expect([...arrived].sort()).toEqual(introducedFoodIds.map((entry) => entry.id).sort())
+    expect([...arrived].sort()).toEqual([...introducedFoodIds.map((entry) => entry.id), ...rawEggFoodIds].sort())
   })
 
   it('gives each introduced food the guidance of the mirror food it replaces', () => {
     for (const { id, inheritsFrom } of introducedFoodIds) {
       expect(resolveForFood(id), `guidance changed for introduced food "${id}"`).toEqual(baseline[inheritsFrom])
     }
+  })
+
+  it('changes panna cotta only in the way F-13 declares, leaving its vegetarian guidance intact', () => {
+    const before = baseline['panna-cotta']
+    const after = resolveForFood('panna-cotta')
+
+    expect(before['pregnancy-food-safety'].statusId).toBe('pregnancy-outside-coverage')
+    expect(after['pregnancy-food-safety'].statusId).toBe('pregnancy-conditions')
+    expect(after['vegetarian-suitability']).toEqual(before['vegetarian-suitability'])
   })
 })

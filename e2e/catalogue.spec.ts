@@ -37,7 +37,7 @@ test.describe('Food catalogue', () => {
 
     await expect(page.getByRole('button', { name: 'Dairy, level 1' })).toHaveAttribute('aria-expanded', 'false')
     await expect(page.getByRole('button', { name: 'Cheese, level 2' })).toHaveCount(0)
-    await expect(page.getByText('147 results in the guide')).toBeVisible()
+    await expect(page.getByText('159 results in the guide')).toBeVisible()
 
     const collapsedHeight = await page.evaluate(() => document.body.scrollHeight)
     expect(collapsedHeight).toBeLessThan(6000)
@@ -77,12 +77,42 @@ test.describe('Food catalogue', () => {
   })
 
   test('reaches a migrated alias of a retired food on its merged category entry', async ({ page }) => {
-    await page.goto('/?v=1&scope=pregnancy-food-safety&q=tiramisu')
+    await page.goto('/?v=1&scope=pregnancy-food-safety&q=poached%20eggs')
 
     await expect(page.getByText('1 result in the guide')).toBeVisible()
-    const rawEggsGroup = page.locator('.category-group', { hasText: 'Raw eggs' })
-    await expect(rawEggsGroup.getByRole('link', { name: 'Raw eggs guidance', exact: true })).toBeVisible()
-    await expect(rawEggsGroup.getByText('Avoid').first()).toBeVisible()
+    const cookedEggsGroup = page.locator('.category-group', { hasText: 'Cooked eggs' })
+    await expect(cookedEggsGroup.getByRole('link', { name: 'Cooked eggs guidance', exact: true })).toBeVisible()
+    await expect(cookedEggsGroup.getByText('Only with conditions').first()).toBeVisible()
+  })
+
+  test('reaches a raw-egg food surfaced in its own category from a cold start', async ({ page }) => {
+    await page.goto('/')
+
+    await page.getByRole('searchbox', { name: 'Search foods' }).fill('dressings containing mayonnaise')
+
+    await expect(page.getByText('1 result in the guide')).toBeVisible()
+    const mayonnaiseCard = foodCard(page, 'Mayonnaise')
+    await expect(mayonnaiseCard).toBeVisible()
+    await expect(mayonnaiseCard.getByText('Avoid')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Raw eggs guidance', exact: true })).toHaveCount(0)
+  })
+
+  test('loads the new cold desserts category directly and shows its amber rule and children', async ({ page }) => {
+    await page.goto('/category/cold-desserts?v=1&scope=pregnancy-food-safety')
+
+    await expect(page.getByRole('heading', { name: 'Cold desserts' })).toBeVisible()
+    await expect(page.getByText('Desserts > Cold desserts')).toBeVisible()
+    await expect(page.getByText('Only with conditions')).toBeVisible()
+    await expect(page.getByText('Do not eat it if it contains raw egg.')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'New Zealand Food Safety: Pullout guide to food safety in pregnancy' })).toHaveAttribute(
+      'href',
+      mpiSourceUrl,
+    )
+    await expect(page.getByLabel('Medical information disclaimer')).toContainText('general information, not medical advice')
+
+    await page.goto('/?v=1&scope=pregnancy-food-safety&category=cold-desserts')
+    await expect(page.getByRole('button', { name: 'Ice cream, level 3' })).toBeVisible()
+    await expect(foodCard(page, 'Tiramisu').getByText('Avoid')).toBeVisible()
   })
 
   test('includes descendant foods when filtering by a parent category', async ({ page }) => {
@@ -168,7 +198,7 @@ test.describe('Food catalogue', () => {
     await page.keyboard.press('Tab')
     await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused()
     await expect(page.getByRole('searchbox', { name: 'Search foods' })).toBeVisible()
-    await expect(page.getByText('147 results in the guide')).toBeVisible()
+    await expect(page.getByText('159 results in the guide')).toBeVisible()
     await expect(page.locator('details')).not.toHaveAttribute('open', '')
 
     await page.getByText('Filters', { exact: true }).click()
