@@ -200,6 +200,14 @@ describe('CataloguePage', () => {
     expect(within(entry).getAllByRole('link', { name: /^Primary source:/ }).length).toBeGreaterThan(0)
   })
 
+  it('renders root categories in alphabetical order', () => {
+    renderCatalogue()
+
+    const rootNames = screen.getAllByRole('button', { name: /, level 1$/ })
+      .map((toggle) => toggle.getAttribute('aria-label')!.replace(/, level 1$/, ''))
+    expect(rootNames).toEqual([...rootNames].sort((left, right) => left.localeCompare(right)))
+  })
+
   it('renders every ancestor heading so a nested entry is never shown under an unrelated group', () => {
     renderCatalogue()
     expandGroup('Breads and cereals')
