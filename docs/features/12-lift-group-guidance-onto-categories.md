@@ -1,6 +1,6 @@
 # F-12: Lift Group-Level Guidance onto Categories
 
-**Status:** Proposed
+**Status:** Planned
 
 **Depends on:** [F-04: Maintain Trustworthy Guidance Content](<04-maintain-trustworthy-guidance-content.md>), [F-09: Assess and Browse Food Categories](<09-assess-and-browse-food-categories.md>), [F-11: Make the Browse Hierarchy Legible and Collapsible](<11-make-browse-hierarchy-legible.md>)
 
@@ -23,7 +23,7 @@ content still contains:
   unassessed. This is the same shape as `Hard cheese`, which already carries its rule at the category
   level.
 - 38 categories that contain exactly one direct food, no subcategories, and no category assessment.
-  In 30 of them the food shares the category's identifier, for example `Raw fish` → `Raw fish`,
+  In 31 of them the food shares the category's identifier, for example `Raw fish` → `Raw fish`,
   `Processed meats` → `Processed meats`, and `Canned foods` → `Canned foods`. The food record adds no
   information the category does not already carry, and its guidance is a group rule wearing a food's
   clothes.
@@ -72,6 +72,9 @@ content still contains:
 - Adding an inheritance opt-out flag; an exception is authored as a food-level assessment.
 - Collapsing the fish species beneath `Fish mercury guidance`, which are genuinely distinct foods with
   differing serving limits.
+- Lifting the freshly-cooked-seafood group rule, which is deferred to
+  [F-16](<16-express-accumulating-guidance.md>) because its footnote is additive rather than an
+  exception.
 - Any browse-view presentation change, which belongs to [F-11](<11-make-browse-hierarchy-legible.md>).
 
 ## Assumptions and open questions
@@ -142,7 +145,30 @@ content still contains:
     `Fresh filled pasta`. This is the same shape already accepted for `Hard cheese` above `Parmesan`,
     and the child's own status stays visible beneath it.
 
-## Acceptance criteria
+- Deferred to [F-16](<16-express-accumulating-guidance.md>), seafood — a second open-ended group claim,
+  found by auditing the data against this brief. `Freshly cooked fish, mussels, oysters, crayfish,
+  scallops, etc` holds three foods: a mirror food sharing the category's identifier at locator
+  `Seafood: Freshly cooked fish, mussels, oysters, crayfish, scallops, etc`, plus
+  `Bluff and Pacific oysters` and `Queen scallops` carrying a different rule from the source's own
+  footnote at locator `Seafood footnote: Bluff and Pacific oysters and queen scallops`. The trailing
+  "etc" is the source making an open-ended group claim, which initially looked like the cereals case.
+  - It is **not** the cereals case. `Fresh filled pasta` is a true exception whose rule *replaces* the
+    group rule, so total override is correct. The seafood footnote is **additive**: a monthly serving
+    limit does not exempt an oyster from being cooked through, and the source presents the footnote as
+    an addition to the heading it sits under.
+  - Because an inherited assessment is applied whole and a food-level assessment is a total override,
+    lifting the cooking rule onto the category would assert that the footnote is an exception to it.
+    That is a claim the source does not make.
+  - **This feature therefore leaves the freshly-cooked-seafood group entirely untouched.** Its mirror
+    food is outside the 38 mirror categories anyway, because its category holds more than one food, so
+    no scope is lost by deferring. Expressing additive guidance requires an ADR amendment and is
+    [F-16](<16-express-accumulating-guidance.md>).
+
+## Implementation plan
+
+[F-12 Implementation Plan](<12-lift-group-guidance-onto-categories-plan.md>).
+
+
 
 - `Pasteurised cottage cheese` and `Pasteurised cream cheese` have no assessment of their own, and
   both display the category's rule with its status, summary, conditions, citation, and a statement of
@@ -150,6 +176,9 @@ content still contains:
 - No unassessed category remains whose direct foods all carry an identical reviewed rule.
 - `Breakfast cereals`, `Rice`, and `Pasta` have no assessment of their own and show the `Cereals` rule
   with its origin disclosed, while `Fresh filled pasta` shows only its own guidance.
+- The freshly-cooked-seafood group is unchanged by this feature, and `Bluff and Pacific oysters` and
+  `Queen scallops` continue to show their own footnote rule; expressing the group's cooking rule
+  alongside it is deferred to [F-16](<16-express-accumulating-guidance.md>).
 - Every retired food's guidance remains reachable, searchable by its former name and aliases, and
   filterable by scope and outcome.
 - No food's displayed status, summary, condition, or source text differs from what it displayed before

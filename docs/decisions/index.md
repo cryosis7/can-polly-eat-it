@@ -5,6 +5,7 @@ opening every file. Keep it in sync whenever an ADR is added or its status chang
 
 | ADR | Status | Summary |
 | --- | --- | --- |
+| [2026-08-07 ADR: accumulate inherited guidance through additive assessments](<2026-08-07 ADR - accumulate inherited guidance through additive assessments.md>) | Proposed | An assessment may declare `relation: 'adds-to'` so a specific rule layers onto inherited group guidance instead of replacing it; amends the total-override rule and governs `src/domain/assessment.ts` and `src/components/GuidanceSection.tsx`. |
 | [2026-08-07 ADR: resolve unassessed guidance from a single not-assessed state](<2026-08-07 ADR - resolve unassessed guidance from a single not-assessed state.md>) | Proposed | Guidance lists drop their coverage declaration and the `outside-coverage` state; any subject with no resolved rule reads `Not assessed`, governing `src/domain/`, `src/data/guidanceLists.ts`, and the catalogue UI. |
 | [2026-08-07 ADR: enforce WCAG 2.2 AA with axe-core in Playwright](<2026-08-07 ADR - enforce WCAG 2.2 AA with axe-core in Playwright.md>) | Accepted | Dedicated `@axe-core/playwright` scans in `e2e/` fail the pre-commit gate on any WCAG 2.2 AA violation, with no allowlist or baseline. |
 | [2026-08-06 ADR: vary source-citation requirements by guidance list](<2026-08-06 ADR - vary source-citation requirements by guidance list.md>) | Accepted | Each guidance list declares whether citations are required or optional; pregnancy stays fully cited while a list may instead declare its evidentiary basis. |

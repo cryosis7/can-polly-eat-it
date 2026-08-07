@@ -38,6 +38,11 @@ validation. Resolve or record any `prepare` findings before opening a PR or mark
 8. F-08: Rework Guidance-Scope Filtering
 9. F-10: Vary Citation Expectations by Guidance List
 10. F-09: Assess and Browse Food Categories
+11. F-11: Make the Browse Hierarchy Legible and Collapsible
+12. F-12: Lift Group-Level Guidance onto Categories
+
+F-11 precedes F-12 because retiring a mirror food would visibly lose its summary and source from the
+browse view until an assessed category renders them as a food does.
 
 F-10 precedes F-09 so that the vegetarian guidance content is migrated to categories once, under its
 final citation policy, rather than in two passes.
