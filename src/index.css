@@ -91,7 +91,7 @@ h3 { font-size: 1.35rem; }
 
 .catalogue { display: grid; gap: var(--space-4); }
 .category-group { border-inline-start: .35rem solid var(--line); margin-inline-start: var(--category-indent); padding-inline-start: var(--space-3); }
-.breadcrumb { color: var(--muted-ink); font-size: .78rem; letter-spacing: .01em; margin-bottom: .15rem; opacity: .75; }
+.breadcrumb { color: var(--muted-ink); font-size: .78rem; letter-spacing: .01em; margin-bottom: .15rem; }
 .category-group h3 { margin-bottom: var(--space-2); }
 .category-toggle { background: none; border: 0; color: inherit; cursor: pointer; display: flex; align-items: center; font: inherit; gap: .5rem; padding: 0; text-align: start; }
 .category-toggle:hover { color: var(--accent-ink, inherit); }
