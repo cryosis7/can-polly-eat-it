@@ -72,7 +72,7 @@ be covered without adopting a second test framework.
 - **Affected paths:** `package.json`, `package-lock.json`, `vite.config.ts`, `src/**/*.test.*`,
   `docs/implementation-plan.md`, and `docs/features/*.md`.
 - **Pattern to follow:** Add and lock `@vitest/coverage-v8` at a version compatible with the existing
-  Vitest 3 installation. Configure Vitest coverage to include application files in `src/` and exclude
+  Vitest installation. Configure Vitest coverage to include application files in `src/` and exclude
   `src/**/*.test.*`, `src/test/**`, `src/main.tsx`, and `src/vite-env.d.ts`. Configure global
   `statements`, `branches`, `functions`, and `lines` thresholds of `100` that fail the coverage
   command when unmet. Add an `npm` script that runs the full suite with coverage; do not lower a
@@ -85,7 +85,7 @@ be covered without adopting a second test framework.
 ## Confirmation
 
 - [x] `@vitest/coverage-v8` is locked in the development dependencies at a version compatible with
-  Vitest 3.
+  the installed Vitest.
 - [x] A documented `npm` coverage command runs the complete suite and produces a report for
   statements, branches, functions, and lines.
 - [x] The configured scope includes all application source in `src/` and excludes only tests,

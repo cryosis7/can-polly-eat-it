@@ -84,24 +84,67 @@ rather than a runtime service, and provides a concrete deep-route and cache conf
 - **Affected paths:** `package.json`, lockfile, `vite.config.*`, `tsconfig*.json`, `src/app/`,
   `src/main.tsx`, `src/routes/`, `public/_redirects`, `netlify.toml`, and CI workflow files.
 - **Pattern to follow:** Scaffold with Vite's React TypeScript template; pin exact generated package
-  versions in the lockfile. Enable strict TypeScript. Use React Router 7 for `/` and
+  versions in the lockfile. Enable strict TypeScript. Use React Router for `/` and
   `/food/:foodSlug` with a `/` base path; use the versioned URL query contract for catalogue and
   detail-list state. Configure Netlify's `/* /index.html 200` rewrite, no-cache/revalidate headers
   for the HTML entry point, and immutable headers for Vite hashed assets. Keep `src/domain/` free
-  of React imports.
-- **Tests:** Run Vite build, TypeScript check, linting, Vitest 3 unit tests, React Testing Library
+  of React imports. See the 2026-08-07 amendment below for the current version baseline.
+- **Tests:** Run Vite build, TypeScript check, linting, Vitest unit tests, React Testing Library
   rendering tests, and a browser smoke test that loads a deep food route directly.
 
 ## Confirmation
 
-- [ ] The generated manifest uses React 19, TypeScript 5, Vite 7, and React Router 7 with exact
-  resolved versions committed to the lockfile.
+- [x] The generated manifest uses the major versions recorded in the current version baseline, with
+  exact resolved versions committed to the lockfile.
 - [ ] The deployed static host rewrites `/food/<slug>` to the SPA entry point.
 - [ ] A Netlify deploy preview loads `/food/<slug>?v=1&list=<list-slug>` directly.
 - [ ] `netlify.toml` revalidates the HTML entry point and makes only hashed Vite assets immutable.
 - [ ] The home route and a direct food-detail route load without a server API.
 - [ ] Search/filter state is represented in the URL rather than a server session.
 - [ ] `src/domain/` has no React, browser-router, or DOM dependency.
+
+## Amendments
+
+### 2026-08-07: uplift the version baseline
+
+The original decision named React 19, TypeScript 5, Vite 7, and React Router 7. Those specific
+majors are amended, not the architecture: this remains a client-only, statically hosted React SPA
+with a strict TypeScript domain layer and a versioned URL query contract.
+
+The trigger was a high-severity advisory against React Router 7
+([GHSA-qwww-vcr4-c8h2](https://github.com/advisories/GHSA-qwww-vcr4-c8h2), RSC-mode CSRF), which is
+only fixed in React Router 8. The remaining dependencies were brought to their current releases in
+the same change so the toolchain stays on one supported baseline rather than drifting.
+
+The current version baseline is:
+
+| Package | Was | Now |
+| --- | --- | --- |
+| react-router | 7 | 8 |
+| typescript | 5 | 7 |
+| vite | 8 (from 7) | 8 |
+| vitest, @vitest/coverage-v8 | 3 | 4 |
+| eslint, @eslint/js | 9 | 10 |
+| eslint-plugin-react-hooks | 5 | 7 |
+| jsdom | 26 | 30 |
+| @vitejs/plugin-react | 5 | 6 |
+| @testing-library/jest-dom | 6 | 7 |
+| globals | 16 | 17 |
+| eslint-plugin-react-refresh | 0.4 | 0.5 |
+
+React 19 is unchanged. Two consequential notes for a future agent:
+
+- `eslint-plugin-react-hooks` 7 moved its flat configuration to
+  `configs.flat['recommended-latest']`; the old `configs['recommended-latest']` is legacy-shaped and
+  throws under ESLint 10. Both expose the same 17 rules.
+- That plugin's new `react-hooks/set-state-in-effect` rule flags the deferred live-region
+  announcement in `src/features/catalogue/CataloguePage.tsx`. The deferral is deliberate and is
+  suppressed with an explanatory comment: `role="status"` announces content *changes*, so deriving
+  the message during render would silence it for screen-reader users.
+
+Verified by `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run test:precommit`
+(88 unit tests at 100% coverage, 36 Playwright tests including the WCAG 2.2 AA scans), with
+`npm audit` reporting no vulnerabilities.
 
 ## More Information
 

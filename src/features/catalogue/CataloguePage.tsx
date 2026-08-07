@@ -93,6 +93,10 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
 
   useEffect(() => {
     if (unavailableFiltersRemoved) {
+      // Deferred deliberately: role="status" is a polite live region, and assistive
+      // technology announces content changes rather than content already present on
+      // first paint. Deriving this during render would silence the announcement.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFilterRemovalAnnouncement('Unavailable shared filters were removed.')
     }
   }, [unavailableFiltersRemoved])
