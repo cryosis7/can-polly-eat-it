@@ -35,3 +35,14 @@ npm run build
 
 `npm install` configures the Husky pre-commit hook. Each commit runs `npm run test:precommit`, which
 requires both 100% Vitest coverage and the Chromium Playwright suite to pass.
+
+## Accessibility
+
+`e2e/accessibility.spec.ts` scans every route and key interaction state with `axe-core` via
+`@axe-core/playwright`, at both a 320px mobile viewport and the desktop default. The scans enforce
+WCAG 2.2 AA (`wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa`) and fail on any violation.
+
+There is deliberately no allowlist, no disabled rule, and no recorded violation baseline. Fix a
+finding in the application rather than excluding it from the scan. Automated scanning catches only a
+minority of accessibility barriers, so it supplements rather than replaces keyboard and
+screen-reader review.

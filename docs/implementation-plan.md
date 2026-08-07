@@ -59,6 +59,8 @@ Every pull request that changes application or content code should run:
 - React Testing Library tests for catalogue, filters, and detail rendering;
 - Chromium Playwright end-to-end tests for every implemented user-facing flow, including direct
   detail-route loading and a filtered URL;
+- WCAG 2.2 AA `axe-core` scans in Playwright for key routes and responsive states, with zero
+  violations and no allowlist or baseline;
 - a Husky pre-commit hook that runs the coverage and Playwright commands before every local commit;
 - coverage resolution, mutually exclusive-scenario, and 1,000-level tree tests;
 - Netlify deploy-preview smoke tests for direct detail routes and cache/rewrite configuration;

@@ -1,0 +1,81 @@
+import { expect, test, type Page } from '@playwright/test'
+import { desktopViewport, expectNoAccessibilityViolations, mobileViewport } from './support/axe'
+
+const viewports = [
+  { name: 'mobile', size: mobileViewport },
+  { name: 'desktop', size: desktopViewport },
+]
+
+const scannedStates = [
+  {
+    name: 'the default catalogue',
+    url: '/',
+    settled: (page: Page) => page.getByRole('heading', { name: "Polly's Food Guide" }),
+  },
+  {
+    name: 'a searched and category-filtered catalogue',
+    url: '/?v=1&scope=pregnancy-food-safety&q=yogurt&category=dairy',
+    settled: (page: Page) => page.getByRole('link', { name: 'Pasteurised yoghurt' }),
+  },
+  {
+    name: 'the no-results state',
+    url: '/?v=1&scope=pregnancy-food-safety&q=not-a-guide-food',
+    settled: (page: Page) => page.getByText('0 results in the guide'),
+  },
+  {
+    name: 'the removed-filter announcement',
+    url: '/?v=2&scope=unknown&outcome=unknown&q=yogurt',
+    settled: (page: Page) => page.getByText('Unavailable shared filters were removed.'),
+  },
+  {
+    name: 'a food detail page with conditions and a citation',
+    url: '/food/cooked-eggs?v=1&scope=pregnancy-food-safety',
+    settled: (page: Page) => page.getByRole('heading', { name: 'Cooked eggs' }),
+  },
+  {
+    name: 'a food detail page with reason links',
+    url: '/food/marshmallows?v=1&scope=vegetarian-suitability',
+    settled: (page: Page) => page.getByRole('heading', { name: 'Why this guidance applies' }),
+  },
+  {
+    name: 'an assessed category detail page',
+    url: '/category/hard-cheese?v=1&scope=pregnancy-food-safety,vegetarian-suitability',
+    settled: (page: Page) => page.getByRole('heading', { name: 'Hard cheese' }),
+  },
+  {
+    name: 'the food-not-found route',
+    url: '/food/removed-food?v=1&scope=pregnancy-food-safety',
+    settled: (page: Page) => page.getByRole('heading', { name: 'Food not found' }),
+  },
+]
+
+test.describe('Accessibility', () => {
+  for (const viewport of viewports) {
+    test.describe(`at the ${viewport.name} viewport`, () => {
+      test.use({ viewport: viewport.size })
+
+      for (const state of scannedStates) {
+        test(`has no WCAG 2.2 AA violations on ${state.name}`, async ({ page }) => {
+          await page.goto(state.url)
+          await expect(state.settled(page).first()).toBeVisible()
+
+          await expectNoAccessibilityViolations(page)
+        })
+      }
+    })
+  }
+
+  test('has no WCAG 2.2 AA violations with the mobile filters disclosure open', async ({ page }) => {
+    await page.setViewportSize(mobileViewport)
+    await page.goto('/')
+
+    const disclosure = page.locator('details')
+    await expect(disclosure).not.toHaveAttribute('open', '')
+
+    await page.getByText('Filters', { exact: true }).click()
+    await expect(disclosure).toHaveAttribute('open', '')
+    await expect(page.getByRole('combobox', { name: 'Category' })).toBeVisible()
+
+    await expectNoAccessibilityViolations(page)
+  })
+})

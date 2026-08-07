@@ -5,6 +5,7 @@ opening every file. Keep it in sync whenever an ADR is added or its status chang
 
 | ADR | Status | Summary |
 | --- | --- | --- |
+| [2026-08-07 ADR: enforce WCAG 2.2 AA with axe-core in Playwright](<2026-08-07 ADR - enforce WCAG 2.2 AA with axe-core in Playwright.md>) | Accepted | Dedicated `@axe-core/playwright` scans in `e2e/` fail the pre-commit gate on any WCAG 2.2 AA violation, with no allowlist or baseline. |
 | [2026-08-06 ADR: vary source-citation requirements by guidance list](<2026-08-06 ADR - vary source-citation requirements by guidance list.md>) | Accepted | Each guidance list declares whether citations are required or optional; pregnancy stays fully cited while a list may instead declare its evidentiary basis. |
 | [2026-08-06 ADR: assess categories as first-class subjects with inherited guidance](<2026-08-06 ADR - assess categories as first-class subjects with inherited guidance.md>) | Accepted | An assessment's subject is a food or a category, foods inherit the nearest assessed ancestor's cited guidance, and an assessed category is a searchable, routable guide entry. |
 | [2026-08-06 ADR: show scoped guidance with generic outcome filters](<2026-08-06 ADR - show scoped guidance with generic outcome filters.md>) | Accepted | Catalogue filtering defaults to pregnancy scope and uses generic outcome bands across selected guidance scopes while preserving list-owned assessments. |

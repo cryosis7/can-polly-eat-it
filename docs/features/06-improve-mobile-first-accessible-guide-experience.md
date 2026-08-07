@@ -110,3 +110,11 @@ functions, and lines coverage thresholds for application source. Add focused Rea
 coverage for the shell and filter-disclosure semantics, and Chromium Playwright scenarios for mobile
 and desktop filtering, direct filtered URLs, keyboard-visible focus, and a narrow responsive
 viewport.
+
+The colour-independence, native-label, and semantic-structure criteria above are additionally
+enforced automatically by the WCAG 2.2 AA `axe-core` scans in `e2e/accessibility.spec.ts`, added
+under [Enforce WCAG 2.2 AA with axe-core in Playwright](<../decisions/2026-08-07 ADR - enforce WCAG 2.2 AA with axe-core in Playwright.md>).
+Those scans found and fixed one real defect in this feature's delivered styling: the green status
+icon rendered white text at 3.3:1, below the 4.5:1 minimum, and `--status-green` was darkened to
+`#4c7638`. The scans do not replace the assertions for visible focus, announcement text, or textual
+status labels, which axe cannot verify.
