@@ -111,10 +111,10 @@ this question must be answered correctly.
   advice no source stated, which remains the correct goal, so the amendment had to draw a defensible
   line between *authored accumulation of two cited statements* and *inferred blending* rather than
   simply relaxing the rule.
-- **The ADR is drafted:** [accumulate inherited guidance through additive assessments](<../decisions/2026-08-07 ADR - accumulate inherited guidance through additive assessments.md>),
-  currently `Proposed`. It amends the category-assessment ADR's total-override rule narrowly, keeping
-  that rule as the default and preserving the prohibition on displaying advice or a status no source
-  stated. This feature must not move to `Planned` until that ADR is `Accepted`.
+- **The ADR is accepted:** [accumulate inherited guidance through additive assessments](<../decisions/2026-08-07 ADR - accumulate inherited guidance through additive assessments.md>).
+  It amends the category-assessment ADR's total-override rule narrowly, keeping that rule as the
+  default and preserving the prohibition on displaying advice or a status no source stated. The
+  remaining prerequisite for `Planned` is an approved feature-specific implementation plan.
 - Resolved by the ADR: the **nearest authored status always governs**, whether the assessment replaces
   or adds. Status, chip, outcome band, filtering, and the result count are therefore unchanged, and no
   status is ever computed, blended, or promoted. Coherence is enforced by validation instead: an

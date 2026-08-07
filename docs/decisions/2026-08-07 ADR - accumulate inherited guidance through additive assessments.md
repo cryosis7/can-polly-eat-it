@@ -1,6 +1,6 @@
 # 2026-08-07 ADR: Accumulate inherited guidance through additive assessments
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-08-07
 **Deciders:** Project owner (requester)
 

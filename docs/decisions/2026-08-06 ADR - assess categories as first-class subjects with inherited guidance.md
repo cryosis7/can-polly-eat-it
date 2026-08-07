@@ -231,6 +231,16 @@ their assessments move onto the categories they were standing in for.
 
 ## More Information
 
+**Amended 2026-08-07** by
+[2026-08-07 ADR: accumulate inherited guidance through additive assessments](<2026-08-07 ADR - accumulate inherited guidance through additive assessments.md>).
+The total-override rule stated below — that a food-level assessment wholly replaces any inherited
+category guidance, and that guidance is never combined across subject levels — remains the **default**
+and the whole of the behaviour for any assessment that does not opt in. An assessment may now declare
+`relation: 'adds-to'`, in which case its guidance is displayed alongside the guidance it inherits, each
+statement intact and separately attributed. Nothing is merged, reworded, or computed, so this ADR's
+prohibition on presenting advice or a status that no source stated is preserved. Everything else below
+stands unchanged.
+
 This decision builds on
 [2026-08-04 ADR: model food groups as an unbounded category tree](<2026-08-04 ADR - model food groups as an unbounded category tree.md>)
 and keeps its adjacency-list forest and separate food records; a category assessment is a separate
