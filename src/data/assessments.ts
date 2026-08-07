@@ -12,6 +12,7 @@ type AssessmentSpec = {
   locator: string
   instruction?: string
   conditions?: Condition[]
+  relation?: 'replaces' | 'adds-to'
 }
 
 type CategorySubject = {
@@ -58,6 +59,7 @@ const createAssessments = (spec: AssessmentSpec): Assessment[] =>
     guidanceListId: 'pregnancy-food-safety',
     statusId: spec.statusId,
     summary: spec.summary,
+    ...(spec.relation ? { relation: spec.relation } : {}),
     guidanceScenarios: guidanceScenariosFor(foodId, spec),
     reasonLinks: [],
     citations: [{ ...mpiCitation, locator: spec.locator }],
@@ -250,6 +252,14 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
     locator: 'Seafood: Raw fish; Raw shellfish',
   },
   {
+    categories: [{ categoryId: 'freshly-cooked-seafood', scopeStatement: 'Applies to all freshly cooked fish, mussels, oysters, crayfish and scallops.' }],
+    statusId: 'pregnancy-conditions',
+    summary: 'Cook seafood thoroughly and eat it while hot.',
+    locator: 'Seafood: Freshly cooked fish, mussels, oysters, crayfish, scallops, etc',
+    instruction: 'Cook thoroughly and serve while hot.',
+    conditions: [{ kind: 'preparation', instruction: 'Cook above 75°C throughout.' }],
+  },
+  {
     categories: [{ categoryId: 'smoked-seafood', scopeStatement: 'Applies to all chilled smoked or pre-cooked fish, shellfish and crustacea.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Eat chilled smoked or pre-cooked seafood only after heating until piping hot.',
@@ -410,14 +420,6 @@ const assessmentSpecs: AssessmentSpec[] = [
     conditions: [{ kind: 'composition', instruction: 'Do not treat the general pasta advice as applying to fresh filled pasta.' }],
   },
   {
-    foodIds: ['freshly-cooked-seafood'],
-    statusId: 'pregnancy-conditions',
-    summary: 'Cook seafood thoroughly and eat it while hot.',
-    locator: 'Seafood: Freshly cooked fish, mussels, oysters, crayfish, scallops, etc',
-    instruction: 'Cook thoroughly and serve while hot.',
-    conditions: [{ kind: 'preparation', instruction: 'Cook above 75°C throughout.' }],
-  },
-  {
     foodIds: [
       'anchovy', 'arrow-squid', 'barracouta', 'blue-cod', 'brill-and-turbot', 'cockles', 'eel',
       'elephant-fish', 'flounders', 'gurnard', 'hoki', 'john-dory', 'ling', 'monkfish-or-stargazer',
@@ -481,6 +483,9 @@ const assessmentSpecs: AssessmentSpec[] = [
     locator: 'Seafood footnote: Bluff and Pacific oysters and queen scallops',
     instruction: 'Limit intake during pregnancy.',
     conditions: [{ kind: 'frequency', instruction: 'Have no more than one serving per month.' }],
+    // The source presents this footnote as an addition to the group's cooking rule, not as a
+    // carve-out from it: a serving limit does not exempt an oyster from being cooked through.
+    relation: 'adds-to',
   },
 ]
 

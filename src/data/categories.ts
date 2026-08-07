@@ -50,7 +50,7 @@ export const categories: Category[] = [
   { id: 'raw-fish', slug: 'raw-fish', name: 'Raw fish', parentId: 'seafood', aliases: ['marinated raw fish'], sortOrder: 1 },
   { id: 'raw-shellfish', slug: 'raw-shellfish', name: 'Raw shellfish', parentId: 'seafood', aliases: ['marinated raw mussels'], sortOrder: 2 },
   { id: 'smoked-seafood', slug: 'smoked-seafood', name: 'Smoked fish, shellfish and crustacea', parentId: 'seafood', aliases: ['Chilled smoked or pre-cooked seafood', 'smoked fish', 'smoked shellfish', 'cold smoked fish'], sortOrder: 3 },
-  { id: 'freshly-cooked-seafood', slug: 'freshly-cooked-seafood', name: 'Freshly cooked fish, mussels, oysters, crayfish, scallops, etc', parentId: 'seafood', aliases: [], sortOrder: 4 },
+  { id: 'freshly-cooked-seafood', slug: 'freshly-cooked-seafood', name: 'Freshly cooked fish, mussels, oysters, crayfish, scallops, etc', parentId: 'seafood', aliases: ['Freshly cooked seafood', 'freshly cooked fish', 'freshly cooked shellfish'], sortOrder: 4 },
   { id: 'fish-mercury-guidance', slug: 'fish-mercury-guidance', name: 'Fish mercury guidance', parentId: 'seafood', aliases: [], sortOrder: 5 },
   { id: 'fruit-and-vegetables', slug: 'fruit-and-vegetables', name: 'Vegetables, salads and fruits', parentId: null, aliases: ['fruit and vegetables'], sortOrder: 10 },
   { id: 'fruit', slug: 'fruit', name: 'Fruit', parentId: 'fruit-and-vegetables', aliases: [], sortOrder: 1 },

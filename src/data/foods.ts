@@ -52,7 +52,6 @@ const foodGroups: FoodGroup[] = [
   {
     categoryId: 'freshly-cooked-seafood',
     foods: [
-      { id: 'freshly-cooked-seafood', name: 'Freshly cooked seafood', aliases: ['freshly cooked fish', 'freshly cooked shellfish'] },
       { id: 'bluff-and-pacific-oysters', name: 'Bluff and Pacific oysters' },
       { id: 'queen-scallops', name: 'Queen scallops' },
     ],

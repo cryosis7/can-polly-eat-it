@@ -29,6 +29,7 @@ const retiredFoodIds = [
   'fresh-fruit',
   'fresh-herbs',
   'fresh-vegetables',
+  'freshly-cooked-seafood',
   'frozen-vegetables',
   'home-made-custard',
   'home-made-salads',
@@ -79,11 +80,11 @@ const rawEggFoodIds = [
 ]
 
 /**
- * Foods whose guidance F-13 deliberately changes. Panna cotta moves from a root outside pregnancy
- * coverage into `Cold desserts`, which is inside it, so its pregnancy result changes from
- * `Outside current coverage` to the inherited amber cold-dessert rule.
+ * Foods whose guidance F-13 and F-16 deliberately change. Panna cotta moves from a root outside
+ * pregnancy coverage into `Cold desserts`, which is inside it. The two footnoted shellfish gain the
+ * group's cooking instruction as a second layer, which F-16 exists to surface.
  */
-const intentionallyChangedFoodIds = ['panna-cotta']
+const intentionallyChangedFoodIds = ['panna-cotta', 'bluff-and-pacific-oysters', 'queen-scallops']
 
 const baseline: Record<string, Record<string, ResolvedOutcome>> = preMigrationResolution
 
@@ -148,5 +149,17 @@ describe('guidance migration invariant', () => {
     expect(before['pregnancy-food-safety'].statusId).toBe('pregnancy-outside-coverage')
     expect(after['pregnancy-food-safety'].statusId).toBe('pregnancy-conditions')
     expect(after['vegetarian-suitability']).toEqual(before['vegetarian-suitability'])
+  })
+
+  it('changes the footnoted shellfish only by adding the group layer F-16 exists to surface', () => {
+    for (const foodId of ['bluff-and-pacific-oysters', 'queen-scallops']) {
+      const before = baseline[foodId]['pregnancy-food-safety']
+      const after = resolveForFood(foodId)['pregnancy-food-safety']
+
+      expect(after.statusId, foodId).toBe(before.statusId)
+      expect(after.summary, foodId).toBe(before.summary)
+      expect(after.scenarios, foodId).toEqual(before.scenarios)
+      expect(after.citations, foodId).toEqual(before.citations)
+    }
   })
 })

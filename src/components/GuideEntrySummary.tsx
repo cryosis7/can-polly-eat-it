@@ -17,6 +17,10 @@ const statusIcon = {
 
 export const GuideEntrySummary = ({ guidanceList, resolved, returnSearch }: GuideEntrySummaryProps) => {
   const citations = resolved.assessment?.citations ?? guidanceList.coverage.citations
+  // With more than one layer the broadest is always an ancestor category, because the nearest
+  // assessment is ordered last.
+  const broadestOrigin = resolved.layers.length > 1 ? resolved.layers[0].origin : undefined
+  const groupCategory = broadestOrigin?.kind === 'inherited' ? broadestOrigin.category : undefined
 
   return (
     <section className="food-guidance">
@@ -31,6 +35,14 @@ export const GuideEntrySummary = ({ guidanceList, resolved, returnSearch }: Guid
           {resolved.assessment!.scopeStatement}{' '}
           <Link to={`/category/${resolved.origin.category.slug}?${returnSearch}`}>
             See {resolved.origin.category.name} guidance
+          </Link>
+        </p>
+      )}
+      {groupCategory && (
+        <p className="accumulated-note">
+          Further {groupCategory.name} guidance also applies.{' '}
+          <Link to={`/category/${groupCategory.slug}?${returnSearch}`}>
+            See {groupCategory.name} guidance
           </Link>
         </p>
       )}

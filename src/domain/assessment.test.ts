@@ -48,24 +48,26 @@ const food = (id: string, primaryCategoryId: string): Food => ({
   sortOrder: 1,
 })
 
-const categoryAssessment = (categoryId: string, statusId: string, guidanceListId = list.id): Assessment => ({
+const categoryAssessment = (categoryId: string, statusId: string, guidanceListId = list.id, relation?: 'replaces' | 'adds-to'): Assessment => ({
   id: `${categoryId}-${guidanceListId}`,
   subject: { kind: 'category', categoryId },
   guidanceListId,
   statusId,
   summary: `Applies to ${categoryId}.`,
   scopeStatement: `Applies to all ${categoryId}.`,
+  ...(relation ? { relation } : {}),
   guidanceScenarios: [],
   reasonLinks: [],
   citations: [],
 })
 
-const foodAssessment = (foodId: string, statusId: string, guidanceListId = list.id): Assessment => ({
+const foodAssessment = (foodId: string, statusId: string, guidanceListId = list.id, relation?: 'replaces' | 'adds-to'): Assessment => ({
   id: `${foodId}-${guidanceListId}`,
   subject: { kind: 'food', foodId },
   guidanceListId,
   statusId,
   summary: `Applies to ${foodId} only.`,
+  ...(relation ? { relation } : {}),
   guidanceScenarios: [],
   reasonLinks: [],
   citations: [],
@@ -177,5 +179,102 @@ describe('resolveAssessment', () => {
     const resolved = resolveAssessment({ kind: 'category', category: root }, outOfCoverageList, index)
     expect(resolved.status.id).toBe('outside-coverage')
     expect(resolved.origin).toEqual({ kind: 'coverage-fallback' })
+  })
+})
+
+describe('accumulating guidance across subject levels', () => {
+  it('returns exactly one layer, matching today, when nothing declares an addition', () => {
+    const root = category('root', null)
+    const cheddar = food('cheddar', 'root')
+    const index = createContentIndex([root], [categoryAssessment('root', 'avoid'), foodAssessment('cheddar', 'ok')])
+
+    const resolved = resolveAssessment({ kind: 'food', food: cheddar }, list, index)
+    expect(resolved.layers).toHaveLength(1)
+    expect(resolved.layers[0]).toEqual({ assessment: resolved.assessment, origin: { kind: 'own' } })
+  })
+
+  it('returns two layers, broadest first, for an additive food beneath an assessed category', () => {
+    const root = category('root', null)
+    const oysters = food('oysters', 'root')
+    const index = createContentIndex([root], [categoryAssessment('root', 'ok'), foodAssessment('oysters', 'avoid', list.id, 'adds-to')])
+
+    const resolved = resolveAssessment({ kind: 'food', food: oysters }, list, index)
+    expect(resolved.layers.map((layer) => layer.assessment.id)).toEqual(['root-test-list', 'oysters-test-list'])
+    expect(resolved.layers[0].origin).toEqual({ kind: 'inherited', category: root })
+    expect(resolved.layers[1].origin).toEqual({ kind: 'own' })
+  })
+
+  it('accumulates a third layer when an addition adds to another addition', () => {
+    const root = category('root', null)
+    const middle = category('middle', 'root')
+    const item = food('item', 'middle')
+    const index = createContentIndex([root, middle], [
+      categoryAssessment('root', 'ok'),
+      categoryAssessment('middle', 'ok', list.id, 'adds-to'),
+      foodAssessment('item', 'avoid', list.id, 'adds-to'),
+    ])
+
+    const resolved = resolveAssessment({ kind: 'food', food: item }, list, index)
+    expect(resolved.layers.map((layer) => layer.assessment.id)).toEqual([
+      'root-test-list',
+      'middle-test-list',
+      'item-test-list',
+    ])
+  })
+
+  it('stops the walk at and includes the first replacing ancestor', () => {
+    const root = category('root', null)
+    const middle = category('middle', 'root')
+    const item = food('item', 'middle')
+    const index = createContentIndex([root, middle], [
+      categoryAssessment('root', 'ok'),
+      categoryAssessment('middle', 'ok'),
+      foodAssessment('item', 'avoid', list.id, 'adds-to'),
+    ])
+
+    const resolved = resolveAssessment({ kind: 'food', food: item }, list, index)
+    expect(resolved.layers.map((layer) => layer.assessment.id)).toEqual(['middle-test-list', 'item-test-list'])
+  })
+
+  it('never accumulates an assessment authored in another guidance list', () => {
+    const root = category('root', null)
+    const item = food('item', 'root')
+    const index = createContentIndex([root], [
+      categoryAssessment('root', 'ok', otherList.id),
+      foodAssessment('item', 'avoid', list.id, 'adds-to'),
+    ])
+
+    const resolved = resolveAssessment({ kind: 'food', food: item }, list, index)
+    expect(resolved.layers.map((layer) => layer.assessment.id)).toEqual(['item-test-list'])
+  })
+
+  it('returns no layers when the resolution falls back to coverage', () => {
+    const root = category('root', null)
+    const item = food('item', 'root')
+    const index = createContentIndex([root], [])
+
+    expect(resolveAssessment({ kind: 'food', food: item }, list, index).layers).toEqual([])
+  })
+
+  it('always takes the status from the nearest assessment, whatever its relation', () => {
+    const root = category('root', null)
+    const item = food('item', 'root')
+    const index = createContentIndex([root], [categoryAssessment('root', 'ok'), foodAssessment('item', 'avoid', list.id, 'adds-to')])
+
+    const resolved = resolveAssessment({ kind: 'food', food: item }, list, index)
+    expect(resolved.status.id).toBe('avoid')
+    expect(resolved.origin).toEqual({ kind: 'own' })
+  })
+
+  it('accumulates for a category subject through its assessed ancestors', () => {
+    const root = category('root', null)
+    const leaf = category('leaf', 'root')
+    const index = createContentIndex([root, leaf], [
+      categoryAssessment('root', 'ok'),
+      categoryAssessment('leaf', 'avoid', list.id, 'adds-to'),
+    ])
+
+    const resolved = resolveAssessment({ kind: 'category', category: leaf }, list, index)
+    expect(resolved.layers.map((layer) => layer.assessment.id)).toEqual(['root-test-list', 'leaf-test-list'])
   })
 })

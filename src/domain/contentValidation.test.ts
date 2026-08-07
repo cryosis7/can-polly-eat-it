@@ -3,13 +3,14 @@ import { content } from '../data'
 import { resolveAssessment } from './assessment'
 import { createContentIndex } from './contentIndex'
 import { getStatusById, isCategoryCovered, isFoodCovered, validateContent } from './contentValidation'
+import type { Assessment } from './schemas'
 
 const index = createContentIndex(content.categories, content.assessments)
 
 describe('guide content validation', () => {
   it('accepts the authored fixture content', () => {
     expect(content.categories).toHaveLength(76)
-    expect(content.foods).toHaveLength(110)
+    expect(content.foods).toHaveLength(109)
     expect(content.assessments).toHaveLength(142)
     expect(content.guidanceLists.map((list) => list.id)).toEqual(['pregnancy-food-safety', 'vegetarian-suitability'])
     expect(content.guidanceLists[0].statuses.map((status) => status.outcomeBand)).toEqual([
@@ -191,6 +192,48 @@ describe('guide content validation', () => {
           : list
       )),
     })).toThrow("outside its guidance list's declared coverage")
+  })
+
+  it('rejects an additive assessment with nothing to add to, or one less restrictive than its target', () => {
+    const yellowfinAssessment: Assessment = {
+      id: 'yellowfin-tuna-pregnancy',
+      subject: { kind: 'food', foodId: 'yellowfin-tuna' },
+      guidanceListId: 'pregnancy-food-safety',
+      statusId: 'pregnancy-avoid',
+      summary: 'Adds to guidance that does not exist.',
+      relation: 'adds-to',
+      guidanceScenarios: [],
+      reasonLinks: [],
+      citations: content.assessments[0].citations,
+    }
+
+    expect(() => validateContent({
+      ...content,
+      assessments: [...content.assessments, yellowfinAssessment],
+    })).toThrow('no ancestor is assessed in its guidance list')
+
+    expect(() => validateContent({
+      ...content,
+      assessments: content.assessments.map((assessment) => (
+        assessment.id === 'mayonnaise-pregnancy'
+          ? { ...assessment, relation: 'adds-to' as const, statusId: 'pregnancy-ok' }
+          : assessment
+      )),
+    })).toThrow('more restrictive than itself')
+  })
+
+  it('accepts an additive category assessment that adds to an assessed ancestor category', () => {
+    const validated = validateContent({
+      ...content,
+      assessments: content.assessments.map((assessment) => (
+        assessment.id === 'soft-serve-ice-cream-pregnancy'
+          ? { ...assessment, relation: 'adds-to' as const }
+          : assessment
+      )),
+    })
+
+    expect(validated.assessments.find((assessment) => assessment.id === 'soft-serve-ice-cream-pregnancy')?.relation)
+      .toBe('adds-to')
   })
 
   it('rejects duplicate identifiers, invalid hierarchy relationships, and duplicate foods', () => {

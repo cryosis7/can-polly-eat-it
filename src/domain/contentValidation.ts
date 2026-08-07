@@ -9,7 +9,7 @@ import {
   type GuidanceList,
   type StatusDefinition,
 } from './schemas'
-import { createContentIndex, subjectKey, type ContentIndex } from './contentIndex'
+import { createContentIndex, findAssessment, subjectKey, type ContentIndex } from './contentIndex'
 
 export type ContentData = {
   categories: Category[]
@@ -101,6 +101,40 @@ const validateGuidanceLists = (guidanceLists: GuidanceList[], categoryIds: Set<s
   }
 }
 
+const restrictiveness: Record<string, number> = { okay: 0, maybe: 1, 'not-okay': 2 }
+
+/**
+ * An additive assessment must have something to add to, and must not be less restrictive than what
+ * it adds to. Neutral bands never appear here, because a fallback status on an assessment is
+ * already rejected.
+ */
+const validateAdditiveAssessment = (
+  assessment: Assessment,
+  guidanceList: GuidanceList,
+  index: ContentIndex,
+  foodsById: Map<string, Food>,
+) => {
+  const { subject } = assessment
+  // Both references are already validated above, so the tree always holds the subject's path.
+  const path = subject.kind === 'food'
+    ? index.tree.pathByCategoryId.get(foodsById.get(subject.foodId)!.primaryCategoryId)!
+    : index.tree.pathByCategoryId.get(subject.categoryId)!.slice(0, -1)
+
+  for (let position = path.length - 1; position >= 0; position -= 1) {
+    const inherited = findAssessment(index, guidanceList.id, { kind: 'category', categoryId: path[position].id })
+    if (!inherited) {
+      continue
+    }
+    const own = getStatusById(guidanceList, assessment.statusId)
+    const target = getStatusById(guidanceList, inherited.statusId)
+    if (restrictiveness[own.outcomeBand] < restrictiveness[target.outcomeBand]) {
+      fail(`assessment "${assessment.id}" adds to guidance that is more restrictive than itself.`)
+    }
+    return
+  }
+  fail(`assessment "${assessment.id}" adds to inherited guidance, but no ancestor is assessed in its guidance list.`)
+}
+
 const validateAssessments = (
   assessments: Assessment[],
   foods: Food[],
@@ -149,6 +183,9 @@ const validateAssessments = (
         : isCategoryCovered(categoriesById.get(subject.categoryId)!, guidanceList, index)
       if (!isCovered) {
         fail(`assessment "${assessment.id}" is outside its guidance list's declared coverage.`)
+      }
+      if (assessment.relation === 'adds-to') {
+        validateAdditiveAssessment(assessment, guidanceList, index, foodsById)
       }
     }
     assertUnique(assessment.reasonLinks.map((link) => `${link.kind}:${link.targetFoodId}`), `reason link in "${assessment.id}"`)

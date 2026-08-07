@@ -155,7 +155,7 @@ describe('filterCategoryEntries', () => {
       categoryId: 'seafood',
       guidanceListIds: [],
       outcomeBands: [],
-    }).map((category) => category.id)).toEqual(['raw-fish', 'raw-shellfish', 'smoked-seafood'])
+    }).map((category) => category.id)).toEqual(['raw-fish', 'raw-shellfish', 'smoked-seafood', 'freshly-cooked-seafood'])
 
     expect(filterCategoryEntries(categories, guidanceLists, index, {
       query: '',

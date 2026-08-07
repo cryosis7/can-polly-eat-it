@@ -291,6 +291,18 @@ test.describe('Food catalogue', () => {
     await expect(page).toHaveURL(/scope=pregnancy-food-safety/)
   })
 
+  test('shows both accumulated instructions with their own locators on a food detail route', async ({ page }) => {
+    await page.goto('/food/bluff-and-pacific-oysters?v=1&scope=pregnancy-food-safety')
+
+    await expect(page.getByRole('heading', { name: 'Bluff and Pacific oysters' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'All of the following apply' })).toBeVisible()
+    await expect(page.getByText('Cook above 75°C throughout.')).toBeVisible()
+    await expect(page.getByText('Have no more than one serving per month.')).toBeVisible()
+    await expect(page.getByText('Seafood: Freshly cooked fish, mussels, oysters, crayfish, scallops, etc')).toBeVisible()
+    await expect(page.getByText('Seafood footnote: Bluff and Pacific oysters and queen scallops')).toBeVisible()
+    await expect(page.getByText('Only with conditions').first()).toBeVisible()
+  })
+
   test('shows a safe food-not-found route', async ({ page }) => {
     await page.goto('/food/removed-food?v=1&scope=pregnancy-food-safety')
 

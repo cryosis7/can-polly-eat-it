@@ -1,7 +1,7 @@
 import { Link } from 'react-router'
-import type { ResolvedAssessment } from '../domain/assessment'
+import type { GuidanceLayer, ResolvedAssessment } from '../domain/assessment'
 import type { ContentData } from '../domain/contentValidation'
-import type { GuidanceList } from '../domain/schemas'
+import type { GuidanceList, SourceCitation } from '../domain/schemas'
 
 export type GuidanceSectionProps = {
   guidanceList: GuidanceList
@@ -17,6 +17,97 @@ const statusIcon = {
   grey: '?',
 } as const
 
+const dedupeCitations = (citations: SourceCitation[]) => {
+  const seen = new Set<string>()
+  return citations.filter((citation) => {
+    const key = `${citation.url}-${citation.locator}`
+    if (seen.has(key)) {
+      return false
+    }
+    seen.add(key)
+    return true
+  })
+}
+
+type LayerBodyProps = {
+  layer: GuidanceLayer
+  content: ContentData
+  headingId: string
+  returnSearch: string
+  isAccumulated: boolean
+}
+
+// ADR: Accumulate inherited guidance through additive assessments.
+// See: docs/decisions/2026-08-07 ADR - accumulate inherited guidance through additive assessments.md
+const LayerBody = ({ layer, content, headingId, returnSearch, isAccumulated }: LayerBodyProps) => {
+  const { assessment, origin } = layer
+  const ScenarioHeading = isAccumulated ? 'h6' : 'h5'
+
+  return (
+    <>
+      {origin.kind === 'inherited' && (
+        <p className="inherited-note">
+          {assessment.scopeStatement}{' '}
+          <Link to={`/category/${origin.category.slug}?${returnSearch}`}>
+            See {origin.category.name} guidance
+          </Link>
+        </p>
+      )}
+
+      {assessment.guidanceScenarios.length > 0 && (
+        <section aria-labelledby={`scenarios-${headingId}`}>
+          <h4 id={`scenarios-${headingId}`}>
+            {isAccumulated && assessment.guidanceScenarios.length > 1
+              ? 'Follow whichever applies'
+              : 'How to follow this guidance'}
+          </h4>
+          {assessment.guidanceScenarios.map((scenario) => (
+            <section className="guidance-scenario" key={scenario.id}>
+              <ScenarioHeading>{scenario.applicability}</ScenarioHeading>
+              <p>{scenario.instruction}</p>
+              {scenario.conditions.length > 0 && (
+                <ol>
+                  {scenario.conditions.map((condition) => (
+                    <li key={condition.id}>
+                      <p>{condition.instruction}</p>
+                      {condition.facts && (
+                        <dl className="guidance-facts">
+                          {condition.facts.map((fact) => (
+                            <div key={fact.label}>
+                              <dt>{fact.label}</dt>
+                              <dd>{fact.valueText}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      )}
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </section>
+          ))}
+        </section>
+      )}
+
+      {assessment.reasonLinks.length > 0 && (
+        <section aria-labelledby={`reasons-${headingId}`}>
+          <h4 id={`reasons-${headingId}`}>Why this guidance applies</h4>
+          <ul className="reason-links">
+            {assessment.reasonLinks.map((reason) => {
+              const targetFood = content.foods.find((candidate) => candidate.id === reason.targetFoodId)!
+              return (
+                <li key={`${reason.kind}-${reason.targetFoodId}`}>
+                  {reason.statement} <Link to={`/food/${targetFood.slug}?${returnSearch}`}>{targetFood.name}</Link>
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      )}
+    </>
+  )
+}
+
 // ADR: Link assessments to canonical reason foods.
 // See: docs/decisions/2026-08-04 ADR - link assessments to canonical reason foods.md
 export const GuidanceSection = ({
@@ -25,7 +116,10 @@ export const GuidanceSection = ({
   content,
   returnSearch,
 }: GuidanceSectionProps) => {
-  const citations = resolved.assessment?.citations ?? guidanceList.coverage.citations
+  const citations = resolved.layers.length > 0
+    ? dedupeCitations(resolved.layers.flatMap((layer) => layer.assessment.citations))
+    : guidanceList.coverage.citations
+  const isAccumulated = resolved.layers.length > 1
 
   return (
     <article aria-labelledby={`guidance-${guidanceList.id}`} className="guidance-summary">
@@ -46,64 +140,33 @@ export const GuidanceSection = ({
         <p className="evidentiary-basis">{guidanceList.evidentiaryBasis}</p>
       )}
 
-      {resolved.origin.kind === 'inherited' && (
-        <p className="inherited-note">
-          {resolved.assessment!.scopeStatement}{' '}
-          <Link to={`/category/${resolved.origin.category.slug}?${returnSearch}`}>
-            See {resolved.origin.category.name} guidance
-          </Link>
-        </p>
-      )}
-
-      {resolved.assessment && (
-        <>
-          {resolved.assessment.guidanceScenarios.length > 0 && (
-            <section aria-labelledby={`scenarios-${guidanceList.id}`}>
-              <h4 id={`scenarios-${guidanceList.id}`}>How to follow this guidance</h4>
-              {resolved.assessment.guidanceScenarios.map((scenario) => (
-                <section className="guidance-scenario" key={scenario.id}>
-                  <h5>{scenario.applicability}</h5>
-                  <p>{scenario.instruction}</p>
-                  {scenario.conditions.length > 0 && (
-                    <ol>
-                      {scenario.conditions.map((condition) => (
-                        <li key={condition.id}>
-                          <p>{condition.instruction}</p>
-                          {condition.facts && (
-                            <dl className="guidance-facts">
-                              {condition.facts.map((fact) => (
-                                <div key={fact.label}>
-                                  <dt>{fact.label}</dt>
-                                  <dd>{fact.valueText}</dd>
-                                </div>
-                              ))}
-                            </dl>
-                          )}
-                        </li>
-                      ))}
-                    </ol>
-                  )}
-                </section>
-              ))}
+      {isAccumulated ? (
+        <section aria-labelledby={`layers-${guidanceList.id}`} className="guidance-layers">
+          <h4 id={`layers-${guidanceList.id}`}>All of the following apply</h4>
+          {resolved.layers.map((layer) => (
+            <section aria-labelledby={`layer-${guidanceList.id}-${layer.assessment.id}`} className="guidance-layer" key={layer.assessment.id}>
+              <h5 id={`layer-${guidanceList.id}-${layer.assessment.id}`}>
+                {layer.assessment.scopeStatement ?? 'Specific to this food'}
+              </h5>
+              <p>{layer.assessment.summary}</p>
+              <LayerBody
+                content={content}
+                headingId={`${guidanceList.id}-${layer.assessment.id}`}
+                isAccumulated
+                layer={layer}
+                returnSearch={returnSearch}
+              />
             </section>
-          )}
-
-          {resolved.assessment.reasonLinks.length > 0 && (
-            <section aria-labelledby={`reasons-${guidanceList.id}`}>
-              <h4 id={`reasons-${guidanceList.id}`}>Why this guidance applies</h4>
-              <ul className="reason-links">
-                {resolved.assessment.reasonLinks.map((reason) => {
-                  const targetFood = content.foods.find((candidate) => candidate.id === reason.targetFoodId)!
-                  return (
-                    <li key={`${reason.kind}-${reason.targetFoodId}`}>
-                      {reason.statement} <Link to={`/food/${targetFood.slug}?${returnSearch}`}>{targetFood.name}</Link>
-                    </li>
-                  )
-                })}
-              </ul>
-            </section>
-          )}
-        </>
+          ))}
+        </section>
+      ) : resolved.layers.length === 1 && (
+        <LayerBody
+          content={content}
+          headingId={guidanceList.id}
+          isAccumulated={false}
+          layer={resolved.layers[0]}
+          returnSearch={returnSearch}
+        />
       )}
 
       {citations.length > 0 && (
