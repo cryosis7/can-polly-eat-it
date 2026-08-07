@@ -1,7 +1,7 @@
 # F-13 Implementation Plan: Surface Raw-Egg Foods Where People Browse for Them
 
 **Feature:** [F-13](<13-surface-raw-egg-foods.md>)
-**Status:** Approved, blocked on [F-12](<12-lift-group-guidance-onto-categories.md>) reaching `Done`
+**Status:** Implemented and verified
 
 **Governing decisions:** [assess categories as first-class subjects with inherited guidance](<../decisions/2026-08-06 ADR - assess categories as first-class subjects with inherited guidance.md>), [model food groups as an unbounded category tree](<../decisions/2026-08-04 ADR - model food groups as an unbounded category tree.md>), [store reviewed guide content as version-controlled static data](<../decisions/2026-08-04 ADR - store reviewed guide content as version-controlled static data.md>), and [vary source-citation requirements by guidance list](<../decisions/2026-08-06 ADR - vary source-citation requirements by guidance list.md>)
 

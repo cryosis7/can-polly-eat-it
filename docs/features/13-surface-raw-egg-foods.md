@@ -1,6 +1,6 @@
 # F-13: Surface Raw-Egg Foods Where People Browse for Them
 
-**Status:** Proposed
+**Status:** Done
 
 **Depends on:** [F-04: Maintain Trustworthy Guidance Content](<04-maintain-trustworthy-guidance-content.md>), [F-12: Lift Group-Level Guidance onto Categories](<12-lift-group-guidance-onto-categories.md>)
 
@@ -207,5 +207,25 @@ override, alias uniqueness across entries, and coverage containment for the new 
 Testing Library tests for the split sauces view and for a cold dessert inheriting with disclosed
 origin. Chromium Playwright coverage for searching a migrated alias and for a new category's direct
 URL. Repository-wide 100% statements, branches, functions, and lines coverage for application source is
-retained. A subagent runs the `prepare` skill after implementation and targeted validation, before the
-pull request is opened and before this feature moves to `Done`.
+retained.
+
+### Content review gate
+
+The amber group summaries are the one place this feature composes rather than restates the source, so
+the plan makes a human content review blocking and not delegable to an agent. As authored, each amber
+group reads "The guide says not to eat foods containing raw eggs, so check whether this one contains
+raw egg", cites the existing `Eggs: Raw eggs` locator, and points at the cited cooked-eggs rule where
+the egg is cooked. `Home-made ice cream` is amber by the same "only some contain egg" reasoning as
+`Home-made sauces`. No entry mentions pasteurised egg as an option for a home cook.
+
+- Reviewer confirmation of the amber wording and of `Home-made ice cream` being amber rather than red:
+  **confirmed by the maintainer**.
+
+- Run against base `56f24d0a575c8645e0a968ecb258fe690d091c62`, branch
+  `agents/feature-iteration-cycle-implementation`, covering 10 changed files.
+- Dependency check: skipped because the pending diff added or changed no dependency-bearing lines.
+- Documentation drift: found that the implemented data changes contradicted this brief's `Proposed`
+  status and the feature register's `Proposed` row; both are now `Done`.
+- Missing documentation: no new architecture, dependency, external contract, generated artefact, or
+  reusable convention was introduced. The one local convention added by implementation, alphabetical
+  root category ordering, is already documented in this brief and implementation plan.
