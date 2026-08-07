@@ -362,6 +362,11 @@ that unavailable shared filters were removed.
 - Use native form labels, semantic headings/lists, keyboard-operable controls, visible focus,
   logical screen-reader announcements for result count, and responsive layouts that do not rely on
   hover.
+- Enforce the accessible presentation automatically: `e2e/accessibility.spec.ts` runs `axe-core`
+  through `@axe-core/playwright` against every route and key interaction state at a 320px and a
+  desktop viewport, failing the pre-commit gate on any WCAG 2.2 AA violation with no allowlist or
+  baseline. Automated scanning is a floor, not proof of conformance, so the hand-written assertions
+  for visible focus, announcement text, and textual status labels remain necessary.
 - Store no personal or health information. Local UI preferences are optional and must not be needed
   for correct behaviour.
 
