@@ -122,7 +122,7 @@ The current version baseline is:
 | --- | --- | --- |
 | react-router | 7 | 8 |
 | typescript | 5 | 7 |
-| vite | 8 (from 7) | 8 |
+| vite | 7 | 8 |
 | vitest, @vitest/coverage-v8 | 3 | 4 |
 | eslint, @eslint/js | 9 | 10 |
 | eslint-plugin-react-hooks | 5 | 7 |

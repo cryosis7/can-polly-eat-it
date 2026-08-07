@@ -22,7 +22,7 @@ needed for all application source rather than relying only on the count of passi
 
 Chosen option: "use Vitest's V8 coverage provider with 100% global thresholds for statements,
 branches, functions, and lines in application source", because it integrates with the existing
-Vitest 3 suite, uses native V8 instrumentation, and requires every executable application path to
+Vitest suite, uses native V8 instrumentation, and requires every executable application path to
 be covered without adopting a second test framework.
 
 ### Consequences
@@ -37,7 +37,7 @@ be covered without adopting a second test framework.
 
 ## Decision Drivers
 
-- The project already uses Vitest 3 and React Testing Library.
+- The project already uses Vitest and React Testing Library.
 - URL parsing, fallback resolution, and guidance rendering contain safety-relevant conditional
   branches.
 - The policy must apply consistently across all application source under `src/`, not only the domain
