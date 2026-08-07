@@ -121,7 +121,7 @@ The current version baseline is:
 | Package | Was | Now |
 | --- | --- | --- |
 | react-router | 7 | 8 |
-| typescript | 5 | 7 |
+| typescript | 5 | 6 |
 | vite | 7 | 8 |
 | vitest, @vitest/coverage-v8 | 3 | 4 |
 | eslint, @eslint/js | 9 | 10 |
@@ -132,8 +132,14 @@ The current version baseline is:
 | globals | 16 | 17 |
 | eslint-plugin-react-refresh | 0.4 | 0.5 |
 
-React 19 is unchanged. Two consequential notes for a future agent:
+React 19 is unchanged. Three consequential notes for a future agent:
 
+- **TypeScript is deliberately held at 6, not the latest 7.** No stable `typescript-eslint` release
+  supports TypeScript 7: version 8.66.0 declares `peer typescript ">=4.8.4 <6.1.0"`, so a clean
+  `npm install` with TypeScript 7 fails with `ERESOLVE`. TypeScript 6.0.3 is the highest version
+  that installs cleanly while keeping TypeScript-aware linting. Do not raise TypeScript past 6.0.x
+  until `typescript-eslint` publishes a stable release widening that peer range; do not work around
+  it with `--legacy-peer-deps`.
 - `eslint-plugin-react-hooks` 7 moved its flat configuration to
   `configs.flat['recommended-latest']`; the old `configs['recommended-latest']` is legacy-shaped and
   throws under ESLint 10. Both expose the same 17 rules.
@@ -142,9 +148,9 @@ React 19 is unchanged. Two consequential notes for a future agent:
   suppressed with an explanatory comment: `role="status"` announces content *changes*, so deriving
   the message during render would silence it for screen-reader users.
 
-Verified by `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run test:precommit`
-(88 unit tests at 100% coverage, 36 Playwright tests including the WCAG 2.2 AA scans), with
-`npm audit` reporting no vulnerabilities.
+Verified from a clean `node_modules` by `npm install`, `npm run lint`, `npm run typecheck`,
+`npm run build`, and `npm run test:precommit` (88 unit tests at 100% coverage, 36 Playwright tests
+including the WCAG 2.2 AA scans), with `npm audit` reporting no vulnerabilities.
 
 ## More Information
 

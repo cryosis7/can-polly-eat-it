@@ -12,7 +12,7 @@ Use the scripts declared in `package.json`.
 ## Architecture baseline
 
 - The accepted ADRs in `docs/decisions/` are binding. Before changing architecture, dependencies, data storage, routing, deployment, or domain patterns, read `docs/decisions/index.md` and the relevant accepted ADRs. A change that conflicts with one needs an explicit amendment or a new ADR.
-- Build a client-only React 19 + TypeScript 7 + Vite 8 SPA with React Router 8, deployed as a Netlify static site. There is no backend, database, CMS, account, analytics, server session, or live content API in the first release.
+- Build a client-only React 19 + TypeScript 6 + Vite 8 SPA with React Router 8, deployed as a Netlify static site. There is no backend, database, CMS, account, analytics, server session, or live content API in the first release.
 - Keep the layers one-way:
   - `src/data/` contains authored, reviewed static records only.
   - `src/domain/` owns types, Zod validation, category-tree derivation, search, coverage resolution, and filter predicates. It must not import React, router, browser, or UI modules.
