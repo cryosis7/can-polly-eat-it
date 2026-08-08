@@ -81,6 +81,23 @@ describe('catalogue query', () => {
     })
   })
 
+  it('drops the retired outside-coverage outcome and announces the removal', () => {
+    const parsed = parseCatalogueQuery(
+      new URLSearchParams('v=1&scope=pregnancy-food-safety&outcome=outside-coverage,not-assessed'),
+      guidanceLists,
+      new Set(categories.map((category) => category.slug)),
+    )
+
+    expect(parsed).toEqual({
+      state: {
+        scopeSlugs: ['pregnancy-food-safety'],
+        outcomeBands: ['not-assessed'],
+        query: '',
+      },
+      unavailableFiltersRemoved: true,
+    })
+  })
+
   it('rejects the unreleased display-list URL contract', () => {
     const parsed = parseCatalogueQuery(
       new URLSearchParams('list=alternative-food-safety&status.alternative-food-safety=okay'),

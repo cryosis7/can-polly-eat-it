@@ -31,11 +31,16 @@ describe('filterFoods', () => {
       outcomeBands: [],
     }).map((food) => food.slug)).toContain('cheddar')
 
-    expect(filterFoods(foods, guidanceLists, index, {
+    const notAssessed = filterFoods(foods, guidanceLists, index, {
       query: '',
       guidanceListIds: ['pregnancy-food-safety'],
       outcomeBands: ['not-assessed'],
-    }).map((food) => food.slug)).toEqual(['yellowfin-tuna'])
+    }).map((food) => food.slug)
+
+    // Every food with no pregnancy rule now shares the single fallback band, whether or not an
+    // ancestor was once named in a coverage declaration.
+    expect(notAssessed).toContain('yellowfin-tuna')
+    expect(notAssessed).toContain('apple-pie')
   })
 
   it('preserves the source cheese hierarchy and its low-acid soft cheese examples', () => {

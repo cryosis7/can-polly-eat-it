@@ -74,12 +74,12 @@ overhead without removing the user's ability to find the source of each guidance
   fields.
 - [x] Source citations do not contain access dates but retain title, HTTPS URL, and exact locator.
 - [x] The content validator has no temporal freshness or overdue-review checks.
-- [x] Current content validates while preserving explicit coverage and traceable citations.
+- [x] Current content validates while preserving traceable citations.
 - [x] Repository documentation describes the date-free content contract.
 
 ## More Information
 
 This decision partially supersedes the temporal provenance and freshness requirements in
 [2026-08-04 ADR: Store Reviewed Guide Content as Version-Controlled Static Data](<2026-08-04 ADR - store reviewed guide content as version-controlled static data.md>).
-It does not change the independent-guidance-list model, content citations, coverage declarations,
-or manual review requirement.
+It does not change the independent-guidance-list model, content citations, or manual review
+requirement. The 2026-08-07 single not-assessed state ADR later removed coverage declarations.

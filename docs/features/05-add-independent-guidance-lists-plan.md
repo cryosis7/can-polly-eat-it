@@ -14,7 +14,6 @@ The list uses the status vocabulary approved by the maintainer:
 - `Contains animal-derived ingredients` (red)
 - `Check ingredients` (amber)
 - `Not assessed` (grey fallback)
-- `Outside current coverage` (grey fallback)
 
 The source only supports red or amber outcomes for this draft. Do not assign a green outcome from an
 article omission, generic name, category, or ingredient relationship. Source title, HTTPS URL, and
@@ -24,19 +23,17 @@ exact locators remain mandatory; temporal source metadata is not part of the con
 ## Ordered delivery
 
 1. Complete the date-free static-content contract in `src/domain/`, `src/data/`, and the detail
-   rendering, retaining validation for citations, coverage, statuses, and relationships.
-2. Add the list-owned vegetarian statuses and food-ID-only coverage declaration in
-   `src/data/guidanceLists.ts`. Its coverage must enumerate only source-named foods; no category
-   subtree may silently broaden it.
+   rendering, retaining validation for citations, statuses, and relationships.
+2. Add the list-owned vegetarian statuses and empty-state notice in `src/data/guidanceLists.ts`.
 3. Reuse `yoghurt`, then add canonical records only for article-named foods absent from
    `src/data/foods.ts`, placing them in existing categories without duplicating catalogue records.
 4. Add only article-supported vegetarian assessments in `src/data/assessments.ts`:
    - use `Contains animal-derived ingredients` only where the article makes a direct assertion;
    - use `Check ingredients` for brand-, restaurant-, preparation-, or alternative-dependent items;
-   - leave unsupported outcomes unassessed or outside coverage rather than inferring suitability.
+   - leave unsupported outcomes unassessed rather than inferring suitability.
 5. Add a canonical Gelatin food only if used as a valid reason-link target, and add a reason link
    only for an assessment whose own citation supports the link and outcome.
-6. Update domain tests to prove unique ownership, in-coverage/out-of-coverage resolution, and
+6. Update domain tests to prove unique ownership, not-assessed fallback resolution, and
    OR-within-list/AND-across-list filtering against the vegetarian list.
 7. Update catalogue and detail rendering tests for list switching, list-specific labels, source
    locators, direct vegetarian detail routes, and the absence of duplicate food cards.

@@ -24,7 +24,6 @@ const outcomeLabels: Record<OutcomeBand, string> = {
   maybe: 'Maybe - see notes',
   'not-okay': 'Not okay',
   'not-assessed': 'Not assessed',
-  'outside-coverage': 'Outside current coverage',
 }
 
 const defaultScopeSlug = 'pregnancy-food-safety'

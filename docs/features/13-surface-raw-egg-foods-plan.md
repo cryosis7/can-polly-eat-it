@@ -59,14 +59,13 @@ Scope and limits:
 - It is carried here rather than split out because F-13 is the change that forces the question; shipping
   the new roots at an arbitrary position and re-ordering later would churn the browse view twice.
 
-### 2. Panna cotta's move puts it inside pregnancy coverage
+### 2. Panna cotta's move gives it inherited pregnancy guidance
 
-Moving `Panna cotta` into `Cold desserts` moves it from a root outside pregnancy coverage into one
-inside it. Its pregnancy result therefore changes from `Outside current coverage` to the inherited amber
-`Cold desserts` rule with its origin disclosed. That is the correct outcome under the existing
-resolution order and is the same treatment every other unassessed cold dessert gets, but it is a visible
-change to an existing entry, so it is asserted explicitly rather than discovered. Its vegetarian
-assessment and vegetarian coverage are untouched.
+Moving `Panna cotta` into `Cold desserts` gives it the inherited amber `Cold desserts` pregnancy rule
+with its origin disclosed instead of the neutral fallback. That is the correct outcome under the
+resolution order and is the same treatment every other unassessed cold dessert gets, but it is a
+visible change to an existing entry, so it is asserted explicitly rather than discovered. Its
+vegetarian assessment is untouched.
 
 ### 3. Named red foods, not exceptions on the group
 
@@ -81,8 +80,8 @@ win over its ancestor's. This is the `Hard cheese`/`Parmesan` shape the brief ci
 | `src/data/categories.ts` | Alphabetical root `sortOrder`; add `desserts`, `cold-desserts`, `home-made-ice-cream`, `drinks`, `home-made-drinks`, `home-made-sauces`; re-parent `ice-cream` and `fruit-juice-kombucha-and-cider`; prune migrated aliases. |
 | `src/data/foods.ts` | Add the named raw-egg foods and `smoothies`; move `panna-cotta`. |
 | `src/data/assessments.ts` | Four amber category assessments; seven red food assessments. |
-| `src/data/guidanceLists.ts` | Pregnancy `coverage.categoryIds` gains `desserts` and `drinks`. |
-| `src/domain/contentValidation.test.ts` | Cases for the new subtree, coverage containment, and alias uniqueness. |
+| `src/data/guidanceLists.ts` | Transitional in the original delivery: pregnancy coverage gained `desserts` and `drinks`; F-15 later removed declared coverage. |
+| `src/domain/contentValidation.test.ts` | Cases for the new subtree and alias uniqueness; F-15 later removed coverage-containment cases. |
 | `src/domain/assessment.test.ts` | Inheritance and food-level override cases for the new groups. |
 | `src/domain/search.test.ts` | Migrated aliases reach exactly one entry. |
 | `src/features/catalogue/CataloguePage.test.tsx` | Split sauces view; inherited cold dessert with disclosed origin. |
@@ -152,9 +151,9 @@ introduced.
 
 - Pregnancy is `citationPolicy: 'required'`, so an uncited record fails validation at module load.
 - A category assessment must have a `scopeStatement`; a food assessment must not.
-- Coverage containment is resolved by ancestor walk, so `desserts` and `drinks` must be added to
-  `coverage.categoryIds` in the **same commit** as the moves, or the moved ice-cream assessments fail
-  validation.
+- Historical constraint: the original delivery had to add `desserts` and `drinks` to
+  `coverage.categoryIds` in the same commit as the moves. F-15 later removed declared coverage and
+  the containment validation rule.
 - No wording implies a home cook can obtain pasteurised egg.
 - The amber summaries must read as the cited rule applied conditionally, never as new advice.
 - Repository-wide 100% statements, branches, functions, and lines coverage for application source is
@@ -164,9 +163,9 @@ introduced.
 
 Content validation, `src/domain/contentValidation.test.ts`:
 
-1. The full authored content parses, with `desserts` and `drinks` inside pregnancy coverage.
-2. Removing `desserts` from `coverage.categoryIds` fails coverage containment for the ice-cream
-   assessments — proving the coupling rather than assuming it.
+1. The full authored content parses with the raw-egg category moves.
+2. Removed by F-15: the former test that removing `desserts` from `coverage.categoryIds` failed
+   coverage containment.
 3. An amber group assessment without a `scopeStatement` fails.
 4. No alias or name is shared by two entries.
 
@@ -232,8 +231,9 @@ Targeted first, then the full gates:
 
 - **Merge conflict with F-12.** F-13 edits the same four data files F-12 rewrites. Mitigation: do not
   branch until F-12 is merged, and treat task 1 as a hard gate.
-- **Coverage-containment failure discovered late.** The ice-cream move and the coverage addition are
-  separable edits that must not be separated. Task 3 lands the coverage first, and test 2 pins it.
+- **Historical coverage-containment failure.** The original ice-cream move and coverage addition were
+  separable edits that could not be separated. F-15 later removed the coverage declaration and its
+  containment validation.
 - **Guidance drift in the amber wording.** This is the one place the feature composes rather than
   restates the source. Task 8 is a blocking human review, and the brief already flags it as needing the
   closest review.

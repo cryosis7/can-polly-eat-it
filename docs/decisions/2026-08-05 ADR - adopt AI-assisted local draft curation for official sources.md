@@ -78,7 +78,8 @@ citation reviewable before the guide changes.
   and coverage intent. It may retrieve only that HTTPS URL and pages directly linked from it on the
   same official domain. It may edit the local working tree with new or updated typed static records
   and focused tests. It must preserve the `GuidanceList`/`FoodAssessment` model, authored citations,
-  independent assessments, separate guidance scenarios, coverage fallbacks, and the data validator.
+  independent assessments, separate guidance scenarios, not-assessed fallback notices, and the data
+  validator.
   It must identify every source locator, access date, source-version evidence, review date, and
   unresolved item in its final review summary.
 - **Review boundary:** The skill must not commit, publish, deploy, silently omit uncertainty, use a

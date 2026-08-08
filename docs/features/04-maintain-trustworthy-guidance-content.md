@@ -15,8 +15,8 @@ automated validation.
 
 1. Select an authoritative source and locate the exact section or table row.
 2. Add or update the category and food record without changing unrelated IDs/slugs.
-3. Declare each list's explicit coverage. Add a guidance-list assessment with a named status,
-   concise summary, complete guidance scenarios, and a citation URL and locator.
+3. Add a guidance-list assessment with a named status, concise summary, complete guidance scenarios,
+   and, when the list's citation policy requires it, a citation URL and locator.
 4. Run schema and relationship validation, then review the rendered card and detail page when
    applicable.
 5. Obtain human review before publishing a material health-guidance change.
@@ -24,12 +24,13 @@ automated validation.
 ## Required behaviour
 
 - Data validation rejects dangling references, category cycles, duplicate assessment pairs, invalid
-  list statuses, invalid coverage, and, for a citation-required guidance list, missing citations. A
-  citation-optional list's requirements are amended by [F-10](<10-vary-citation-expectations-by-list.md>).
+  list statuses, fallback statuses authored on assessments, and, for a citation-required guidance
+  list, missing citations. A citation-optional list's requirements are amended by
+  [F-10](<10-vary-citation-expectations-by-list.md>).
 - Every published assessment is traceable to its source, or, for a citation-optional guidance list,
   to its list's declared evidentiary basis.
-- Coverage resolution distinguishes an in-scope food that is "Not assessed" from one that is
-  "Outside current coverage".
+- Empty-state resolution uses a single neutral "Not assessed" fallback for any subject with no own
+  assessment and no assessed ancestor.
 - Source text is manually reviewed and succinctly paraphrased; the product does not scrape or
   automatically infer guidance.
 - Each guidance scenario retains its authoritative prose instruction and ordered supporting

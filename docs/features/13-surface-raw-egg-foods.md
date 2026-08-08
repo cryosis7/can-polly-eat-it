@@ -64,11 +64,10 @@ which presumes a manufacturer that a home-made sauce does not have.
   containing raw egg, and much of it is cooked-custard based or eggless, so it follows the same
   "only some contain egg" rule as `Home-made sauces`. Named red children can be added later if the
   source supports them.
-- The pregnancy list's `coverage.categoryIds` gains both `desserts` and `drinks`. This is mandatory,
-  not optional: coverage containment is resolved by walking a subject's ancestor path, and ice cream
-  is currently inside coverage only by virtue of its `Dairy` ancestor. Without this, the moved
-  ice-cream assessments and every new drinks assessment fail coverage-containment validation, and
-  those foods would otherwise render as "Outside current coverage".
+- Historical note: this feature originally added `desserts` and `drinks` to the pregnancy list's
+  `coverage.categoryIds` because coverage containment still existed while it shipped. F-15 later
+  removed declared coverage and coverage-containment validation, so new work must not restore those
+  coverage edits.
 - Citation locators are not rewritten to match the new structure. A locator records where the text sits
   in the source, not where the guide files it, so the ice-cream rules keep their existing
   `Dairy: Ice cream — Packaged` and `Ice cream — Soft serve` locators after the move.
@@ -147,21 +146,18 @@ which presumes a manufacturer that a home-made sauce does not have.
 - Resolved: `Panna cotta` moves from `foods-that-may-contain-animal-derived-ingredients` into
   `Cold desserts`. Its vegetarian assessment is unchanged, and the vegetarian
   coverage lists it by `foodIds`, so that coverage still holds after the move.
-- **Consequence of that move, accepted deliberately:** `Panna cotta` leaves a root that is outside
-  pregnancy coverage and enters one that is inside it, so its pregnancy result changes from
-  `Outside current coverage` to the inherited amber `Cold desserts` rule with its origin disclosed.
+- **Consequence of that move, accepted deliberately:** `Panna cotta` moved beneath the assessed
+  `Cold desserts` category, so its pregnancy result changes from the previous neutral fallback to the
+  inherited amber `Cold desserts` rule with its origin disclosed.
   That is the correct result under the existing resolution order and the same treatment every other
   unassessed cold dessert receives, but it is a visible change to an existing entry and is asserted
   rather than discovered.
 - Resolved: root categories are ordered alphabetically. The alternative was to hand-pick a position for
   `Desserts` and `Drinks` in the existing sequence, which encodes nothing a reader can perceive and
   would reopen the same argument for every future root.
-- Forward note, no change required here: [F-15](<15-retire-outside-coverage-state.md>) removes
-  guidance-list coverage declarations altogether and is sequenced to land after this feature. The
-  `coverage.categoryIds` additions of `desserts` and `drinks` above remain mandatory for this
-  feature, because coverage containment still applies while it ships; F-15 then deletes them along
-  with the rest of the declaration, and every remaining `Outside current coverage` result described
-  above becomes `Not assessed`. Do not pre-empt F-15 from within this feature.
+- F-15 removed guidance-list coverage declarations altogether after this feature shipped. The
+  transitional `coverage.categoryIds` additions of `desserts` and `drinks` are no longer part of the
+  current model.
 
 ## Implementation plan
 
@@ -189,12 +185,11 @@ F-12's migrated sauces, raw-eggs, and cooked-eggs records and edits the same dat
 - The raw-eggs entry's status, summary, conditions, and citation are unchanged.
 - Browsing `Desserts` finds `Cold desserts` containing `Ice cream` with its `Packaged`, `Soft-serve`,
   and `Home-made` children, plus `Panna cotta`, and `Dairy` no longer lists ice cream.
-- Every ice-cream, dessert, and drinks subject resolves inside the pregnancy list's coverage, and none
-  renders
-  as "Outside current coverage".
+- Every ice-cream, dessert, and drinks subject resolves to authored or inherited pregnancy guidance
+  rather than the neutral fallback.
 - Every food moved between categories keeps its existing per-list assessments unchanged, including
   `Panna cotta`'s vegetarian assessment, and `Panna cotta` shows the inherited amber cold-dessert rule
-  for pregnancy with its origin disclosed instead of `Outside current coverage`.
+  for pregnancy with its origin disclosed instead of the neutral fallback.
 - Root categories appear in alphabetical order, with `Desserts` and `Drinks` in their alphabetical
   positions, and no child ordering inside a root changes.
 - Content validation passes, including citation-required, `scopeStatement` ownership, subject

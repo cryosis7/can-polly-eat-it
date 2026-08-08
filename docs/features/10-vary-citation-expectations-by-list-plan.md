@@ -17,33 +17,33 @@
   rule now depends on the owning list. Production builds must still throw at module load on a
   violation.
 - `src/domain/` stays free of React, router, and browser imports.
-- No new dependencies, no change to statuses, outcome bands, coverage semantics, the `v=1` URL
+- No new dependencies, no change to statuses, outcome bands, empty-state semantics, the `v=1` URL
   contract, or the medical-information disclaimer.
 - The repository-wide 100% statements, branches, functions, and lines coverage threshold must hold.
 
 ## Delivery tasks
 
 1. **Schema.** In `src/domain/schemas.ts`, add `citationPolicy: z.enum(['required', 'optional'])` and
-   an optional `evidentiaryBasis` string to `guidanceListSchema`. Relax `citations` on
-   `foodAssessmentSchema` and `coverageDeclarationSchema` from `.min(1)` to a plain array so the
-   policy check can own the rule.
+   an optional `evidentiaryBasis` string to `guidanceListSchema`. Relax `citations` on assessments
+   and the list empty-state notice from `.min(1)` to a plain array so the policy check can own the
+   rule.
 
 2. **Validation.** In `src/domain/contentValidation.ts`:
-   - in `validateGuidanceLists`, fail when a `required` list's coverage has no citation, when an
-     `optional` list has no `evidentiaryBasis`, and when a `required` list declares one;
+   - in `validateGuidanceLists`, fail when a `required` list's unassessed notice has no citation,
+     when an `optional` list has no `evidentiaryBasis`, and when a `required` list declares one;
    - in `validateAssessments`, fail when an assessment belonging to a `required` list has no
      citation.
-   Keep every existing invariant, including status ownership, fallback distinctness, coverage
-   reference integrity, and reason-link rules.
+   Keep every existing invariant, including status ownership, fallback-status ownership, and
+   reason-link rules.
 
 3. **Data.** In `src/data/guidanceLists.ts`, set `pregnancy-food-safety` to `required` and
    `vegetarian-suitability` to `optional`, and give the vegetarian list an `evidentiaryBasis` such as
-   "Reflects general vegetarian knowledge; sources are attached where a useful one exists." Leave
-   both lists' existing citations and coverage in place; rewording the vegetarian coverage
-   description belongs to F-09.
+   "Reflects general vegetarian knowledge; sources are attached where a useful one exists." F-15
+   later moved list-level empty-state citations and descriptions from coverage into
+   `unassessedNotice`.
 
 4. **Catalogue rendering.** In `src/features/catalogue/CataloguePage.tsx`, replace the unchecked
-   `resolved.assessment?.citations[0] ?? guidanceList.coverage.citations[0]` lookup with a
+   `resolved.assessment?.citations[0] ?? guidanceList.unassessedNotice.citations[0]` lookup with a
    nullable-safe resolution that renders the "Primary source" link only when a citation exists.
    Render the list's `evidentiaryBasis` once per view for each selected scope that declares one,
    never per card.
@@ -58,16 +58,16 @@
    because the skill works from a maintainer-supplied source.
 
 7. **Documentation.** Update the trust section and design principle 1 in
-   `docs/architecture/overview.md`, its `GuidanceList` and `CoverageDeclaration` type blocks, and the
+   `docs/architecture/overview.md`, its `GuidanceList` and empty-state notice type blocks, and the
    citation bullet in `.github/copilot-instructions.md`, so citation requirements are described as
    list-owned rather than global. Manual review stays mandatory for every list.
 
 ## Tests
 
 - `src/domain/contentValidation.test.ts`: a `required` list rejects an uncited assessment and uncited
-  coverage; an `optional` list accepts both; an `optional` list without `evidentiaryBasis` fails; a
-  `required` list with `evidentiaryBasis` fails; a citation authored on an `optional` list still
-  parses and retains its locator.
+  unassessed notice; an `optional` list accepts both; an `optional` list without `evidentiaryBasis`
+  fails; a `required` list with `evidentiaryBasis` fails; a citation authored on an `optional` list
+  still parses and retains its locator.
 - `src/features/catalogue/CataloguePage.test.tsx`: a cited scope renders its primary-source link; an
   uncited scope renders no source affordance and no empty link; the evidentiary basis appears once
   rather than per card.

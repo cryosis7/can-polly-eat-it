@@ -1,6 +1,8 @@
 # F-15: Retire the Outside-Coverage State
 
-**Status:** Proposed
+**Status:** Done
+
+**Implementation plan:** [F-15 implementation plan](<15-retire-outside-coverage-state-plan.md>)
 
 **Depends on:** [F-08: Rework Guidance-Scope Filtering](<08-rework-guidance-scope-filtering.md>), [F-12: Lift Group-Level Guidance onto Categories](<12-lift-group-guidance-onto-categories.md>), [F-13: Surface Raw-Egg Foods Where People Browse for Them](<13-surface-raw-egg-foods.md>)
 
@@ -75,14 +77,11 @@ or accepting a misleading label. Two features are paying a tax for a distinction
 
 ## Assumptions and open questions
 
-- The governing ADR is drafted and must be accepted before this feature moves to `Planned`. It
-  supersedes the distinct-fallback-band decision in the outcome-filters ADR and amends the
-  explicit-coverage wording in the freshness-metadata ADR.
-- F-12 and F-13 are prerequisites for sequencing rather than logic. Both are in flight and both touch
-  `src/data/guidanceLists.ts` coverage; landing this first would force them to be re-planned
-  mid-implementation. F-13's requirement to add `desserts` and `drinks` to
-  `coverage.categoryIds` becomes unnecessary once this ships, and F-13's brief should be updated to
-  note that rather than being blocked by it.
+- The governing ADR is accepted. It supersedes the distinct-fallback-band decision in the
+  outcome-filters ADR and amends the explicit-coverage wording in the freshness-metadata ADR.
+- F-12 and F-13 were prerequisites for sequencing rather than logic. F-13's former requirement to add
+  `desserts` and `drinks` to `coverage.categoryIds` becomes unnecessary once this ships; its brief
+  now records that the coverage edit was transitional.
 - F-08 is a dependency because it established the generic outcome bands and the `outcome=` URL
   contract that this feature narrows.
 - Accepted consequence: every food in the catalogue now reads `Not assessed` in the vegetarian list
@@ -128,3 +127,31 @@ carrying the retired outcome value, plus the existing WCAG 2.2 AA axe-core scans
 100% statements, branches, functions, and lines coverage for application source is retained. A
 subagent runs the `prepare` skill after implementation and targeted validation, before the pull
 request is opened and before this feature moves to `Done`.
+
+## Delivery record
+
+### Content review (blocking, non-delegable)
+
+The reworded notice sentence was reviewed by a human before this feature moved to `Done`, as the
+plan requires. The first draft described each list's boundary — "It is drawn from the June 2026 MPI
+pullout guide, which does not name it." Review rejected that framing: describing a boundary is
+exactly what this feature exists to stop doing, and a per-list paragraph reintroduces the
+bookkeeping a reader was never meant to interpret.
+
+The approved wording is one short, generic sentence used by both lists:
+
+> This item has not been added to this guide yet, so it has not been assessed.
+
+Because it is short and generic it also replaced the two hardcoded sentences that
+`GuidanceSection` and `GuideEntrySummary` previously carried, so the same wording now appears on a
+card and on a detail page and is authored in `src/data/` rather than embedded in JSX. This
+supersedes the plan's original decision to keep the notice off the card.
+
+### Pre-PR `prepare` findings
+
+A subagent ran the `prepare` skill after implementation and targeted validation. The dependency
+check was dropped, correctly, because no dependency changed. It found no code blockers and
+substantial documentation drift: 27 files across `.github/copilot-instructions.md`,
+`docs/architecture/overview.md`, seven ADRs, and the feature briefs and plans still described a
+declared coverage block, two distinct grey fallback states, and coverage-containment validation.
+All were corrected to describe the single not-assessed fallback and the `unassessedNotice`.

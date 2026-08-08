@@ -30,9 +30,8 @@ users to a health professional for personal advice.
   recommendations.
 - A user account, server-side database, administrative UI, analytics, or personalised tracking.
 - Live scraping or automatic interpretation of government guidance.
-- A claim that every food or product is covered. The application must distinguish a food inside a
-  list's reviewed scope that is "Not assessed" from a food that is outside that list's current
-  coverage; neither is safe.
+- A claim that every food or product is covered. When no reviewed rule applies, the application must
+  present "Not assessed" as a neutral state that is not safe.
 
 ## Design principles
 
@@ -53,9 +52,9 @@ users to a health professional for personal advice.
    frequently changing content.
 6. **URL state is product state.** Search and filters belong in the URL so a useful result can be
    bookmarked or shared without a user account.
-7. **Coverage and provenance are explicit.** Every guidance list declares what it currently covers
-   and states its evidentiary standard: either precise source locations for its guidance, or, for a
-   list whose claims rest on general knowledge, a displayed statement of that basis.
+7. **Provenance is explicit.** Every guidance list states its evidentiary standard: either precise
+   source locations for its guidance and unassessed notice, or, for a list whose claims rest on
+   general knowledge, a displayed statement of that basis.
 
 ## Decision approval gate
 
@@ -169,9 +168,8 @@ type GuidanceList = {
   citationPolicy: "required" | "optional";
   evidentiaryBasis?: string;
   unassessedStatusId: string;
-  outOfCoverageStatusId: string;
   statuses: StatusDefinition[];
-  coverage: CoverageDeclaration;
+  unassessedNotice: UnassessedNotice;
 };
 
 type StatusDefinition = {
@@ -179,15 +177,12 @@ type StatusDefinition = {
   slug: string;
   label: string;
   tone: "green" | "amber" | "red" | "grey";
-  outcomeBand: "okay" | "maybe" | "not-okay" | "not-assessed" | "outside-coverage";
+  outcomeBand: "okay" | "maybe" | "not-okay" | "not-assessed";
   sortOrder: number;
   filterLabel: string;
 };
 
-type CoverageDeclaration = {
-  mode: "all-catalogue" | "category-subtrees-and-foods";
-  categoryIds: string[];
-  foodIds: string[];
+type UnassessedNotice = {
   description: string;
   citations: SourceCitation[];
 };
@@ -219,9 +214,8 @@ type AssessmentReasonLink = {
 An assessment is unique for a `(subject, guidanceListId)` pair, where the subject is exactly one food
 or one category. A food's status resolves nearest-subject-first: its own assessment; otherwise the
 nearest ancestor category assessed in the same guidance list, walking the category path from the
-nearest parent to the root; otherwise the coverage declaration, where a food inside coverage resolves
-to the list-owned grey `unassessedStatusId` and a food outside coverage resolves to the distinct grey
-`outOfCoverageStatusId`. Neither fallback status may be authored on an assessment.
+nearest parent to the root; otherwise the list-owned grey `unassessedStatusId`. The fallback status
+must not be authored on an assessment.
 
 `relation` states how an assessment relates to inherited guidance. An absent value means
 `"replaces"`, preserving the total-override behaviour for existing records. An assessment authored as
@@ -234,37 +228,33 @@ Inherited assessments are applied whole. Statuses, summaries, scenarios, conditi
 are never merged across subject levels, and inheritance never crosses guidance lists. Wherever
 guidance is inherited or accumulated, the interface names the origin category, shows its
 `scopeStatement`, and shows that layer's source if it has one. A category assessment requires a
-`scopeStatement`; a food assessment must not have one. Every assessed subject must fall within its
-list's declared coverage, so a category rule cannot reach foods the list does not claim to cover.
-Validators must reject an additive assessment with no same-list ancestor assessment, or one whose
-generic outcome band is less restrictive than the assessment it adds to.
+`scopeStatement`; a food assessment must not have one. Validators must reject an additive assessment
+with no same-list ancestor assessment, or one whose generic outcome band is less restrictive than the
+assessment it adds to.
 
 A category that carries its own authored assessment is a **guide entry**: it is searchable,
 filterable, counted in results, and addressable at `/category/<slug>`. Categories that merely inherit
 remain plain browse headings.
 
-`mode: "all-catalogue"` ignores `categoryIds` and `foodIds`; the other mode covers the union of
-the listed category subtrees and individual food IDs. Validators must ensure unique status IDs,
-slugs, and labels per list, distinct list-owned grey fallback statuses, valid coverage references,
-and unique subject/list pairs.
+Validators must ensure unique status IDs, slugs, and labels per list, one list-owned grey
+not-assessed fallback status, valid subject references, and unique subject/list pairs.
 
 Citation requirements are owned by the list, not the application. A list declares
 `citationPolicy: "required" | "optional"` with no default. A `required` list, such as
-`pregnancy-food-safety`, fails validation when any assessment or its coverage declaration omits a
-citation. An `optional` list, such as `vegetarian-suitability`, may hold uncited assessments because
-its claims are largely definitional rather than risk judgements; it must instead declare an
-`evidentiaryBasis` that is displayed once per view. No per-assessment "no source attached" marker is
-rendered, and no view may assume a citation exists. Manual review remains mandatory for every list,
-and content drafted by the AI curation skill is always cited regardless of policy.
+`pregnancy-food-safety`, fails validation when any assessment or its unassessed notice omits a
+citation. An `optional` list, such as `vegetarian-suitability`, may hold uncited assessments and an
+uncited unassessed notice because its claims are largely definitional rather than risk judgements; it
+must instead declare an `evidentiaryBasis` that is displayed once per view. No per-assessment "no
+source attached" marker is rendered, and no view may assume a citation exists. Manual review remains
+mandatory for every list, and content drafted by the AI curation skill is always cited regardless of
+policy.
 
-`tone`
-controls the visual RAG indicator only; each list defines its own labels and meaning. For example, pregnancy uses
-"OK to eat", "Only with conditions", "Avoid", "Limit", "Not assessed", and "Outside current
-coverage", whereas vegetarian suitability can use "Vegetarian", "Contains animal-derived
-ingredients", "Check ingredients", "Not assessed", and "Outside current coverage". Each
-list-owned status maps to one generic `outcomeBand` for filtering. `okay`, `maybe`, and `not-okay`
-are the primary user-facing outcome filters; the two fallback bands remain distinct neutral domain
-states and are never safe outcomes.
+`tone` controls the visual RAG indicator only; each list defines its own labels and meaning. For
+example, pregnancy uses "OK to eat", "Only with conditions", "Avoid", "Limit", and "Not assessed",
+whereas vegetarian suitability can use "Vegetarian", "Contains animal-derived ingredients", "Check
+ingredients", and "Not assessed". Each list-owned status maps to one generic `outcomeBand` for
+filtering. `okay`, `maybe`, and `not-okay` are the primary user-facing outcome filters; the
+`not-assessed` fallback band remains a neutral domain state and is never a safe outcome.
 
 ### Assessment reason links
 
@@ -342,8 +332,8 @@ Filter rules are predictable:
 - Selected generic outcome bands are alternatives (OR) within each selected scope.
 - When no primary outcome is selected, scopes do not narrow foods by outcome; cards still render the
   selected scopes' list-specific status labels and guidance.
-- Resolved `not-assessed` and `outside-coverage` fallback bands are distinct neutral states, never
-  safe outcomes, and are not primary RAG filters.
+- Resolved `not-assessed` fallback outcomes are neutral, never safe outcomes, and are not primary RAG
+  filters.
 - Every active scope and outcome filter is shown as a labelled chip so users can tell why a food is
   present or excluded.
 
@@ -359,7 +349,7 @@ that unavailable shared filters were removed.
 
 ## Trust, accessibility, and privacy
 
-- Show the list name, status label, meaningful icon/text, and coverage state wherever an assessment or
+- Show the list name, status label, meaningful icon/text, and neutral state wherever an assessment or
   fallback is shown, with a direct primary-source link whenever a citation exists. For a list whose
   citation policy is optional, show its declared evidentiary basis once per view instead. Colour must
   never be the only status signal.
@@ -399,4 +389,4 @@ implemented assessment.
 - Commit the package lockfile and content data with every release.
 - Run type-checking, data validation, unit tests, and UI tests in continuous integration before
   deployment.
-- Review and update citations and coverage whenever a source changes.
+- Review and update citations, assessments, and unassessed notices whenever a source changes.

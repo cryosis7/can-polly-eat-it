@@ -21,22 +21,11 @@ const entriesMatching = (query: string) => [
 ]
 
 describe('raw-egg foods surfaced where people browse for them', () => {
-  it('places the new dessert and drinks subtrees inside the pregnancy coverage', () => {
-    expect(pregnancy.coverage.categoryIds).toContain('desserts')
-    expect(pregnancy.coverage.categoryIds).toContain('drinks')
+  it('files the new dessert and drinks subtrees where a browser would look for them', () => {
+    expect(categoryById('cold-desserts').parentId).toBe('desserts')
+    expect(categoryById('home-made-drinks').parentId).toBe('drinks')
     expect(categoryById('ice-cream').parentId).toBe('cold-desserts')
     expect(categoryById('fruit-juice-kombucha-and-cider').parentId).toBe('drinks')
-  })
-
-  it('fails coverage containment for the moved ice-cream rules when desserts leaves the coverage', () => {
-    expect(() => validateContent({
-      ...content,
-      guidanceLists: content.guidanceLists.map((list) => (
-        list.id === pregnancy.id
-          ? { ...list, coverage: { ...list.coverage, categoryIds: list.coverage.categoryIds.filter((id) => id !== 'desserts') } }
-          : list
-      )),
-    })).toThrow("outside its guidance list's declared coverage")
   })
 
   it('rejects an amber group rule authored without a scope statement', () => {

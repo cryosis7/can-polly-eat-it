@@ -11,18 +11,13 @@ const list: GuidanceList = {
   citationPolicy: 'optional',
   evidentiaryBasis: 'Test basis.',
   unassessedStatusId: 'not-assessed',
-  outOfCoverageStatusId: 'outside-coverage',
   statuses: [
     { id: 'ok', slug: 'ok', label: 'OK', tone: 'green', outcomeBand: 'okay', sortOrder: 1, filterLabel: 'OK' },
     { id: 'avoid', slug: 'avoid', label: 'Avoid', tone: 'red', outcomeBand: 'not-okay', sortOrder: 2, filterLabel: 'Avoid' },
     { id: 'not-assessed', slug: 'not-assessed', label: 'Not assessed', tone: 'grey', outcomeBand: 'not-assessed', sortOrder: 3, filterLabel: 'Not assessed' },
-    { id: 'outside-coverage', slug: 'outside-coverage', label: 'Outside coverage', tone: 'grey', outcomeBand: 'outside-coverage', sortOrder: 4, filterLabel: 'Outside coverage' },
   ],
-  coverage: {
-    mode: 'all-catalogue',
-    categoryIds: [],
-    foodIds: [],
-    description: 'Everything is covered.',
+  unassessedNotice: {
+    description: 'This guide has no reviewed rule for this item.',
     citations: [],
   },
 }
@@ -112,7 +107,7 @@ describe('resolveAssessment', () => {
     const index = createContentIndex(categories, assessments)
 
     const resolved = resolveAssessment({ kind: 'food', food: item }, list, index)
-    expect(resolved.origin).toEqual({ kind: 'coverage-fallback' })
+    expect(resolved.origin).toEqual({ kind: 'not-assessed' })
     expect(resolved.status.id).toBe('not-assessed')
   })
 
@@ -150,35 +145,40 @@ describe('resolveAssessment', () => {
     const orphanFood = food('orphan-food', 'not-in-tree')
     const orphanCategory = category('orphan-category', null)
 
-    expect(resolveAssessment({ kind: 'food', food: orphanFood }, list, index).origin).toEqual({ kind: 'coverage-fallback' })
-    expect(resolveAssessment({ kind: 'category', category: orphanCategory }, list, index).origin).toEqual({ kind: 'coverage-fallback' })
+    expect(resolveAssessment({ kind: 'food', food: orphanFood }, list, index).origin).toEqual({ kind: 'not-assessed' })
+    expect(resolveAssessment({ kind: 'category', category: orphanCategory }, list, index).origin).toEqual({ kind: 'not-assessed' })
   })
 
-  it('falls back to the outside-coverage status when nothing applies and coverage excludes the subject', () => {
-    const outOfCoverageList: GuidanceList = {
-      ...list,
-      coverage: { mode: 'category-subtrees-and-foods', categoryIds: [], foodIds: [], description: 'Nothing is covered.', citations: [] },
-    }
+  it('falls back to the single not-assessed status for a food with nothing to inherit', () => {
     const root = category('root', null)
     const item = food('item', 'root')
     const index = createContentIndex([root], [])
 
-    const resolved = resolveAssessment({ kind: 'food', food: item }, outOfCoverageList, index)
-    expect(resolved.status.id).toBe('outside-coverage')
-    expect(resolved.origin).toEqual({ kind: 'coverage-fallback' })
+    const resolved = resolveAssessment({ kind: 'food', food: item }, list, index)
+    expect(resolved.status.id).toBe('not-assessed')
+    expect(resolved.origin).toEqual({ kind: 'not-assessed' })
+    expect(resolved.layers).toEqual([])
   })
 
-  it('falls back to the outside-coverage status for an uncovered category subject', () => {
-    const outOfCoverageList: GuidanceList = {
-      ...list,
-      coverage: { mode: 'category-subtrees-and-foods', categoryIds: [], foodIds: [], description: 'Nothing is covered.', citations: [] },
-    }
+  it('falls back to the single not-assessed status for an unassessed category subject', () => {
     const root = category('root', null)
     const index = createContentIndex([root], [])
 
-    const resolved = resolveAssessment({ kind: 'category', category: root }, outOfCoverageList, index)
-    expect(resolved.status.id).toBe('outside-coverage')
-    expect(resolved.origin).toEqual({ kind: 'coverage-fallback' })
+    const resolved = resolveAssessment({ kind: 'category', category: root }, list, index)
+    expect(resolved.status.id).toBe('not-assessed')
+    expect(resolved.origin).toEqual({ kind: 'not-assessed' })
+  })
+
+  it('resolves an unassessed food identically under two different parent categories', () => {
+    const first = category('first', null)
+    const second = category('second', null)
+    const index = createContentIndex([first, second], [])
+
+    const before = resolveAssessment({ kind: 'food', food: food('item', 'first') }, list, index)
+    const after = resolveAssessment({ kind: 'food', food: food('item', 'second') }, list, index)
+
+    expect(after.status.id).toBe(before.status.id)
+    expect(after.origin).toEqual(before.origin)
   })
 })
 
@@ -248,7 +248,7 @@ describe('accumulating guidance across subject levels', () => {
     expect(resolved.layers.map((layer) => layer.assessment.id)).toEqual(['item-test-list'])
   })
 
-  it('returns no layers when the resolution falls back to coverage', () => {
+  it('returns no layers when the resolution falls back to not-assessed', () => {
     const root = category('root', null)
     const item = food('item', 'root')
     const index = createContentIndex([root], [])

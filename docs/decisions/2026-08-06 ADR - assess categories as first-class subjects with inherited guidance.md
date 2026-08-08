@@ -40,8 +40,8 @@ every claim explicit, authored, and cited rather than inferred.
 
 An assessment's subject becomes a discriminated union of `{ kind: 'food', foodId }` and
 `{ kind: 'category', categoryId }`. Resolution for a food is: its own authored assessment, otherwise
-the nearest ancestor category with an assessment in that guidance list, otherwise the existing
-coverage fallback. An inherited assessment is applied whole and its provenance is displayed. A
+the nearest ancestor category with an assessment in that guidance list, otherwise the list's
+not-assessed fallback. An inherited assessment is applied whole and its provenance is displayed. A
 category that carries its own authored assessment becomes a guide entry: it is searchable,
 filterable, counted, and addressable at `/category/:slug`. The pseudo-food records are retired and
 their assessments move onto the categories they were standing in for.
@@ -171,11 +171,10 @@ their assessments move onto the categories they were standing in for.
   medical-information disclaimer appears on category detail as it does on food detail.
 
 - **Validation:** Enforce uniqueness of `(subject.kind, subject id, guidanceListId)`; existence of the
-  referenced food or category; `scopeStatement` present for category subjects and absent for food
-  subjects; and that **every assessed subject lies within its guidance list's declared coverage**, so
-  a category rule cannot reach foods the list does not claim to cover. Existing rules are retained:
-  list-owned non-fallback status, at least one citation, no authored fallback status, and valid
-  reason links. Parse failures still throw at module load in production builds.
+  referenced food or category; and `scopeStatement` present for category subjects and absent for food
+  subjects. Existing rules are retained: list-owned non-fallback status, citation-policy checks, no
+  authored fallback status, and valid reason links. Parse failures still throw at module load in
+  production builds.
 
 - **Data migration:** Convert the hard-cheese pregnancy spec to a category subject on `hard-cheese`,
   keeping its summary, locator, and citation. Convert the low-acid soft pasteurised cheese spec the
@@ -183,12 +182,12 @@ their assessments move onto the categories they were standing in for.
   `cakes-slices-and-muffins-with-cream-or-custard` **food** records, keep their categories, and move
   their assessments onto those categories. Add the `gouda` food under `hard-cheese` with no
   assessment. Add a vegetarian assessment on `hard-cheese` with status
-  `vegetarian-check-ingredients`, and extend `vegetarian-suitability.coverage.categoryIds` with
-  `hard-cheese` plus a matching coverage description and citation.
+  `vegetarian-check-ingredients`; F-15 later removed the transitional coverage edit from the current
+  data model.
 
-- **Safety guardrails:** The mandatory `scopeStatement`, the displayed provenance, and the
-  coverage-containment rule are the enforcement mechanism for inherited advice. Add a checklist item
-  to `.agents/skills/ai-guidance-list-curation` requiring an author adding a food beneath an assessed
+- **Safety guardrails:** The mandatory `scopeStatement`, displayed provenance, and human review are
+  the enforcement mechanism for inherited advice. Add a checklist item to
+  `.agents/skills/ai-guidance-list-curation` requiring an author adding a food beneath an assessed
   category to confirm the inherited outcome is correct for that specific food. Do not add an
   inheritance opt-out flag until a real exception exists; an exception is authored as a food-level
   assessment.
@@ -207,7 +206,7 @@ their assessments move onto the categories they were standing in for.
 - [ ] An assessment's subject is exactly one food or one category, and each
       `(subject, guidanceListId)` pair appears at most once.
 - [ ] A food with no assessment of its own resolves to the nearest assessed ancestor category in the
-      same guidance list, and to the existing coverage fallbacks when no ancestor is assessed.
+      same guidance list, and to the not-assessed fallback when no ancestor is assessed.
 - [ ] Gouda, added under `Hard cheese` with no assessment, resolves to pregnancy "OK to eat" and
       vegetarian "Check ingredients", each with disclosed provenance and the category's citation.
 - [ ] Parmesan's authored vegetarian assessment still overrides the hard-cheese category rule.
@@ -215,8 +214,8 @@ their assessments move onto the categories they were standing in for.
       or across guidance lists.
 - [ ] Every category assessment carries an authored `scopeStatement` that is rendered wherever its
       advice is inherited.
-- [ ] Content validation rejects an assessed subject that falls outside its guidance list's declared
-      coverage.
+- [ ] Content validation rejects invalid subject references and fallback statuses authored on an
+      assessment; F-15 removed the former declared-coverage containment check.
 - [ ] The `breads`, `plain-cakes-slices-and-muffins`, and
       `cakes-slices-and-muffins-with-cream-or-custard` food records are gone, and their advice remains
       searchable, filterable, counted, and reachable at `/category/<slug>`.
@@ -250,8 +249,9 @@ It supersedes the resolution rule in
 [2026-08-04 ADR: use independent guidance lists for food assessments](<2026-08-04 ADR - use independent guidance lists for food assessments.md>)
 — specifically "define `FoodAssessment` with one food ID" and "the absence of an assessment resolves
 from coverage" — by inserting nearest-ancestor category inheritance between the authored assessment
-and the coverage fallback. Everything else in that ADR stands: one catalogue, list-owned status
-vocabularies, unique subject/list pairs, and two distinct grey fallbacks.
+and the not-assessed fallback. Everything else in that ADR stands: one catalogue, list-owned status
+vocabularies, and unique subject/list pairs. The 2026-08-07 single not-assessed state ADR later
+removed the distinct grey fallback states.
 
 It preserves the filtering and URL semantics of
 [2026-08-06 ADR: show scoped guidance with generic outcome filters](<2026-08-06 ADR - show scoped guidance with generic outcome filters.md>),

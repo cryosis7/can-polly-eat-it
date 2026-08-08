@@ -111,10 +111,9 @@ editing, the migration has strayed beyond content and must stop for review.
 - The two guidance lists are migrated independently. No guidance crosses lists.
 - Repository-wide 100% statements, branches, functions, and lines coverage for application source is
   retained.
-- Coverage-containment assertions here (test 10) assume guidance-list coverage still exists. The
-  `Proposed` [single not-assessed state ADR](<../decisions/2026-08-07 ADR - resolve unassessed guidance from a single not-assessed state.md>)
-  would remove it. If that decision is accepted before this migration runs, drop test 10 rather than
-  rewriting it; no other task here depends on coverage.
+- Coverage-containment assertions here (test 10) assumed guidance-list coverage still existed. The
+  accepted [single not-assessed state ADR](<../decisions/2026-08-07 ADR - resolve unassessed guidance from a single not-assessed state.md>)
+  removed it, so new work must not restore test 10; no other task here depends on coverage.
 
 ## Approach
 
@@ -180,7 +179,8 @@ Domain and content-validation:
 7. Validation rejects a category assessment without `scopeStatement`.
 8. Validation rejects a food assessment carrying a `scopeStatement`.
 9. Validation rejects a subject assessed twice within one list.
-10. Validation rejects a lifted assessment whose subject falls outside its list's declared coverage.
+10. Removed by F-15: validation no longer checks whether a lifted assessment falls inside declared
+    coverage.
 11. Every alias of a retired food is reachable on its category, and no alias matches two entries
     carrying different statuses.
 

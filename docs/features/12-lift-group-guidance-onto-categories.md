@@ -54,8 +54,8 @@ content still contains:
 - A rule is lifted only onto the category that the source itself scopes it to. Guidance is never
   raised to an ancestor broader than the source's own claim.
 - Content validation continues to enforce that a category assessment has a `scopeStatement`, a food
-  assessment does not, no subject is assessed twice in one guidance list, and every assessed subject
-  sits inside its list's declared coverage.
+  assessment does not, and no subject is assessed twice in one guidance list. F-15 later removed the
+  temporary declared-coverage containment rule.
 - The vegetarian guidance list is migrated on the same rules as the pregnancy list, independently, with
   no guidance crossing between lists.
 
@@ -209,8 +209,8 @@ departed and introduced food sets exactly. No food's displayed guidance changed.
   filterable by scope and outcome.
 - No food's displayed status, summary, condition, or source text differs from what it displayed before
   the migration.
-- Content validation fails if a lifted assessment omits its `scopeStatement`, duplicates a subject in
-  one list, or falls outside its list's declared coverage.
+- Content validation fails if a lifted assessment omits its `scopeStatement` or duplicates a subject
+  in one list. F-15 later removed the temporary declared-coverage containment rule.
 - The catalogue's guide-entry count after migration is explainable entry by entry against the count
   before it, with no entry silently lost.
 

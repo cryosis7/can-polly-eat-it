@@ -32,8 +32,8 @@ only a red, amber, or green badge.
   link supports the explanation but does not substitute for the assessed food's own citation or
   determine its status.
 - Keep reason links off catalogue cards in the first release.
-- Resolve absent assessment as either the list's grey "Not assessed" state inside coverage or
-  "Outside current coverage" outside it.
+- Resolve absent assessment as the list's grey "Not assessed" state and show the list's unassessed
+  notice where the view explains the empty state.
 - Display a safe not-found page for an unknown or removed food route.
 - Include the product's medical-information disclaimer and source links.
 - Preserve useful catalogue context when returning to the browse view.

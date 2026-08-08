@@ -6,15 +6,15 @@
 
 ## Context and Problem Statement
 
-Every assessment and every coverage declaration must currently carry at least one citation with a
-title, durable HTTPS URL, and exact locator. That rule was written for pregnancy food safety, where
-the guide's entire value is that a claim can be traced back to New Zealand Food Safety.
+Every assessment and every list-level unassessed notice must currently carry at least one citation
+with a title, durable HTTPS URL, and exact locator. That rule was written for pregnancy food safety,
+where the guide's entire value is that a claim can be traced back to New Zealand Food Safety.
 
 It fits the vegetarian list badly. "Animal rennet is not vegetarian" is definitional, not a
 risk judgement, and a maintainer should not need to produce a URL to record it. The rule has already
-distorted the content: `vegetarian-suitability` declares its coverage as "only foods explicitly named
-in the reviewed Veggy Malta article", so the list can only ever describe the fifteen foods that one
-article happened to mention. A rule such as "hard cheese may be set with animal rennet, so check the
+distorted the content: `vegetarian-suitability` used to declare its empty-state wording as "only
+foods explicitly named in the reviewed Veggy Malta article", so the list could only describe the
+fifteen foods that one article happened to mention. A rule such as "hard cheese may be set with animal rennet, so check the
 label" cannot be authored at all, even though it is common knowledge and more useful than any of the
 fifteen.
 
@@ -143,7 +143,7 @@ presented. Citations remain first-class when they exist and always render.
 - [ ] Every guidance list declares `citationPolicy` explicitly, with no schema default.
 - [ ] `pregnancy-food-safety` is `required` and every one of its assessments still carries a title,
       HTTPS URL, and locator.
-- [ ] Validation fails when a `required` list has an assessment or coverage declaration without a
+- [ ] Validation fails when a `required` list has an assessment or unassessed notice without a
       citation.
 - [ ] An assessment on an `optional` list validates and renders with no citations and no "no source
       attached" marker.

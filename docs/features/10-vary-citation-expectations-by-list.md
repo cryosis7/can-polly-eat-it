@@ -33,7 +33,7 @@ happens to say it.
   them.
 - A citation-optional list states its evidentiary basis, and that statement is shown wherever the
   list's guidance is presented.
-- A citation-required list continues to fail validation when any assessment or coverage declaration
+- A citation-required list continues to fail validation when any assessment or unassessed notice
   omits a citation.
 - A citation, wherever one exists, still renders with its title, durable link, and exact locator.
 - No view assumes a citation exists.
@@ -47,7 +47,7 @@ happens to say it.
 - Rendering a per-assessment "no source attached" marker; the list's evidentiary basis carries that
   disclosure.
 - Removing manual review, which stays mandatory for every list regardless of policy.
-- Changing statuses, outcome bands, coverage semantics, or the medical-information disclaimer.
+- Changing statuses, outcome bands, empty-state semantics, or the medical-information disclaimer.
 - Broadening the vegetarian list's actual content, which is F-09's concern.
 
 ## Implementation plan
@@ -64,8 +64,8 @@ happens to say it.
 
 ## Acceptance criteria
 
-- Pregnancy assessments and coverage still fail validation if a citation is missing, and all existing
-  pregnancy source links still render.
+- Pregnancy assessments and the unassessed notice still fail validation if a citation is missing, and
+  all existing pregnancy source links still render.
 - A vegetarian assessment with no citation passes validation, renders its status, label, and summary,
   and shows no source affordance.
 - A vegetarian assessment that does carry a citation renders it with its title, link, and locator.
@@ -77,7 +77,7 @@ happens to say it.
 
 ## Validation
 
-- Domain unit tests for both policies across assessments and coverage, the evidentiary-basis rules,
+- Domain unit tests for both policies across assessments and the unassessed notice, the evidentiary-basis rules,
   and the removal of any unchecked index into a citation array — added to
   `src/domain/contentValidation.test.ts` (`enforces citation policy per guidance list`) and the
   updated fixture-acceptance assertions. Result: pass (`npm test -- src/domain/contentValidation.test.ts`,

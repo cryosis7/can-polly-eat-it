@@ -16,8 +16,8 @@ model but `src/` still uses the pre-ADR `FoodAssessment.foodId` shape.
 - The repository-wide 100% statements, branches, functions, and lines coverage threshold must hold.
 - No new dependencies. No change to statuses, outcome bands, the `v=1` URL contract, or the
   medical-information disclaimer.
-- Every assessed subject must fall inside its guidance list's declared coverage; this is a new
-  validation rule this feature introduces (not previously enforced).
+- The coverage-containment validation rule introduced by this feature was transitional and was later
+  removed by [F-15](<15-retire-outside-coverage-state.md>).
 - Guidance is never merged across subject levels or across guidance lists; a food-level assessment
   always fully replaces an inherited one.
 - Do not add an inheritance opt-out flag; an exception is authored as a food-level assessment
@@ -41,18 +41,19 @@ model but `src/` still uses the pre-ADR `FoodAssessment.foodId` shape.
    first; for a food, then walk `index.tree.pathByCategoryId` for its primary category from nearest to
    root; for a category, walk its own path excluding itself. Return
    `{ status, assessment?, origin: { kind: 'own' } | { kind: 'inherited'; category } | { kind:
-   'coverage-fallback' } }`. Fall back through `isFoodCovered`/`isCategoryCovered` exactly as before.
+   'not-assessed' } }`. Fall back to the list's single not-assessed status.
    The walk is iterative, so it is safe at 1,000 levels.
 
 4. **Validation (`src/domain/contentValidation.ts`).**
-   - `isFoodCovered`/new `isCategoryCovered` take a `ContentIndex` instead of rebuilding a tree.
+   - Original implementation only: `isFoodCovered`/new `isCategoryCovered` used the `ContentIndex`
+     instead of rebuilding a tree. F-15 later removed both helpers.
    - Subject-aware uniqueness: dedupe on `${subjectKey}:${guidanceListId}`.
    - Subject-aware existence: a food subject must reference a known food; a category subject must
      reference a known category.
    - `scopeStatement` ownership: required and non-empty for a category subject, forbidden for a food
      subject.
-   - New coverage-containment rule: every assessed subject (food or category) must be covered by its
-     guidance list's declared coverage.
+   - The coverage-containment rule this feature originally introduced was removed by F-15; do not add
+     it to new validation work.
    - Reason-link self-reference check only applies when the subject is a food.
    - Keep every existing invariant (status ownership, fallback distinctness, citation policy).
 
@@ -80,8 +81,9 @@ model but `src/` still uses the pre-ADR `FoodAssessment.foodId` shape.
      `vegetarian-check-ingredients` category assessment on `hard-cheese` (relies on the list's
      `evidentiaryBasis`, consistent with its optional citation policy). Keep Parmesan's existing
      food-level vegetarian assessment unchanged so it continues to override the category rule.
-   - `guidanceLists.ts`: add `hard-cheese` to `vegetarian-suitability.coverage.categoryIds` and reword
-     its coverage description, since coverage is no longer bounded by one article.
+   - `guidanceLists.ts`: the original migration added `hard-cheese` to
+     `vegetarian-suitability.coverage.categoryIds` and reworded its coverage description; F-15 later
+     removed declared coverage and moved the surviving empty-state wording to `unassessedNotice`.
 
 8. **Catalogue rendering (`src/features/catalogue/CataloguePage.tsx`).** Build one `ContentIndex` per
    render. Compute matched category entries alongside matched foods; the announced count becomes
@@ -111,8 +113,8 @@ model but `src/` still uses the pre-ADR `FoodAssessment.foodId` shape.
 ## Tests
 
 - `src/domain/contentValidation.test.ts`: category-subject assessments accepted; missing/forbidden
-  `scopeStatement` rejected; duplicate `(subject, list)` pairs rejected for a category subject; an
-  assessed subject outside its list's coverage rejected; `isCategoryCovered` behaviour.
+  `scopeStatement` rejected; duplicate `(subject, list)` pairs rejected for a category subject. The
+  original assessed-subject-outside-coverage and `isCategoryCovered` cases were removed by F-15.
 - `src/domain/assessment.test.ts` (new): nearest-ancestor precedence, food-level override of an
   ancestor category rule, no inheritance across guidance lists, no merging of scenarios/citations
   across levels, a 1,000-level ancestor walk, and a category resolving via a grandparent category
