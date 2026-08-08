@@ -131,10 +131,7 @@ export const GuidanceSection = ({
       {resolved.assessment ? (
         <p>{resolved.assessment.summary}</p>
       ) : (
-        <>
-          <p>This item has not been individually assessed in this guidance list.</p>
-          <p>{guidanceList.unassessedNotice.description}</p>
-        </>
+        <p>{guidanceList.unassessedNotice.description}</p>
       )}
       {guidanceList.evidentiaryBasis && (
         <p className="evidentiary-basis">{guidanceList.evidentiaryBasis}</p>

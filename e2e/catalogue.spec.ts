@@ -303,7 +303,7 @@ test.describe('Food catalogue', () => {
     await page.goto('/food/apple-pie?v=1&scope=pregnancy-food-safety')
 
     await expect(page.getByText('Not assessed')).toBeVisible()
-    await expect(page.getByText('This guide has no reviewed pregnancy rule for this item.')).toBeVisible()
+    await expect(page.getByText('This item has not been added to this guide yet, so it has not been assessed.').first()).toBeVisible()
     await expect(page.getByText('Outside current coverage')).toHaveCount(0)
     await expect(page.getByLabel('Medical information disclaimer')).toBeVisible()
   })

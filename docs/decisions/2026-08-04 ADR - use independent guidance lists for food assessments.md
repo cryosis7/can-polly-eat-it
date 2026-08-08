@@ -32,7 +32,7 @@ vocabulary, citations, conditions, and review date.
 - Good, because the UI can explain statuses in the correct context rather than treating all amber
   or red outcomes as identical.
 - Bad, because filter and display code must receive an explicit active list.
-- Bad, because missing assessment needs carefully presented in-scope and out-of-coverage fallbacks.
+- Bad, because missing assessment needs a carefully presented neutral fallback.
 - Bad, because combined filters require documented semantics rather than an implicit global status.
 
 ## Decision Drivers
@@ -47,7 +47,7 @@ vocabulary, citations, conditions, and review date.
 
 ### Independent guidance lists with food/list assessments
 
-- Good, because `GuidanceList` defines its own statuses and distinct grey fallback statuses while
+- Good, because `GuidanceList` defines its own statuses and grey not-assessed fallback while
   `FoodAssessment` holds its food-specific rule.
 - Good, because one food can be green for vegetarian suitability and amber for pregnancy guidance.
 - Bad, because data integrity must ensure status IDs belong to the list and each pair is unique.
@@ -70,11 +70,10 @@ vocabulary, citations, conditions, and review date.
   `src/domain/filtering.ts`, `src/data/guidanceLists.*`, `src/data/assessments.*`,
   `src/features/catalogue/`, `src/features/filters/`, and `src/features/food-detail/`.
 - **Pattern to follow:** Define list statuses as
-  `{ id, slug, label, tone, sortOrder, filterLabel }`, with unique IDs/slugs/labels and distinct
-  grey `unassessedStatusId` and `outOfCoverageStatusId` values.
-  Define a list coverage declaration. Define `FoodAssessment` with one food ID, one list ID, one
+  `{ id, slug, label, tone, sortOrder, filterLabel }`, with unique IDs/slugs/labels and a grey
+  `unassessedStatusId` value. Define `FoodAssessment` with one food ID, one list ID, one
   list-owned non-fallback status ID, summary, guidance scenarios, citations, and review date. The
-  absence of an assessment resolves from coverage. Use `v=1&list=<display-list-slug>` for the
+  absence of an assessment resolves to the list's not-assessed fallback. Use `v=1&list=<display-list-slug>` for the
   displayed list and `status.<list-slug>` only for labelled constraint filters. Do not add
   context-specific booleans to `Food`.
 - **Tests:** Validate unique food/list assessment pairs, status ownership, fallback invariants, and
@@ -86,12 +85,17 @@ vocabulary, citations, conditions, and review date.
 - [ ] Pregnancy food safety is represented as a `GuidanceList`, not as fields on `Food`.
 - [ ] A future vegetarian list can define its own statuses without changing the food schema.
 - [ ] Each `(foodId, guidanceListId)` pair has no more than one assessment.
-- [ ] Distinct grey in-scope and out-of-coverage fallbacks resolve when no assessment exists.
+- [ ] The grey not-assessed fallback resolves when no assessment exists.
 - [ ] The UI presents status label and meaning in addition to its RAG tone.
 - [ ] Multi-list filtering follows the documented OR-within-list/AND-across-lists rule and labels
   constraint-only list filters.
 
 ## More Information
+
+The 2026-08-07
+[single not-assessed state ADR](<2026-08-07 ADR - resolve unassessed guidance from a single not-assessed state.md>)
+later removed guidance-list coverage declarations and the distinct outside-coverage fallback. The
+one-catalogue, list-owned-assessment model remains in force.
 
 This ADR governs Feature 05,
 [`docs/features/05-add-independent-guidance-lists.md`](../features/05-add-independent-guidance-lists.md),

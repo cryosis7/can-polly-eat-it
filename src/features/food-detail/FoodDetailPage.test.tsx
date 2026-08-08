@@ -136,8 +136,7 @@ describe('FoodDetailPage', () => {
     renderDetail('/food/yellowfin-tuna?v=1&scope=pregnancy-food-safety&q=yellowfin&category=fish-mercury-guidance')
 
     expect(screen.getByText('Not assessed')).toBeInTheDocument()
-    expect(screen.getByText(/has not been individually assessed/i)).toBeInTheDocument()
-    expect(screen.getByText(/This guide has no reviewed pregnancy rule for this item\./)).toBeInTheDocument()
+    expect(screen.getByText('This item has not been added to this guide yet, so it has not been assessed.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'New Zealand Food Safety: Pullout guide to food safety in pregnancy' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Back to the food guide' })).toHaveAttribute(
       'href',

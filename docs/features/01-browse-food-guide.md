@@ -26,8 +26,7 @@ the selected guidance list.
   and depth-safe indentation rather than heading levels.
 - Render categories with both direct foods and subcategories correctly.
 - Show green, amber, red, and grey states with text and icons as well as colour.
-- Resolve missing assessment data as either "Not assessed" inside the list's reviewed coverage or
-  "Outside current coverage"; never show either as safe.
+- Resolve missing assessment data as the list's neutral "Not assessed" state; never show it as safe.
 - Give each food card a direct link to the primary source as well as its detail route.
 - Preserve stable category and food order supplied by content data.
 - Keep the view usable with a keyboard and on a narrow viewport.
@@ -51,8 +50,8 @@ the selected guidance list.
 
 - A food attached beneath a 1,000-level test hierarchy can be derived by the domain layer without a
   stack overflow; the readable UI fixture shows its complete category breadcrumb.
-- A food inside pregnancy coverage without an assessment shows "Not assessed", while a food outside
-  that coverage shows "Outside current coverage"; both are visually distinct from "OK to eat".
+- A food without an applicable pregnancy assessment shows "Not assessed", visually distinct from "OK
+  to eat".
 - A screen-reader user hears the category heading and status label for each food card.
 
 ## Validation

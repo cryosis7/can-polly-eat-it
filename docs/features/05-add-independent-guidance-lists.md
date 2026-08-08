@@ -22,14 +22,13 @@ classification into a growing set of hard-coded booleans.
 
 ## Required behaviour
 
-- A new list supplies its own title, description, coverage declaration, distinct grey fallback
-  states, statuses, and assessments, plus an explicit `citationPolicy` that determines whether it
+- A new list supplies its own title, description, statuses, single grey not-assessed fallback,
+  `unassessedNotice`, and assessments, plus an explicit `citationPolicy` that determines whether it
   must supply source citations or a declared evidentiary basis (see
   [F-10](<10-vary-citation-expectations-by-list.md>)).
 - A food may have one assessment per list; it does not gain a new property such as
   `isVegetarian`.
-- Missing assessment is represented as "Not assessed" inside the list's coverage or "Outside current
-  coverage" outside it.
+- Missing assessment is represented as the list's neutral "Not assessed" fallback.
 - Status colour is controlled by the list definition while label and meaning remain list-specific.
 - Composite or brand-dependent foods use an explicit "Check ingredients" style outcome rather than
   an unjustified binary answer. A cited reason can link to a canonical ingredient food such as
@@ -53,8 +52,8 @@ Implement according to [the F-05 implementation plan](<05-add-independent-guidan
 
 - The maintainer approved Veggy Malta's "15 Products Not Vegetarian" article as a vetted source.
   This first list covers only article-named items, with source links and exact locators retained.
-- A source omission or ambiguity remains outside coverage; no suitability is inferred from a food
-  name, category, or ingredient.
+- A source omission or ambiguity remains unassessed; no suitability is inferred from a food name,
+  category, or ingredient.
 - The maintainer approved the article-only coverage, assessment statuses, source locators, and
   paraphrases on 2026-08-05.
 
@@ -63,8 +62,8 @@ Implement according to [the F-05 implementation plan](<05-add-independent-guidan
 - The same food can show different independently resolved list outcomes; the source-backed Yoghurt
   fixture is `Not assessed` for pregnancy safety and `Check ingredients` for vegetarian suitability.
 - Adding a vegetarian list does not create a second set of category or food records.
-- A food inside vegetarian coverage without an assessment is labelled "Not assessed", while an
-  uncovered food is labelled "Outside current coverage", never "Vegetarian".
+- A food without an applicable vegetarian assessment is labelled "Not assessed", never
+  "Vegetarian".
 
 ## Validation
 

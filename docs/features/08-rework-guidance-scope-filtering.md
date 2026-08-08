@@ -66,7 +66,7 @@ classDiagram
     id
     slug
     statuses
-    coverage
+    unassessedNotice
   }
 
   class StatusDefinition {
@@ -93,20 +93,19 @@ classDiagram
 ## Required behaviour
 
 - Keep `Food` and `Category` free from pregnancy, vegetarian, or global-status fields.
-- Map every list-owned status to exactly one generic outcome band: `okay`, `maybe`, `not-okay`,
-  `not-assessed`, or `outside-coverage`.
+- Map every list-owned status to exactly one generic outcome band: `okay`, `maybe`, `not-okay`, or
+  `not-assessed`.
 - Default an absent URL scope to pregnancy food safety.
 - OR selected outcome bands within every selected scope and AND selected scopes with category/search
   predicates.
-- Keep `not-assessed` and `outside-coverage` as distinct neutral fallbacks; neither is safe nor a
-  primary RAG filter.
+- Keep `not-assessed` as a neutral fallback; it is not safe nor a primary RAG filter.
 - Replace the unreleased `list=` and `status.<list-slug>` URL shape with `scope=` and `outcome=`.
 - Show list-specific labels, citations, conditions, and non-colour status signals on cards and
   detail pages.
 
 ## Non-goals
 
-- Changing the reviewed vegetarian data, its coverage, or its citations.
+- Changing the reviewed vegetarian data or its citations.
 - Adding recipe/ingredient analysis, user profiles, or further dietary lists.
 - Treating missing assessment or outside coverage as safe.
 

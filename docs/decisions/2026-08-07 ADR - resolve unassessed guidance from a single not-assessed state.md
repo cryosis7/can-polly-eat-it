@@ -142,21 +142,21 @@ Coverage is now derived, not declared: what a list covers is exactly the set of 
 
 ## Confirmation
 
-- [ ] No guidance list declares `coverage`, and no `categoryIds`/`foodIds` containment list remains
+- [x] No guidance list declares `coverage`, and no `categoryIds`/`foodIds` containment list remains
       in `src/data/`.
-- [ ] The `outcomeBand` enum has exactly four values and no status maps to `outside-coverage`.
-- [ ] `GuidanceList` has one fallback status field, `unassessedStatusId`, and no
+- [x] The `outcomeBand` enum has exactly four values and no status maps to `outside-coverage`.
+- [x] `GuidanceList` has one fallback status field, `unassessedStatusId`, and no
       `outOfCoverageStatusId`.
-- [ ] A food with no own assessment and no assessed ancestor resolves to its list's grey
+- [x] A food with no own assessment and no assessed ancestor resolves to its list's grey
       `Not assessed` status regardless of which category it sits under.
-- [ ] Re-parenting a food between two categories does not change its resolved status in any list.
-- [ ] The string "Outside current coverage" appears nowhere in `src/`, `e2e/`, or rendered output.
-- [ ] A list with `citationPolicy: 'required'` still fails validation when its `unassessedNotice`
+- [x] Re-parenting a food between two categories does not change its resolved status in any list.
+- [x] The string "Outside current coverage" appears nowhere in `src/`, `e2e/`, or rendered output.
+- [x] A list with `citationPolicy: 'required'` still fails validation when its `unassessedNotice`
       carries no citation, and a list with `citationPolicy: 'optional'` still requires an
       `evidentiaryBasis`.
-- [ ] A shared URL containing `outcome=outside-coverage` loads with that constraint removed and the
+- [x] A shared URL containing `outcome=outside-coverage` loads with that constraint removed and the
       removal announced accessibly.
-- [ ] The medical-information disclaimer still states that a neutral state does not mean safe.
+- [x] The medical-information disclaimer still states that a neutral state does not mean safe.
 
 ## More Information
 

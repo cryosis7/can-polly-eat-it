@@ -1,7 +1,7 @@
 # F-15 Implementation Plan: Retire the Outside-Coverage State
 
 **Feature:** [F-15: Retire the Outside-Coverage State](<15-retire-outside-coverage-state.md>)
-**Status:** Approved
+**Status:** Implemented and verified
 **Governing decision:** [resolve unassessed guidance from a single not-assessed state](<../decisions/2026-08-07 ADR - resolve unassessed guidance from a single not-assessed state.md>)
 
 The governing ADR specifies the schema change, the resolver change, the validation rules to delete
@@ -10,17 +10,22 @@ and states how the collapse is proven rather than merely un-tested.
 
 ## Design decisions settled by this plan
 
-### 1. The notice sentence stays off the catalogue card
+### 1. The notice sentence is one short, generic sentence used everywhere
 
 The brief leaves open whether the `unassessedNotice` description should render on a card as well as
-on a detail page. It should not. `GuideEntrySummary` today uses the coverage citations but not the
-description, and a card is a scannable row, not a place for a paragraph. Keeping the split means
-this feature is a rename at the card level and nothing more, which is what the acceptance criteria
-ask for. Any change to card density is a separate, justified design decision.
+on a detail page. Content review settled it: the sentence is generic and short — "This item has not
+been added to this guide yet, so it has not been assessed." — rather than a per-list paragraph about
+what the source names. At that length it reads well on a card, and it replaces the two hardcoded
+sentences the components previously carried, so a reader now meets one wording in both places and it
+is authored in `src/data/` rather than embedded in JSX.
+
+The reviewed decision was explicitly to keep the sentence generic and to avoid describing the list's
+boundary, since describing a boundary is the framing this feature exists to remove.
 
 ### 2. The migration invariant normalises the retired status rather than exempting every food
 
-Every food that has no rule in a list currently resolves to that list's `*-outside-coverage` status,
+Before this migration, every food that had no rule in a list resolved to that list's
+`*-outside-coverage` status,
 so the raw baseline in `src/test/preMigrationResolution.ts` names it roughly a hundred times. Adding
 a hundred entries to `intentionallyChangedFoodIds` would gut the invariant precisely when it is most
 needed, since the whole point of this feature is that no authored guidance changes.
@@ -31,7 +36,7 @@ food resolves to a status whose outcome band is `outside-coverage`, and that the
 longer exist in any list. The baseline file itself is left untouched, so it keeps recording what the
 pre-migration application actually produced.
 
-The `panna-cotta` assertion in that suite currently pins `pregnancy-outside-coverage` as its *before*
+The `panna-cotta` assertion in that suite pins `pregnancy-outside-coverage` as its *before*
 status. That is a baseline read, so it becomes `pregnancy-not-assessed` under the same normalisation
 and continues to prove the F-13 change it was written for.
 

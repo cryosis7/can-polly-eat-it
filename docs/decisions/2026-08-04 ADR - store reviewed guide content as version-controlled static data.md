@@ -7,7 +7,7 @@
 ## Context and Problem Statement
 
 The initial guide needs trustworthy, reviewed pregnancy food-safety content with conditions, source
-citations, review dates, explicit coverage, and source-version evidence. The first release has a
+citations, review dates, list-owned empty-state notices, and source-version evidence. The first release has a
 small catalogue, one maintainer, no accounts, and no need to publish content independently from an
 application release. The storage approach must make every safety outcome auditable, distinguish
 in-scope unassessed food from uncovered food, preserve alternative guidance scenarios, and prevent

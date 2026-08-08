@@ -42,8 +42,8 @@ outcome set and ANDed across selected guidance scopes.
   enforce that mapping.
 - Bad, because the UI must explain AND-across-scopes filtering clearly enough that users understand
   why a food can be excluded by one selected dietary scope.
-- Bad, because missing assessments and outside-coverage states remain necessary domain fallbacks even
-  if they are not primary user-facing filters.
+- Bad, because missing assessments remain a necessary neutral domain fallback even if they are not a
+  primary user-facing filter.
 
 ## Decision Drivers
 
@@ -98,10 +98,10 @@ outcome set and ANDed across selected guidance scopes.
   `src/features/food-detail/`, and their tests.
 - **Pattern to follow:** Keep `Food` and `Category` unchanged. Add a generic outcome band to each
   list-owned `StatusDefinition`, for example:
-  `okay`, `maybe`, `not-okay`, `not-assessed`, and `outside-coverage`. Pregnancy's "OK to eat" maps
+  `okay`, `maybe`, `not-okay`, and `not-assessed`. Pregnancy's "OK to eat" maps
   to `okay`; "Only with conditions" maps to `maybe`; "Avoid" maps to `not-okay`. Vegetarian's
   "Vegetarian" maps to `okay`; "Check ingredients" maps to `maybe`; "Contains animal-derived
-  ingredients" maps to `not-okay`. The list-owned grey fallback statuses remain distinct in the
+  ingredients" maps to `not-okay`. The list-owned grey fallback status remains distinct in the
   domain. The primary user filters show `okay`, `maybe`, and `not-okay`; incomplete guidance can be
   shown as a neutral state or a secondary maintainer/debug affordance rather than a default RAG
   checkbox.
@@ -136,8 +136,8 @@ outcome set and ANDed across selected guidance scopes.
 - [ ] The default catalogue has pregnancy selected when no scope appears in the URL.
 - [ ] Selecting pregnancy and vegetarian with `okay` and `maybe` only shows foods whose resolved
       outcomes are `okay` or `maybe` in both selected scopes.
-- [ ] Missing assessments still resolve to distinct in-coverage and outside-coverage fallback states
-      and are never treated as `okay`.
+- [ ] Missing assessments still resolve to the neutral not-assessed fallback and are never treated as
+      `okay`.
 - [ ] The old unreleased display-list URL contract has been replaced rather than migrated.
 - [ ] Cards and detail pages retain list-specific labels, summaries, source links, conditions, review
       dates, and non-colour status signals.
@@ -151,3 +151,8 @@ and keeps its one-catalogue, list-owned-assessment model. It supersedes that ADR
 and status-filter pattern, but not its independent-list assessment model. It refines the catalogue
 display, filter, and unreleased URL contract for
 [F-08: Rework Guidance-Scope Filtering](<../features/08-rework-guidance-scope-filtering.md>).
+
+The 2026-08-07
+[single not-assessed state ADR](<2026-08-07 ADR - resolve unassessed guidance from a single not-assessed state.md>)
+later superseded this ADR's distinct-fallback-band detail. The generic outcome filter contract and
+AND-across-scopes semantics remain in force.

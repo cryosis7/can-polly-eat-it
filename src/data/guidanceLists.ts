@@ -15,7 +15,7 @@ export const guidanceLists: GuidanceList[] = [
       { id: 'pregnancy-not-assessed', slug: 'not-assessed', label: 'Not assessed', tone: 'grey', outcomeBand: 'not-assessed', sortOrder: 4, filterLabel: 'Not assessed' },
     ],
     unassessedNotice: {
-      description: 'This guide has no reviewed pregnancy rule for this item. It is drawn from the June 2026 MPI pullout guide, which does not name it.',
+      description: 'This item has not been added to this guide yet, so it has not been assessed.',
       citations: [{
         title: 'New Zealand Food Safety: Pullout guide to food safety in pregnancy',
         url: 'https://www.mpi.govt.nz/food-safety-home/food-pregnancy/list-safe-food-pregnancy',
@@ -38,7 +38,7 @@ export const guidanceLists: GuidanceList[] = [
       { id: 'vegetarian-not-assessed', slug: 'not-assessed', label: 'Not assessed', tone: 'grey', outcomeBand: 'not-assessed', sortOrder: 4, filterLabel: 'Not assessed' },
     ],
     unassessedNotice: {
-      description: 'This guide has no reviewed vegetarian rule for this item. It assesses the foods named in the reviewed Veggy Malta article, plus the hard cheese and pasteurised yoghurt categories.',
+      description: 'This item has not been added to this guide yet, so it has not been assessed.',
       citations: [{
         title: 'Veggy Malta: 15 Products Not Vegetarian',
         url: 'https://veggymalta.com/15-products-not-vegetarian/',

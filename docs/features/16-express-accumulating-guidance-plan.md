@@ -20,10 +20,10 @@ longer than two, and the resolver is tested at three so the behaviour is pinned 
 
 ### 2. Restrictiveness is validated on the generic outcome band only
 
-The ADR orders `okay` < `maybe` < `not-okay` for the coherence rule. The two neutral bands,
-`not-assessed` and `outside-coverage`, cannot appear on an authored assessment — an existing rule
-already rejects a fallback status on an assessment — so they need no position in the ordering, and the
-comparison never has to rank a neutral band against a real one.
+The ADR orders `okay` < `maybe` < `not-okay` for the coherence rule. The neutral `not-assessed` band
+cannot appear on an authored assessment — an existing rule already rejects a fallback status on an
+assessment — so it needs no position in the ordering, and the comparison never has to rank a neutral
+band against a real one.
 
 ### 3. The catalogue marker is text, not an icon or a colour
 
@@ -147,4 +147,3 @@ Chromium Playwright:
   markup left byte-identical so no existing page shifts.
 - **An accumulation no reviewer assessed as a whole.** Mitigation: task 7 is a blocking human review of
   the one additive pair this feature authors, and validation rejects an incoherent addition.
-

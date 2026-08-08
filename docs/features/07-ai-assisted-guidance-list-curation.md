@@ -17,8 +17,8 @@ without losing provenance or editorial control.
 1. Provide the source URL and identify the guidance list and its intended coverage.
 2. Ask the AI curation skill to examine the source and prepare a draft of list, food, assessment,
    citation, and test changes.
-3. Review every proposed status, paraphrase, citation locator, coverage declaration, and source
-   version before accepting any content change.
+3. Review every proposed status, paraphrase, citation locator, unassessed notice, and source version
+   before accepting any content change.
 4. Run the existing content validation and relevant rendering tests before publishing the reviewed
    list.
 
@@ -32,8 +32,8 @@ without losing provenance or editorial control.
   resolution instead of inferring a favourable outcome.
 - The workflow must make additions and changes visible as ordinary version-controlled data and test
   changes.
-- A new list must declare its own statuses, distinct grey fallback states, explicit coverage, and
-  citations.
+- A new list must declare its own statuses, a single grey not-assessed fallback, an unassessed
+  notice, and citations or evidentiary basis according to its citation policy.
 - No proposed content may be published until a human has reviewed and approved it.
 
 ## Non-goals

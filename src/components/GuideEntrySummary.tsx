@@ -29,7 +29,7 @@ export const GuideEntrySummary = ({ guidanceList, resolved, returnSearch }: Guid
         <span aria-hidden="true" className="status-icon">{statusIcon[resolved.status.tone]}</span>
         <span>{resolved.status.label}</span>
       </p>
-      <p>{resolved.assessment?.summary ?? 'This food has not been individually assessed in this guidance list.'}</p>
+      <p>{resolved.assessment?.summary ?? guidanceList.unassessedNotice.description}</p>
       {resolved.origin.kind === 'inherited' && (
         <p className="inherited-note">
           {resolved.assessment!.scopeStatement}{' '}

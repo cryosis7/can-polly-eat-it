@@ -40,8 +40,8 @@ Dairy > Cheese > Hard cheese          Pregnancy: OK to eat
   guidance list, with its own status, summary, citations, and an authored statement of the breadth of
   the claim.
 - A food with no assessment of its own takes the guidance of its nearest assessed ancestor category
-  in that guidance list; the existing in-coverage and outside-coverage grey fallbacks apply only when
-  no ancestor is assessed.
+  in that guidance list; the single grey not-assessed fallback applies only when no ancestor is
+  assessed.
 - A food's own assessment replaces an ancestor's completely. Guidance is never blended across levels
   or across guidance lists.
 - Wherever guidance is inherited, the interface says so, names the category it came from, and shows
@@ -98,20 +98,17 @@ Dairy > Cheese > Hard cheese          Pregnancy: OK to eat
   the scope and outcome filters, and opens at its own URL in a fresh browser session.
 - Guidance that previously lived on a generic food record is still reachable, searchable, and
   filterable after that record is retired.
-- Content validation fails when an assessed subject falls outside its guidance list's declared
-  coverage, when a category assessment omits its statement of breadth, or when a subject is assessed
-  twice in the same list.
-- A food outside every assessed category and outside coverage still resolves to the distinct
-  outside-coverage state, and a food inside coverage with no applicable assessment still resolves to
-  "Not assessed"; neither is presented as safe.
+- Content validation fails when a category assessment omits its statement of breadth, when a food
+  assessment declares one, or when a subject is assessed twice in the same list.
+- A food outside every assessed category still resolves to "Not assessed"; the neutral fallback is
+  not presented as safe.
 
 ## Validation
 
 - Domain unit tests for nearest-ancestor precedence, food-level override, no cross-list inheritance,
   no merged guidance, a 1,000-level ancestor walk, and each new validation failure — added to
   `src/domain/assessment.test.ts` (new, 8 tests) and `src/domain/contentValidation.test.ts` (15 tests,
-  including category-subject uniqueness/existence, `scopeStatement` ownership, and the new
-  coverage-containment rule). `src/domain/filtering.test.ts` (11 tests) covers `filterCategoryEntries`
+  including category-subject uniqueness/existence and `scopeStatement` ownership). `src/domain/filtering.test.ts` (11 tests) covers `filterCategoryEntries`
   and the hard-cheese food/category resolution. `src/domain/search.test.ts` (new, 5 tests) covers
   category-entry search matching. Result: pass.
 - React Testing Library tests for inherited versus authored rendering, category guidance on group
@@ -167,17 +164,13 @@ Dairy > Cheese > Hard cheese          Pregnancy: OK to eat
        that it supersedes that resolution rule. Rewriting them would falsify the decision history.
        `docs/features/10-vary-citation-expectations-by-list-plan.md:28` was also left: it records an
        action taken against the schema as it was named at that time, which was accurate when written.
-     - Surfaces checked: `docs/architecture/overview.md`, `.github/copilot-instructions.md`,
-       `docs/decisions/index.md` and the four subject-relevant ADRs, `docs/implementation-plan.md`, and
-       every `docs/features/*.md`. `docs/architecture/overview.md` and
-       `.github/copilot-instructions.md` were verified line-by-line against the shipped code and are
-       accurate: the `AssessmentSubject`/`Assessment` type block at `overview.md:194-208` matches
-       `src/domain/schemas.ts:84-99` exactly, the `/category/:categorySlug` route at `overview.md:84`
-       matches `src/app/App.tsx:29`, the `category-detail/` and `components/` layout entries at
-       `overview.md:105-107` now exist, and the "count announces results rather than foods" convention
-       matches `src/features/catalogue/CataloguePage.tsx`.
+     - Surfaces checked at the time: `docs/architecture/overview.md`,
+       `.github/copilot-instructions.md`, `docs/decisions/index.md` and the four subject-relevant ADRs,
+       `docs/implementation-plan.md`, and every `docs/features/*.md`. Those checks pre-date
+       [F-15](<15-retire-outside-coverage-state.md>), which retired guidance-list coverage and the
+       coverage-containment validation rule.
   3. **Missing documentation — no findings.** The governing ADR already specifies the content index,
-     the guide-entry concept, the `scopeStatement` and coverage-containment validation rules, and the
+     the guide-entry concept and the `scopeStatement` validation rules, and the
      `src/components/` destination; `docs/architecture/overview.md` documents all of them for humans.
      The curation guardrail the ADR required was confirmed already present at
      `.agents/skills/ai-guidance-list-curation/SKILL.md:76-78`.
