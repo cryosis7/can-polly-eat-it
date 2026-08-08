@@ -1,7 +1,7 @@
 # F-16 Implementation Plan: Express Guidance That Accumulates Across Subject Levels
 
 **Feature:** [F-16](<16-express-accumulating-guidance.md>)
-**Status:** Approved
+**Status:** Implemented and verified
 
 **Governing decisions:** [accumulate inherited guidance through additive assessments](<../decisions/2026-08-07 ADR - accumulate inherited guidance through additive assessments.md>), [assess categories as first-class subjects with inherited guidance](<../decisions/2026-08-06 ADR - assess categories as first-class subjects with inherited guidance.md>), [use independent guidance lists for food assessments](<../decisions/2026-08-04 ADR - use independent guidance lists for food assessments.md>), and [store reviewed guide content as version-controlled static data](<../decisions/2026-08-04 ADR - store reviewed guide content as version-controlled static data.md>)
 
@@ -147,3 +147,4 @@ Chromium Playwright:
   markup left byte-identical so no existing page shifts.
 - **An accumulation no reviewer assessed as a whole.** Mitigation: task 7 is a blocking human review of
   the one additive pair this feature authors, and validation rejects an incoherent addition.
+

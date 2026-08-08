@@ -38,9 +38,10 @@ users to a health professional for personal advice.
 
 1. **Safety and provenance before convenience.** Never infer a food's safety from its name, from a
    sibling food, or from an ancestor category that carries no authored assessment. Guidance may only
-   come from an explicitly reviewed assessment on the food itself or on its nearest assessed ancestor
-   category, and inherited guidance is always displayed with its origin and breadth. Every assessment
-   is manually reviewed, and cited according to its guidance list's citation policy.
+   come from explicitly reviewed assessments on the food itself or on assessed ancestor categories in
+   the same guidance list. Replacement remains the default, while an assessment explicitly authored as
+   additive can display inherited and specific guidance as separate, fully attributed layers. Every
+   assessment is manually reviewed, and cited according to its guidance list's citation policy.
 2. **Conditions are first-class.** "Safe only when cooked" is not equivalent to "safe"; the
    condition is displayed with the amber outcome.
 3. **One food catalogue, many guidance lists.** Pregnancy safety and vegetarian suitability are
@@ -199,6 +200,7 @@ type Assessment = {
   id: string;
   subject: AssessmentSubject;
   guidanceListId: string;
+  relation?: "replaces" | "adds-to";
   statusId: string;
   summary: string;
   scopeStatement?: string;
@@ -215,19 +217,27 @@ type AssessmentReasonLink = {
 ```
 
 An assessment is unique for a `(subject, guidanceListId)` pair, where the subject is exactly one food
-or one category. A food's guidance resolves in three steps: its own assessment; otherwise the nearest
-ancestor category assessed in the same guidance list, walking the category path from the nearest
-parent to the root; otherwise the coverage declaration, where a food inside coverage resolves to the
-list-owned grey `unassessedStatusId` and a food outside coverage resolves to the distinct grey
+or one category. A food's status resolves nearest-subject-first: its own assessment; otherwise the
+nearest ancestor category assessed in the same guidance list, walking the category path from the
+nearest parent to the root; otherwise the coverage declaration, where a food inside coverage resolves
+to the list-owned grey `unassessedStatusId` and a food outside coverage resolves to the distinct grey
 `outOfCoverageStatusId`. Neither fallback status may be authored on an assessment.
 
-An inherited assessment is applied whole. Statuses, summaries, scenarios, conditions, and citations
-are never merged across subject levels, and inheritance never crosses guidance lists. A food-level
-assessment replaces an ancestor's completely. Wherever guidance is inherited, the interface names the
-origin category, shows its `scopeStatement`, and shows that category's source if it has one. A
-category assessment requires a `scopeStatement`; a food assessment must not have one. Every assessed
-subject must fall within its list's declared coverage, so a category rule cannot reach foods the list
-does not claim to cover.
+`relation` states how an assessment relates to inherited guidance. An absent value means
+`"replaces"`, preserving the total-override behaviour for existing records. An assessment authored as
+`"adds-to"` keeps its own status as the resolved status while the guidance body also collects assessed
+ancestors in the same guidance list, stopping at and including the first `"replaces"` assessment. The
+UI renders the collected guidance broadest ancestor first and then the nearest assessment, as
+discrete layers with their own summaries, scenarios, scope statements, and citations.
+
+Inherited assessments are applied whole. Statuses, summaries, scenarios, conditions, and citations
+are never merged across subject levels, and inheritance never crosses guidance lists. Wherever
+guidance is inherited or accumulated, the interface names the origin category, shows its
+`scopeStatement`, and shows that layer's source if it has one. A category assessment requires a
+`scopeStatement`; a food assessment must not have one. Every assessed subject must fall within its
+list's declared coverage, so a category rule cannot reach foods the list does not claim to cover.
+Validators must reject an additive assessment with no same-list ancestor assessment, or one whose
+generic outcome band is less restrictive than the assessment it adds to.
 
 A category that carries its own authored assessment is a **guide entry**: it is searchable,
 filterable, counted in results, and addressable at `/category/<slug>`. Categories that merely inherit
@@ -353,8 +363,9 @@ that unavailable shared filters were removed.
   fallback is shown, with a direct primary-source link whenever a citation exists. For a list whose
   citation policy is optional, show its declared evidentiary basis once per view instead. Colour must
   never be the only status signal.
-- Where guidance is inherited from an ancestor category, name that category, show its scope statement,
-  and link to it, so inherited advice is never presented as food-specific.
+- Where guidance is inherited from an ancestor category, including as one layer of accumulated
+  guidance, name that category, show its scope statement, and link to it, so inherited advice is never
+  presented as food-specific.
 - Show assessment reason links on the food-detail view with their authored statement and canonical
   food label; keep catalogue cards concise and do not show reason links there in the first release.
 - Put the medical-information disclaimer in the application shell, food detail page, and category
