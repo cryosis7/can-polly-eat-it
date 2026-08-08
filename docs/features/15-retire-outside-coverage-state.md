@@ -1,6 +1,8 @@
 # F-15: Retire the Outside-Coverage State
 
-**Status:** Proposed
+**Status:** Planned
+
+**Implementation plan:** [F-15 implementation plan](<15-retire-outside-coverage-state-plan.md>)
 
 **Depends on:** [F-08: Rework Guidance-Scope Filtering](<08-rework-guidance-scope-filtering.md>), [F-12: Lift Group-Level Guidance onto Categories](<12-lift-group-guidance-onto-categories.md>), [F-13: Surface Raw-Egg Foods Where People Browse for Them](<13-surface-raw-egg-foods.md>)
 

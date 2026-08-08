@@ -1,6 +1,6 @@
 # 2026-08-07 ADR: Resolve unassessed guidance from a single not-assessed state
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-08-07
 **Deciders:** Scott Dacre-Curtis
 

@@ -287,16 +287,15 @@ and its seafood content migration is deliberately excluded from
 ### Interaction with the single not-assessed state ADR
 
 [2026-08-07 ADR: resolve unassessed guidance from a single not-assessed state](<2026-08-07 ADR - resolve unassessed guidance from a single not-assessed state.md>)
-is also `Proposed` and would remove guidance-list coverage declarations and the `outside-coverage`
-state. The two decisions are independent and can be accepted in either order:
+was accepted after this ADR and removed guidance-list coverage declarations and the
+`outside-coverage` state. This ADR was written to be independent of that decision, and it proved so:
 
-- No rule in this ADR depends on coverage existing. The two new validation rules concern ancestor
-  presence and outcome-band ordering only.
-- Where this ADR says coverage containment is "unchanged", that clause simply drops out if coverage is
-  removed; nothing here needs to replace it.
-- Where the implementation plan asks that the `freshly-cooked-seafood` category resolve inside the
-  pregnancy list's declared coverage, that check becomes moot rather than incorrect.
-- A coverage-fallback resolution yields an empty `layers` array, and a single not-assessed resolution
-  would do the same, so the rendering contract is identical under either decision.
-
-Whichever is accepted second should have this section reconciled rather than its rules revisited.
+- No rule in this ADR depended on coverage existing. The two validation rules concern ancestor
+  presence and outcome-band ordering only, and both are unchanged.
+- Where this ADR says coverage containment is "unchanged", that clause has simply dropped out.
+  Nothing here replaced it.
+- Where the implementation plan asked that the `freshly-cooked-seafood` category resolve inside the
+  pregnancy list's declared coverage, that check is now moot rather than incorrect.
+- A coverage-fallback resolution yielded an empty `layers` array and the single not-assessed
+  resolution does the same, so the rendering contract is unchanged. Only the origin's name moved,
+  from `coverage-fallback` to `not-assessed`.
