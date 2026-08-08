@@ -53,14 +53,6 @@ const renderDetail = (path: string, detailContent = content) => render(
   </MemoryRouter>,
 )
 
-const outsideCoverageContent: ContentData = {
-  ...content,
-  guidanceLists: content.guidanceLists.map((list) => ({
-    ...list,
-    coverage: { ...list.coverage, mode: 'category-subtrees-and-foods', categoryIds: [], foodIds: [] },
-  })),
-}
-
 const uncitedVegetarianContent: ContentData = {
   ...content,
   assessments: content.assessments.map((assessment) => (
@@ -140,12 +132,13 @@ describe('FoodDetailPage', () => {
     )
   })
 
-  it('renders the in-coverage not-assessed state with coverage sources and retained catalogue context', () => {
+  it('renders the not-assessed state with its notice, source, and retained catalogue context', () => {
     renderDetail('/food/yellowfin-tuna?v=1&scope=pregnancy-food-safety&q=yellowfin&category=fish-mercury-guidance')
 
     expect(screen.getByText('Not assessed')).toBeInTheDocument()
     expect(screen.getByText(/has not been individually assessed/i)).toBeInTheDocument()
-    expect(screen.getByText('All food categories and named foods in the June 2026 MPI pullout guide are covered.')).toBeInTheDocument()
+    expect(screen.getByText(/This guide has no reviewed pregnancy rule for this item\./)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'New Zealand Food Safety: Pullout guide to food safety in pregnancy' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Back to the food guide' })).toHaveAttribute(
       'href',
       '/?v=1&scope=pregnancy-food-safety&q=yellowfin&category=fish-mercury-guidance',
@@ -188,10 +181,11 @@ describe('FoodDetailPage', () => {
     expect(screen.queryByRole('heading', { name: 'Sources' })).not.toBeInTheDocument()
   })
 
-  it('renders the outside-coverage state with the medical-information disclaimer', () => {
-    renderDetail('/food/yellowfin-tuna?v=1&scope=pregnancy-food-safety', outsideCoverageContent)
+  it('renders the single not-assessed state with the medical-information disclaimer', () => {
+    renderDetail('/food/apple-pie?v=1&scope=pregnancy-food-safety')
 
-    expect(screen.getByText('Outside current coverage')).toBeInTheDocument()
+    expect(screen.getByText('Not assessed')).toBeInTheDocument()
+    expect(screen.queryByText('Outside current coverage')).not.toBeInTheDocument()
     expect(screen.getByLabelText('Medical information disclaimer')).toHaveTextContent(disclaimer)
   })
 

@@ -86,7 +86,27 @@ const rawEggFoodIds = [
  */
 const intentionallyChangedFoodIds = ['panna-cotta', 'bluff-and-pacific-oysters', 'queen-scallops']
 
-const baseline: Record<string, Record<string, ResolvedOutcome>> = preMigrationResolution
+/**
+ * Statuses retired by F-15, which collapsed the two grey fallback states into one. A baseline entry
+ * naming one of these recorded "this list has no rule for this food", which is exactly what the
+ * surviving `not-assessed` status now says. Normalising here keeps the invariant meaningful, rather
+ * than exempting the hundred-odd foods the collapse touches; the collapse itself is proven by the
+ * dedicated test below.
+ */
+const retiredFallbackStatusIds: Record<string, string> = {
+  'pregnancy-outside-coverage': 'pregnancy-not-assessed',
+  'vegetarian-outside-coverage': 'vegetarian-not-assessed',
+}
+
+const normaliseBaseline = (outcomes: Record<string, ResolvedOutcome>): Record<string, ResolvedOutcome> =>
+  Object.fromEntries(Object.entries(outcomes).map(([listId, outcome]) => [
+    listId,
+    { ...outcome, statusId: retiredFallbackStatusIds[outcome.statusId] ?? outcome.statusId },
+  ]))
+
+const baseline: Record<string, Record<string, ResolvedOutcome>> = Object.fromEntries(
+  Object.entries(preMigrationResolution).map(([foodId, outcomes]) => [foodId, normaliseBaseline(outcomes)]),
+)
 
 const index = createContentIndex(content.categories, content.assessments)
 
@@ -146,7 +166,7 @@ describe('guidance migration invariant', () => {
     const before = baseline['panna-cotta']
     const after = resolveForFood('panna-cotta')
 
-    expect(before['pregnancy-food-safety'].statusId).toBe('pregnancy-outside-coverage')
+    expect(before['pregnancy-food-safety'].statusId).toBe('pregnancy-not-assessed')
     expect(after['pregnancy-food-safety'].statusId).toBe('pregnancy-conditions')
     expect(after['vegetarian-suitability']).toEqual(before['vegetarian-suitability'])
   })
@@ -160,6 +180,26 @@ describe('guidance migration invariant', () => {
       expect(after.summary, foodId).toBe(before.summary)
       expect(after.scenarios, foodId).toEqual(before.scenarios)
       expect(after.citations, foodId).toEqual(before.citations)
+    }
+  })
+
+  it('collapses the retired outside-coverage state onto not-assessed and nothing else', () => {
+    const retiredIds = Object.keys(retiredFallbackStatusIds)
+    const affected = Object.entries(preMigrationResolution).filter(([, outcomes]) =>
+      Object.values(outcomes).some((outcome) => retiredIds.includes(outcome.statusId)),
+    )
+    expect(affected.length).toBeGreaterThan(0)
+
+    for (const list of content.guidanceLists) {
+      expect(list.statuses.some((status) => retiredIds.includes(status.id))).toBe(false)
+      expect(list.statuses.filter((status) => status.outcomeBand === 'not-assessed')).toHaveLength(1)
+    }
+
+    for (const food of content.foods) {
+      for (const list of content.guidanceLists) {
+        const resolved = resolveAssessment({ kind: 'food', food }, list, index)
+        expect(retiredIds, food.id).not.toContain(resolved.status.id)
+      }
     }
   })
 })

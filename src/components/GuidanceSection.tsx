@@ -118,7 +118,7 @@ export const GuidanceSection = ({
 }: GuidanceSectionProps) => {
   const citations = resolved.layers.length > 0
     ? dedupeCitations(resolved.layers.flatMap((layer) => layer.assessment.citations))
-    : guidanceList.coverage.citations
+    : guidanceList.unassessedNotice.citations
   const isAccumulated = resolved.layers.length > 1
 
   return (
@@ -133,7 +133,7 @@ export const GuidanceSection = ({
       ) : (
         <>
           <p>This item has not been individually assessed in this guidance list.</p>
-          <p>{guidanceList.coverage.description}</p>
+          <p>{guidanceList.unassessedNotice.description}</p>
         </>
       )}
       {guidanceList.evidentiaryBasis && (

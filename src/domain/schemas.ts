@@ -32,15 +32,12 @@ export const statusDefinitionSchema = z.object({
   slug: identifier,
   label: z.string().trim().min(1),
   tone: z.enum(['green', 'amber', 'red', 'grey']),
-  outcomeBand: z.enum(['okay', 'maybe', 'not-okay', 'not-assessed', 'outside-coverage']),
+  outcomeBand: z.enum(['okay', 'maybe', 'not-okay', 'not-assessed']),
   sortOrder: z.number().int().nonnegative(),
   filterLabel: z.string().trim().min(1),
 })
 
-export const coverageDeclarationSchema = z.object({
-  mode: z.enum(['all-catalogue', 'category-subtrees-and-foods']),
-  categoryIds: z.array(identifier),
-  foodIds: z.array(identifier),
+export const unassessedNoticeSchema = z.object({
   description: z.string().trim().min(1),
   citations: z.array(sourceCitationSchema),
 })
@@ -53,9 +50,8 @@ export const guidanceListSchema = z.object({
   citationPolicy: z.enum(['required', 'optional']),
   evidentiaryBasis: z.string().trim().min(1).optional(),
   unassessedStatusId: identifier,
-  outOfCoverageStatusId: identifier,
   statuses: z.array(statusDefinitionSchema).min(2),
-  coverage: coverageDeclarationSchema,
+  unassessedNotice: unassessedNoticeSchema,
 })
 
 export const adviceConditionSchema = z.object({

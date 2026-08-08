@@ -21,7 +21,7 @@ test.describe('Food catalogue', () => {
     await expect(page.getByText('OK to eat').first()).toBeVisible()
     await expect(page.getByText('Only with conditions').first()).toBeVisible()
     await expect(page.getByText('Not assessed').first()).toBeVisible()
-    await expect(page.getByText('Outside current coverage').first()).toBeVisible()
+    await expect(page.getByText('Outside current coverage')).toHaveCount(0)
     await expect(page.getByRole('checkbox', { name: 'Not assessed' })).toHaveCount(0)
 
     const cheddarCard = foodCard(page, 'Cheddar')
@@ -289,6 +289,23 @@ test.describe('Food catalogue', () => {
     await expect(page.getByRole('status')).toContainText('Unavailable shared filters were removed.')
     await expect(page.getByRole('link', { name: 'Pasteurised yoghurt guidance', exact: true })).toBeVisible()
     await expect(page).toHaveURL(/scope=pregnancy-food-safety/)
+  })
+
+  test('drops the retired outside-coverage outcome from a shared URL and announces the removal', async ({ page }) => {
+    await page.goto('/?v=1&scope=pregnancy-food-safety&outcome=outside-coverage')
+
+    await expect(page.getByRole('status')).toContainText('Unavailable shared filters were removed.')
+    await expect(page.getByText('Outside current coverage')).toHaveCount(0)
+    await expect(page).toHaveURL(/scope=pregnancy-food-safety/)
+  })
+
+  test('shows a food with no reviewed rule as a single not-assessed state with the guide notice', async ({ page }) => {
+    await page.goto('/food/apple-pie?v=1&scope=pregnancy-food-safety')
+
+    await expect(page.getByText('Not assessed')).toBeVisible()
+    await expect(page.getByText('This guide has no reviewed pregnancy rule for this item.')).toBeVisible()
+    await expect(page.getByText('Outside current coverage')).toHaveCount(0)
+    await expect(page.getByLabel('Medical information disclaimer')).toBeVisible()
   })
 
   test('shows both accumulated instructions with their own locators on a food detail route', async ({ page }) => {

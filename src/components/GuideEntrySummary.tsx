@@ -16,7 +16,7 @@ const statusIcon = {
 } as const
 
 export const GuideEntrySummary = ({ guidanceList, resolved, returnSearch }: GuideEntrySummaryProps) => {
-  const citations = resolved.assessment?.citations ?? guidanceList.coverage.citations
+  const citations = resolved.assessment?.citations ?? guidanceList.unassessedNotice.citations
   // With more than one layer the broadest is always an ancestor category, because the nearest
   // assessment is ordered last.
   const broadestOrigin = resolved.layers.length > 1 ? resolved.layers[0].origin : undefined

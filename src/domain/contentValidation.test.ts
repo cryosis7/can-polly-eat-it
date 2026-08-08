@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { content } from '../data'
 import { resolveAssessment } from './assessment'
 import { createContentIndex } from './contentIndex'
-import { getStatusById, isCategoryCovered, isFoodCovered, validateContent } from './contentValidation'
+import { getStatusById, validateContent } from './contentValidation'
 import type { Assessment } from './schemas'
 
 const index = createContentIndex(content.categories, content.assessments)
@@ -18,7 +18,6 @@ describe('guide content validation', () => {
       'maybe',
       'not-okay',
       'not-assessed',
-      'outside-coverage',
     ])
     expect(content.guidanceLists.map((list) => list.citationPolicy)).toEqual(['required', 'optional'])
     expect(content.guidanceLists[0].evidentiaryBasis).toBeUndefined()
@@ -32,17 +31,13 @@ describe('guide content validation', () => {
     })).toThrow('duplicate category slug')
   })
 
-  it('resolves in-coverage and outside-coverage missing assessments differently', () => {
+  it('resolves every missing assessment to the list single not-assessed state', () => {
     const list = content.guidanceLists[0]
     const yellowfinTuna = content.foods.find((food) => food.id === 'yellowfin-tuna')!
     const applePie = content.foods.find((food) => food.id === 'apple-pie')!
 
     expect(resolveAssessment({ kind: 'food', food: yellowfinTuna }, list, index).status.label).toBe('Not assessed')
-    expect(resolveAssessment({ kind: 'food', food: applePie }, list, index).status.label).toBe('Outside current coverage')
-    expect(resolveAssessment({ kind: 'food', food: yellowfinTuna }, {
-      ...list,
-      coverage: { ...list.coverage, mode: 'category-subtrees-and-foods', categoryIds: [], foodIds: [] },
-    }, index).status.label).toBe('Outside current coverage')
+    expect(resolveAssessment({ kind: 'food', food: applePie }, list, index).status.label).toBe('Not assessed')
     expect(yellowfinTuna).not.toHaveProperty('pregnancyStatus')
   })
 
@@ -86,32 +81,32 @@ describe('guide content validation', () => {
     })).toThrow('unknown primary category')
   })
 
-  it('rejects invalid guidance-list coverage and fallback status definitions', () => {
+  it('rejects a fallback status that is not a list-owned grey not-assessed status', () => {
     expect(() => validateContent({
       ...content,
       guidanceLists: content.guidanceLists.map((list) => ({
         ...list,
-        unassessedStatusId: list.outOfCoverageStatusId,
+        unassessedStatusId: 'not-a-status-this-list-owns',
       })),
-    })).toThrow('distinct fallback statuses')
-
-    expect(() => validateContent({
-      ...content,
-      guidanceLists: content.guidanceLists.map((list) => ({
-        ...list,
-        coverage: { ...list.coverage, categoryIds: ['unknown-category'] },
-      })),
-    })).toThrow('covers an unknown category')
+    })).toThrow('must own a grey not-assessed fallback status')
 
     expect(() => validateContent({
       ...content,
       guidanceLists: content.guidanceLists.map((list) => ({
         ...list,
         statuses: list.statuses.map((status) => (
-          status.id === list.unassessedStatusId ? { ...status, outcomeBand: 'outside-coverage' } : status
+          status.id === list.unassessedStatusId ? { ...status, tone: 'amber' as const } : status
         )),
       })),
-    })).toThrow('distinct neutral outcome bands')
+    })).toThrow('must own a grey not-assessed fallback status')
+
+    expect(() => validateContent({
+      ...content,
+      guidanceLists: content.guidanceLists.map((list) => ({
+        ...list,
+        unassessedStatusId: list.statuses.find((status) => status.outcomeBand === 'okay')!.id,
+      })),
+    })).toThrow('must own a grey not-assessed fallback status')
   })
 
   it('rejects invalid assessment subject references and fallback statuses', () => {
@@ -174,24 +169,24 @@ describe('guide content validation', () => {
     })).toThrow('duplicate subject/list assessment pair')
   })
 
-  it('rejects an assessed subject outside its guidance list declared coverage', () => {
-    expect(() => validateContent({
-      ...content,
-      guidanceLists: content.guidanceLists.map((list) => (
-        list.id === 'pregnancy-food-safety'
-          ? { ...list, coverage: { ...list.coverage, categoryIds: list.coverage.categoryIds.filter((id) => id !== 'dairy') } }
-          : list
-      )),
-    })).toThrow("outside its guidance list's declared coverage")
+  it('resolves an assessed subject the same wherever it sits, with no containment rule to satisfy', () => {
+    const pregnancyList = content.guidanceLists[0]
+    const gouda = content.foods.find((food) => food.id === 'gouda')!
+    const before = resolveAssessment({ kind: 'food', food: gouda }, pregnancyList, index)
+    const moved = resolveAssessment(
+      { kind: 'food', food: { ...gouda, primaryCategoryId: 'miscellaneous' } },
+      pregnancyList,
+      index,
+    )
 
+    expect(before.status.label).toBe('OK to eat')
+    expect(moved.status.label).toBe('Not assessed')
     expect(() => validateContent({
       ...content,
-      guidanceLists: content.guidanceLists.map((list) => (
-        list.id === 'vegetarian-suitability'
-          ? { ...list, coverage: { ...list.coverage, categoryIds: [] } }
-          : list
+      foods: content.foods.map((food) => (
+        food.id === 'gouda' ? { ...food, primaryCategoryId: 'miscellaneous' } : food
       )),
-    })).toThrow("outside its guidance list's declared coverage")
+    })).not.toThrow()
   })
 
   it('rejects an additive assessment with nothing to add to, or one less restrictive than its target', () => {
@@ -262,7 +257,7 @@ describe('guide content validation', () => {
     })).toThrow('duplicate food ID')
   })
 
-  it('rejects invalid guidance-list ownership and coverage', () => {
+  it('rejects invalid guidance-list ownership', () => {
     expect(() => validateContent({
       ...content,
       guidanceLists: [...content.guidanceLists, { ...content.guidanceLists[0] }],
@@ -275,23 +270,6 @@ describe('guide content validation', () => {
         statuses: [...list.statuses, { ...list.statuses[0] }],
       })),
     })).toThrow('duplicate status ID')
-
-    expect(() => validateContent({
-      ...content,
-      guidanceLists: content.guidanceLists.map((list) => ({
-        ...list,
-        unassessedStatusId: list.statuses[0].id,
-      })),
-    })).toThrow('fallback statuses must be list-owned grey statuses')
-
-    expect(() => validateContent({
-      ...content,
-      guidanceLists: content.guidanceLists.map((list) => ({
-        ...list,
-        coverage: { ...list.coverage, foodIds: ['unknown-food'] },
-      })),
-    })).toThrow('covers an unknown food')
-
   })
 
   it('rejects duplicate, unknown, and invalid assessment links', () => {
@@ -339,7 +317,7 @@ describe('guide content validation', () => {
     expect(() => validateContent({
       ...content,
       guidanceLists: content.guidanceLists.map((list) => (
-        list.id === pregnancyId ? { ...list, coverage: { ...list.coverage, citations: [] } } : list
+        list.id === pregnancyId ? { ...list, unassessedNotice: { ...list.unassessedNotice, citations: [] } } : list
       )),
     })).toThrow('must include at least one citation')
 
@@ -360,7 +338,7 @@ describe('guide content validation', () => {
     const uncitedVegetarian = validateContent({
       ...content,
       guidanceLists: content.guidanceLists.map((list) => (
-        list.id === vegetarianId ? { ...list, coverage: { ...list.coverage, citations: [] } } : list
+        list.id === vegetarianId ? { ...list, unassessedNotice: { ...list.unassessedNotice, citations: [] } } : list
       )),
       assessments: content.assessments.map((assessment) => (
         assessment.guidanceListId === vegetarianId ? { ...assessment, citations: [] } : assessment
@@ -370,47 +348,19 @@ describe('guide content validation', () => {
       .every((assessment) => assessment.citations.length === 0)).toBe(true)
   })
 
-  it('resolves statuses and coverage declarations through its public helpers', () => {
+  it('resolves statuses through its public helper', () => {
     const list = content.guidanceLists[0]
-    const cheddar = content.foods.find((food) => food.id === 'cheddar')!
-    const yellowfinTuna = content.foods.find((food) => food.id === 'yellowfin-tuna')!
-    const hardCheese = content.categories.find((category) => category.id === 'hard-cheese')!
 
     expect(getStatusById(list, 'pregnancy-ok').label).toBe('OK to eat')
     expect(() => getStatusById(list, 'unknown-status')).toThrow('does not own status')
-    expect(isFoodCovered(cheddar, {
-      ...list,
-      coverage: { ...list.coverage, mode: 'all-catalogue', categoryIds: [], foodIds: [] },
-    }, index)).toBe(true)
-    expect(isFoodCovered(cheddar, list, index)).toBe(true)
-    expect(isFoodCovered(yellowfinTuna, list, index)).toBe(true)
-    expect(isFoodCovered(yellowfinTuna, {
-      ...list,
-      coverage: { ...list.coverage, mode: 'category-subtrees-and-foods', categoryIds: [], foodIds: ['yellowfin-tuna'] },
-    }, index)).toBe(true)
-    expect(isFoodCovered({
-      ...yellowfinTuna,
-      primaryCategoryId: 'unknown-category',
-    }, {
-      ...list,
-      coverage: { ...list.coverage, mode: 'category-subtrees-and-foods', categoryIds: [], foodIds: [] },
-    }, index)).toBe(false)
+  })
 
-    expect(isCategoryCovered(hardCheese, {
-      ...list,
-      coverage: { ...list.coverage, mode: 'all-catalogue', categoryIds: [], foodIds: [] },
-    }, index)).toBe(true)
-    expect(isCategoryCovered(hardCheese, list, index)).toBe(true)
-    expect(isCategoryCovered(hardCheese, {
-      ...list,
-      coverage: { ...list.coverage, mode: 'category-subtrees-and-foods', categoryIds: [] },
-    }, index)).toBe(false)
-    expect(isCategoryCovered({
-      ...hardCheese,
-      id: 'unknown-category',
-    }, {
-      ...list,
-      coverage: { ...list.coverage, mode: 'category-subtrees-and-foods', categoryIds: [] },
-    }, index)).toBe(false)
+  it('leaves no coverage declaration or outside-coverage state anywhere in the content', () => {
+    for (const list of content.guidanceLists) {
+      expect(list).not.toHaveProperty('coverage')
+      expect(list).not.toHaveProperty('outOfCoverageStatusId')
+      expect(list.statuses.filter((status) => status.tone === 'grey')).toHaveLength(1)
+      expect(list.unassessedNotice.description).toBeTruthy()
+    }
   })
 })

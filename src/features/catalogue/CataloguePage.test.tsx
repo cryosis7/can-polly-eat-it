@@ -139,6 +139,14 @@ describe('CataloguePage', () => {
     expect(screen.queryByRole('button', { name: 'Outcome: Not assessed' })).not.toBeInTheDocument()
   })
 
+  it('offers no outside-coverage control and drops the retired outcome from a shared URL', () => {
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety&outcome=outside-coverage')
+
+    expect(screen.queryByRole('checkbox', { name: 'Outside current coverage' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Outcome: Outside current coverage' })).not.toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent(/removed/i)
+  })
+
   it('removes an added scope and an outcome from active chips', () => {
     renderCatalogue(
       '/?scope=pregnancy-food-safety,alternative-pregnancy-food-safety&outcome=okay',

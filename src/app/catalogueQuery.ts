@@ -13,7 +13,7 @@ export type ParsedCatalogueQuery = {
 }
 
 const unique = (values: string[]) => [...new Set(values)]
-const outcomeBandOrder: OutcomeBand[] = ['okay', 'maybe', 'not-okay', 'not-assessed', 'outside-coverage']
+const outcomeBandOrder: OutcomeBand[] = ['okay', 'maybe', 'not-okay', 'not-assessed']
 
 const defaultState = (guidanceLists: GuidanceList[]): CatalogueQueryState => ({
   scopeSlugs: [guidanceLists.find((list) => list.slug === 'pregnancy-food-safety')?.slug ?? guidanceLists[0].slug],

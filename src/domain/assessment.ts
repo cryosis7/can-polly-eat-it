@@ -1,5 +1,5 @@
 import { findAssessment, type ContentIndex } from './contentIndex'
-import { getStatusById, isCategoryCovered, isFoodCovered } from './contentValidation'
+import { getStatusById } from './contentValidation'
 import type { Assessment, Category, Food, GuidanceList, StatusDefinition } from './schemas'
 
 export type AssessmentSubjectRef =
@@ -9,7 +9,7 @@ export type AssessmentSubjectRef =
 export type AssessmentOrigin =
   | { kind: 'own' }
   | { kind: 'inherited', category: Category }
-  | { kind: 'coverage-fallback' }
+  | { kind: 'not-assessed' }
 
 export type GuidanceLayer = {
   assessment: Assessment
@@ -58,7 +58,6 @@ const resolveWithAncestors = (
   ancestors: Category[],
   guidanceList: GuidanceList,
   index: ContentIndex,
-  isCovered: () => boolean,
 ): ResolvedAssessment => {
   const nearest: GuidanceLayer[] = own ? [{ assessment: own, origin: { kind: 'own' } }] : []
   const ancestorLayers = own && !isAdditive(own)
@@ -67,8 +66,11 @@ const resolveWithAncestors = (
   const collected = [...nearest, ...ancestorLayers]
 
   if (collected.length === 0) {
-    const statusId = isCovered() ? guidanceList.unassessedStatusId : guidanceList.outOfCoverageStatusId
-    return { status: getStatusById(guidanceList, statusId), origin: { kind: 'coverage-fallback' }, layers: [] }
+    return {
+      status: getStatusById(guidanceList, guidanceList.unassessedStatusId),
+      origin: { kind: 'not-assessed' },
+      layers: [],
+    }
   }
 
   const nearestLayer = collected[0]
@@ -92,7 +94,6 @@ export const resolveAssessment = (
       index.tree.pathByCategoryId.get(food.primaryCategoryId) ?? [],
       guidanceList,
       index,
-      () => isFoodCovered(food, guidanceList, index),
     )
   }
 
@@ -102,6 +103,5 @@ export const resolveAssessment = (
     (index.tree.pathByCategoryId.get(category.id) ?? []).slice(0, -1),
     guidanceList,
     index,
-    () => isCategoryCovered(category, guidanceList, index),
   )
 }
