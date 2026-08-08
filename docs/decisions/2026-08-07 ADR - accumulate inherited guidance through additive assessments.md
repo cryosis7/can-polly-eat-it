@@ -237,20 +237,20 @@ layer holding more than one scenario introduces them as **"Follow whichever appl
 
 ## Confirmation
 
-- [ ] `Assessment.relation` exists, is optional, and an absent value behaves exactly as `'replaces'`.
+- [x] `Assessment.relation` exists, is optional, and an absent value behaves exactly as `'replaces'`.
 - [ ] No existing assessment record was edited to adopt the new field, and every currently rendered
       page is byte-identical apart from the seafood records this decision migrates.
 - [ ] `Bluff and Pacific oysters` and `Queen scallops` each display the cooking instruction and the
       monthly serving limit, each attributed to its own locator.
-- [ ] `Parmesan` in the vegetarian scope still displays only its own guidance.
-- [ ] A food's status, outcome band, chip, filtering behaviour, and the announced result count are
+- [x] `Parmesan` in the vegetarian scope still displays only its own guidance.
+- [x] A food's status, outcome band, chip, filtering behaviour, and the announced result count are
       unchanged by accumulation.
-- [ ] Accumulation stops at the first `'replaces'` assessment and never crosses guidance lists.
-- [ ] Conditions are never moved between scenarios, and no scenario is rendered with conditions its
+- [x] Accumulation stops at the first `'replaces'` assessment and never crosses guidance lists.
+- [x] Conditions are never moved between scenarios, and no scenario is rendered with conditions its
       author did not place in it.
-- [ ] Content validation fails an `'adds-to'` assessment with no same-list ancestor assessment.
-- [ ] Content validation fails an `'adds-to'` assessment less restrictive than what it adds to.
-- [ ] A multi-layer food's catalogue entry indicates that further group guidance applies.
+- [x] Content validation fails an `'adds-to'` assessment with no same-list ancestor assessment.
+- [x] Content validation fails an `'adds-to'` assessment less restrictive than what it adds to.
+- [x] A multi-layer food's catalogue entry indicates that further group guidance applies.
 - [ ] Every displayed instruction appears verbatim in an authored, cited assessment; none is
       generated, reworded, or combined.
 - [ ] WCAG 2.2 AA axe scans pass on the layered detail route with zero violations.

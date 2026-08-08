@@ -93,6 +93,11 @@ export const assessmentSchema = z.object({
   statusId: identifier,
   summary: z.string().trim().min(1),
   scopeStatement: z.string().trim().min(1).optional(),
+  /**
+   * Whether this assessment replaces the guidance it inherits or adds to it. Absent means
+   * 'replaces', which is the behaviour of every assessment authored before accumulation existed.
+   */
+  relation: z.enum(['replaces', 'adds-to']).optional(),
   guidanceScenarios: z.array(guidanceScenarioSchema),
   reasonLinks: z.array(assessmentReasonLinkSchema),
   citations: z.array(sourceCitationSchema),

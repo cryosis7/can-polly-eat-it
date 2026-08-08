@@ -45,16 +45,15 @@ describe('guidance lifted onto categories', () => {
     expect(freshFilledPasta.assessment?.citations[0].locator).toBe('Breads and cereals: Cereals')
   })
 
-  it('leaves the freshly cooked seafood group untouched for its additive footnote', () => {
-    expect(resolveFood('freshly-cooked-seafood').origin).toEqual({ kind: 'own' })
+  it('lifts the freshly cooked seafood group rule onto its category so the footnote can add to it', () => {
+    expect(content.foods.some((food) => food.id === 'freshly-cooked-seafood')).toBe(false)
+    expect(index.assessedCategoryIds.has('freshly-cooked-seafood')).toBe(true)
 
     for (const foodId of ['bluff-and-pacific-oysters', 'queen-scallops']) {
       const resolved = resolveFood(foodId)
       expect(resolved.origin).toEqual({ kind: 'own' })
       expect(resolved.assessment?.citations[0].locator).toBe('Seafood footnote: Bluff and Pacific oysters and queen scallops')
     }
-
-    expect(index.assessedCategoryIds.has('freshly-cooked-seafood')).toBe(false)
   })
 
   it('keeps the migrated pasteurised yoghurt entry independent in each guidance list', () => {

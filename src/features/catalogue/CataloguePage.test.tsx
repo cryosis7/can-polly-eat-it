@@ -237,6 +237,18 @@ describe('CataloguePage', () => {
     expect(screen.getByRole('button', { name: /^Fruit juice, kombucha and cider \(non-alcoholic\), level 2$/ })).toBeInTheDocument()
   })
 
+  it('shows an accumulated food card marking that further group guidance applies', () => {
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=freshly-cooked-seafood')
+
+    const oysterCard = screen.getByRole('link', { name: 'Bluff and Pacific oysters' }).closest('.food-card') as HTMLElement
+    expect(within(oysterCard).getByText(/Further Freshly cooked fish, mussels, oysters, crayfish, scallops, etc guidance also applies\./)).toBeInTheDocument()
+    expect(within(oysterCard).getByRole('link', { name: 'See Freshly cooked fish, mussels, oysters, crayfish, scallops, etc guidance' })).toBeInTheDocument()
+
+    const cheddarCard = renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=hard-cheese')
+      .container.querySelector('.food-card') as HTMLElement
+    expect(within(cheddarCard).queryByText(/also applies\./)).not.toBeInTheDocument()
+  })
+
   it('renders root categories in alphabetical order', () => {
     renderCatalogue()
 

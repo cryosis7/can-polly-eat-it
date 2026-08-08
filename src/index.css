@@ -102,6 +102,7 @@ h3 { font-size: 1.35rem; }
 .category-guidance { display: grid; gap: .3rem; margin-bottom: var(--space-3); }
 .category-guidance .status { font-size: .95rem; }
 .inherited-note { color: var(--muted-ink); font-size: .92rem; font-style: italic; }
+.accumulated-note { color: var(--muted-ink); font-size: .92rem; }
 .food-list { display: grid; gap: var(--space-2); list-style: none; margin: 0; padding: 0; }
 .food-card { background: var(--surface); border: 1px solid var(--line); border-inline-start-width: .35rem; border-radius: var(--radius); box-shadow: var(--shadow); padding: var(--space-3); }
 .food-card p { margin-bottom: var(--space-2); }
@@ -123,6 +124,8 @@ h3 { font-size: 1.35rem; }
 .guidance-summary { margin-bottom: var(--space-5); }
 .guidance-summary h2, .guidance-scenario h3 { margin-top: 0; }
 .guidance-scenario { margin-bottom: var(--space-3); }
+.guidance-layer { border-inline-start: .2rem solid var(--line); margin-bottom: var(--space-3); padding-inline-start: var(--space-3); }
+.guidance-layer h5 { color: var(--muted-ink); font-size: .95rem; margin-bottom: var(--space-1); }
 .guidance-scenario ol { padding-left: var(--space-4); }
 .guidance-facts { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); margin: 0; }
 .guidance-facts div { display: flex; gap: .3rem; }

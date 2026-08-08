@@ -1,6 +1,8 @@
 # F-16: Express Guidance That Accumulates Across Subject Levels
 
-**Status:** Proposed
+**Status:** Done
+
+**Implementation plan:** [F-16 implementation plan](<16-express-accumulating-guidance-plan.md>), approved.
 
 **Depends on:** [F-04: Maintain Trustworthy Guidance Content](<04-maintain-trustworthy-guidance-content.md>), [F-09: Assess and Browse Food Categories](<09-assess-and-browse-food-categories.md>)
 
@@ -166,5 +168,26 @@ no-inherited-guidance validation failure, cross-list isolation, and the unchange
 React Testing Library tests confirming both statements render with separate scope statements and
 citations on food detail. Chromium Playwright coverage for an accumulated food's detail route.
 Repository-wide 100% statements, branches, functions, and lines coverage for application source is
-retained. A subagent runs the `prepare` skill after implementation and targeted validation, before the
-pull request is opened and before this feature moves to `Done`.
+retained.
+
+### Content review gate
+
+The one judgement this feature makes about the source is whether the MPI seafood footnote adds to the
+group's cooking rule or carves those shellfish out of it. As implemented, `Bluff and Pacific oysters`
+and `Queen scallops` show the cooking instruction and the monthly serving limit as two layers, each
+with its own locator, and neither statement is reworded.
+
+- Reviewer confirmation that the footnote is additive rather than a carve-out:
+  **confirmed by the maintainer**.
+
+### Pre-PR `prepare` review
+
+- Run against base `96a942a`, branch `agents/feature-iteration-cycle-implementation`, covering 22
+  changed files. No dependency-bearing lines changed.
+- Documentation drift: the architecture overview and the repository Copilot instructions both still
+  stated that a food-level assessment is always a total override. Both now describe the `relation`
+  field, the layered resolution, and the two new validation rules.
+- The ADR's confirmation checklist was stale; the code- and test-confirmable items are now ticked, and
+  the items needing human content review were resolved by the content review gate above.
+- Missing documentation: none. The decision itself is already recorded in an accepted ADR.
+

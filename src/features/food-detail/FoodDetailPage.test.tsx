@@ -70,6 +70,33 @@ const uncitedVegetarianContent: ContentData = {
   )),
 }
 
+const oysterAssessmentId = 'bluff-and-pacific-oysters-pregnancy'
+const groupAssessmentId = 'freshly-cooked-seafood-pregnancy'
+
+const multiScenarioLayerContent: ContentData = {
+  ...content,
+  assessments: content.assessments.map((assessment) => (
+    assessment.id === oysterAssessmentId
+      ? {
+          ...assessment,
+          guidanceScenarios: [
+            ...assessment.guidanceScenarios,
+            { id: 'served-raw', applicability: 'When it is served raw', instruction: 'Do not eat it.', conditions: [] },
+          ],
+        }
+      : assessment
+  )),
+}
+
+const sharedLocatorContent: ContentData = {
+  ...content,
+  assessments: content.assessments.map((assessment) => (
+    assessment.id === groupAssessmentId
+      ? { ...assessment, citations: content.assessments.find((candidate) => candidate.id === oysterAssessmentId)!.citations }
+      : assessment
+  )),
+}
+
 describe('FoodDetailPage', () => {
   it('renders an assessed food with its status, summary, and citation', () => {
     renderDetail('/food/cheddar?v=1&scope=pregnancy-food-safety')
@@ -166,6 +193,36 @@ describe('FoodDetailPage', () => {
 
     expect(screen.getByText('Outside current coverage')).toBeInTheDocument()
     expect(screen.getByLabelText('Medical information disclaimer')).toHaveTextContent(disclaimer)
+  })
+
+  it('renders an accumulated food as separate layers, each with its own statement and locator', () => {
+    renderDetail('/food/bluff-and-pacific-oysters?v=1&scope=pregnancy-food-safety')
+
+    expect(screen.getByRole('heading', { name: 'All of the following apply' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', {
+      name: 'Applies to all freshly cooked fish, mussels, oysters, crayfish and scallops.',
+    })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Specific to this food' })).toBeInTheDocument()
+    expect(screen.getByText('Cook above 75°C throughout.')).toBeInTheDocument()
+    expect(screen.getByText('Have no more than one serving per month.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'See Freshly cooked fish, mussels, oysters, crayfish, scallops, etc guidance' })).toBeInTheDocument()
+
+    const sources = screen.getByRole('heading', { name: 'Sources' }).closest('section') as HTMLElement
+    expect(sources.querySelectorAll('li')).toHaveLength(2)
+  })
+
+  it('introduces a multi-scenario layer with Follow whichever applies', () => {
+    renderDetail('/food/bluff-and-pacific-oysters?v=1&scope=pregnancy-food-safety', multiScenarioLayerContent)
+
+    expect(screen.getByRole('heading', { name: 'Follow whichever applies' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'When it is served raw' })).toBeInTheDocument()
+  })
+
+  it('de-duplicates identical citations across accumulated layers', () => {
+    renderDetail('/food/bluff-and-pacific-oysters?v=1&scope=pregnancy-food-safety', sharedLocatorContent)
+
+    const sources = screen.getByRole('heading', { name: 'Sources' }).closest('section') as HTMLElement
+    expect(sources.querySelectorAll('li')).toHaveLength(1)
   })
 
   it('renders a safe food-not-found page', () => {

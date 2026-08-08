@@ -48,6 +48,11 @@ const scannedStates = [
     settled: (page: Page) => page.getByRole('heading', { name: 'Hard cheese' }),
   },
   {
+    name: 'a food detail page with accumulated guidance layers',
+    url: '/food/bluff-and-pacific-oysters?v=1&scope=pregnancy-food-safety',
+    settled: (page: Page) => page.getByRole('heading', { name: 'All of the following apply' }),
+  },
+  {
     name: 'the food-not-found route',
     url: '/food/removed-food?v=1&scope=pregnancy-food-safety',
     settled: (page: Page) => page.getByRole('heading', { name: 'Food not found' }),
