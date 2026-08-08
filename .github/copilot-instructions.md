@@ -3,48 +3,27 @@
 You are the engineer building this product. I am the product owner with an engineering and architectural background.
 When communicating to me, assume I can understand technical details, and can inform on architectural direction, but I have never seen this codebase before. I understand the domain and the product and those decisions should come through me.
 
-## Architecture baseline
+## Where the rules actually live
 
-- The accepted ADRs in `docs/decisions/` are binding. Before changing architecture, dependencies, data storage, routing, deployment, or domain patterns, read `docs/decisions/index.md` and the relevant accepted ADRs. A change that conflicts with one needs an explicit amendment or a new ADR.
-- Build a client-only React + TypeScript + Vite SPA with React Router 8. There is no backend, database, CMS, account, analytics, server session, or live content API.
-- Keep the layers one-way:
-  - `src/data/` contains authored, reviewed static records only.
-  - `src/domain/` owns types, Zod validation, category-tree derivation, search, unassessed fallback resolution, and filter predicates. It must not import React, router, browser, or UI modules.
-  - `src/app/` composes routes, shell, and URL state; feature directories render catalogue, filters, and food detail; shared components remain presentational.
-- Use `public/_redirects` to rewrite `/*` to `/index.html` and configure `netlify.toml` so `index.html` revalidates promptly while hashed Vite assets are immutable. Verify direct `/food/<slug>` and `/category/<slug>` loads in a Netlify deploy preview.
+Read these rather than assuming; they are authoritative and current.
 
-## Domain and content conventions
+- `docs/architecture/overview.md` describes the domain model, catalogue, search, filtering, URL contract, and accessibility behaviour. Read the relevant section before changing any of them, and do not act on a second-hand summary of it.
+- The accepted ADRs in `docs/decisions/` are binding. Read `docs/decisions/index.md` and the relevant accepted ADRs before changing architecture, dependencies, data storage, routing, deployment, or domain patterns. A change that conflicts with one needs an explicit amendment or a new ADR.
+- `docs/features/README.md` is the feature register and owns the feature lifecycle and its status rules.
 
-- Food categories are an adjacency-list forest (`parentId`), not nested authored documents or fixed-depth fields. Foods are separate records that reference exactly one existing primary category; a category can contain both direct foods and child categories.
-- Validate duplicate IDs/slugs, unknown parents and category references, self-parent links, cycles, and orphaned categories. Derive paths, trees, and flattened display rows without a product-defined depth limit or recursive UI rendering. Preserve authored sort order and test a 1,000-level domain-only tree.
-- Food suitability is list-specific. Model it as one `Assessment` per `(subject, guidanceListId)`, where the subject is exactly one food or one category, with list-owned statuses and generic outcome-band mappings; never add contextual fields such as `isVegetarian` to `Food` or create duplicate catalogues.
-- Resolve a food's status nearest-subject-first: its own assessment, then the nearest ancestor category assessed in the same guidance list, then the list's single not-assessed fallback. An absent `Assessment.relation` means `replaces`; `adds-to` keeps the nearest assessment's status while displaying same-list inherited guidance as separate, fully attributed layers until the first `replaces` assessment. Apply every layer whole; never merge statuses, summaries, scenarios, conditions, or citations across subject levels or across guidance lists, and never infer from an unassessed ancestor, a sibling, or a name.
-- When no assessment applies, resolve to the guidance list's grey `Not assessed` state and display its `unassessedNotice`; this neutral fallback never means safe and must never be authored on an assessment.
-- A category assessment requires an authored `scopeStatement`; a food assessment must not have one.
-- Maintain the authored static data contract. Parse all authored records with Zod during development/CI; invalid references, invalid status ownership, and duplicate subject/list pairs must fail validation.
-- In production builds, Zod parse failures on static data records must throw at module load time so the deploy fails fast rather than serving corrupt data silently.
-- Citation requirements are list-owned, not global. Each `GuidanceList` declares `citationPolicy: 'required' | 'optional'` with no default. A `required` list fails validation on any uncited assessment or unassessed notice; an `optional` list may leave records uncited but must declare an `evidentiaryBasis` that is displayed once per view. Never render a per-assessment "no source attached" marker, and never index into a citation array without checking it is non-empty.
-- Guidance text is manually reviewed and succinctly paraphrased. Manual review is mandatory for every list regardless of citation policy. Do not scrape, fetch, infer, or automatically update advice. A citation, wherever one exists, needs a durable HTTPS URL and exact locator.
-- Guidance scenarios are alternatives: render each scenario's complete authoritative instruction with its own ordered conditions. Do not combine conditions across scenarios or compute advice from optional display facts.
-- Reason links are typed (`contains`, `derived-from`, `made-with`, `other`) links to existing non-self food records, with an authored statement and no duplicate kind/target pair. Render them only on food detail pages; keep the assessed food's citation and status independent of the target food.
+## Non-negotiable constraints
 
-## Query, UI, and accessibility conventions
+- This is a client-only SPA. There is no backend, database, CMS, account, analytics, server session, or live content API. Do not introduce one.
+- Keep the layers one-way. `src/data/` holds authored, reviewed static records; `src/domain/` owns types, Zod validation, derivation, search, and filter predicates, and must not import React, router, browser, or UI modules; `src/app/` and the feature directories compose routes, URL state, and rendering.
+- This product gives health guidance, so never infer a food status. Do not derive one from a food name, a sibling, or an unassessed ancestor. Resolve nearest-subject-first, then fall back to the guidance list's not-assessed state.
+- Apply each guidance layer whole. Never merge statuses, summaries, scenarios, conditions, or citations across subject levels or across guidance lists.
+- `not-assessed` is a neutral fallback. It never means safe, and must never be authored onto an assessment.
+- Guidance text is manually reviewed and paraphrased from cited sources. Do not scrape, fetch, infer, or automatically update advice.
+- Use en-NZ spelling in code, content, and documentation.
 
-- URL state is the product state. Use the versioned `v=1` contract: `scope=<comma-separated-guidance-list-slugs>`, `outcome=<comma-separated-outcome-bands>`, `q`, and `category`. Default an absent scope to pregnancy food safety, initialise controls from it, and preserve scope/outcome context when returning from food detail.
-- A guide entry is a food, or a category that carries its own authored assessment. Categories that merely inherit remain plain browse headings. Search, filters, and the result count operate over guide entries, and the count announces results rather than foods.
-- Search normalises case, diacritics, punctuation, and whitespace; match every token against food names, aliases, and category-path labels, and match a category entry against its own name, aliases, and ancestor path labels. Do not use fuzzy/AI/external search.
-- Category filters include descendant foods.
-- Selected generic outcome bands are ORed within every selected guidance scope.
-- Selected guidance scopes, category, tags, and condition kinds are ANDed. A food must satisfy every selected scope.
-- Render list-specific labels, guidance, and any citation that exists for selected scopes; do not use a primary display-list selector.
-- Keep `not-assessed` as a distinct neutral fallback band. It is not safe and is not a primary RAG filter.
-- Every active filter chip must be labelled with its dietary scope or generic outcome.
-- For unknown URL versions, scopes, categories, or outcomes, default to pregnancy scope, remove only invalid constraints, and announce the removal accessibly.
-- Never use colour as the only status signal. Use semantic headings/lists, native labels, keyboard-operable controls, visible focus, result-count announcements, responsive layouts without hover reliance, and the medical-information disclaimer in the app shell, food detail, and category detail.
+## Delivery
 
-## Scope and validation
-
-- Treat 2,000 foods and 500 categories as the initial catalogue budget. A change beyond either requires a measured performance review and a new ADR.
-- The first releasable slice is a small, fully cited pregnancy guide covering browsing, search/filtering, and explanation. Vegetarian suitability extends the same guidance-list model without duplicating the catalogue, and declares its own citation policy.
-- For application/content changes, the intended quality gates are strict type checking, data validation, domain unit tests, React Testing Library tests, browser smoke tests for a direct detail route and filtered URL, WCAG 2.2 AA Playwright accessibility scans, Netlify deploy-preview checks, and a production build. Run the narrowest relevant existing command after the project is scaffolded.
-- For feature implementation work, include a pre-PR verification step that instructs a subagent to run the `prepare` skill after targeted validation and before marking the feature `Done`.
+- **This repository is local-only. There is no git remote, no `origin`, no pull requests, and no CI.** Never run `git push`, `git fetch`, or `git pull`, never check a remote's state, and never try to open or update a PR. Work is integrated by merging into `main` locally. Where a skill or document says "pre-PR", read it as "before merging into `main`".
+- Application source under `src/` is held at 100% statements, branches, functions, and lines. The pre-commit hook runs coverage and the Playwright suite, so a change that lowers coverage fails the commit rather than review. Write the tests as you go.
+- While working, run the narrowest relevant existing command rather than the full suite.
+- For feature work, a subagent must run the `prepare` skill after targeted validation and before the feature moves to `Done`.

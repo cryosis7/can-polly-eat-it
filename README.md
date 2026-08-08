@@ -8,7 +8,7 @@ information, not medical advice.
 The [Feature Register](docs/features/README.md) records each product feature's outcome, lifecycle
 status, dependencies, and acceptance criteria. The [implementation plan](docs/implementation-plan.md)
 sequences high-level delivery; create a detailed technical plan only when a feature is `Planned`.
-Feature-specific plans include targeted validation and a pre-PR subagent `prepare` check.
+Feature-specific plans include targeted validation and a subagent `prepare` check before merging.
 
 ## Development
 

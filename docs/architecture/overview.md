@@ -136,6 +136,7 @@ type Food = {
   aliases: string[];
   primaryCategoryId: string;
   tags: string[];
+  sortOrder: number;
 };
 ```
 

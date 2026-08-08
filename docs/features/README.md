@@ -14,7 +14,7 @@ Features move through `Idea`, `Proposed`, `Planned`, `In progress`, and `Done`. 
 - **Planned**: dependencies are complete and an approved, feature-specific implementation plan
   exists.
 - **In progress**: implementation has started against the approved plan.
-- **Done**: the acceptance criteria and documented validation have been met, the pre-PR `prepare`
+- **Done**: the acceptance criteria and documented validation have been met, the `prepare`
   review has completed, and any findings are resolved or recorded.
 - **Deferred**: intentionally paused; the brief explains why and what must change to resume it.
 
@@ -55,9 +55,10 @@ feature IDs below, must not reference the feature itself, and must not form a cy
    section. Update its status when the prerequisite changes.
 5. Create a technical implementation plan only after a feature is `Planned`; link it from the brief
    and keep implementation tasks outside this register.
-6. Include a pre-PR verification task in each feature-specific implementation plan that instructs a
-   subagent to run the `prepare` skill after implementation and targeted validation. Record the
-   result or the resolution of any findings before moving the feature to `Done`.
+6. Include a verification task in each feature-specific implementation plan, to run before merging
+   into `main`, that instructs a subagent to run the `prepare` skill after implementation and
+   targeted validation. Record the result or the resolution of any findings before moving the
+   feature to `Done`.
 
 Every application or content change must retain the repository-wide 100% global statements,
 branches, functions, and lines coverage threshold for application source. Implemented user-facing
