@@ -213,8 +213,10 @@ describe('CataloguePage', () => {
 
     const commercial = screen.getByRole('heading', { name: 'Commercial sauces, dressings and spreads' })
       .closest('.category-group') as HTMLElement
-    expect(within(commercial).getByText(/follow their manufacturer storage and heating instructions/)).toBeInTheDocument()
+    expect(within(commercial).getAllByText(/follow their manufacturer storage and heating instructions/).length)
+      .toBeGreaterThan(0)
     expect(within(commercial).queryByText(/contains raw egg/)).not.toBeInTheDocument()
+    expect(within(commercial).getByRole('link', { name: 'Worcestershire sauce' })).toBeInTheDocument()
 
     const homeMade = screen.getByRole('button', { name: /^Home-made sauces, level \d+$/ })
       .closest('.category-group') as HTMLElement
@@ -264,6 +266,50 @@ describe('CataloguePage', () => {
     const rootNames = screen.getAllByRole('button', { name: /, level 1$/ })
       .map((toggle) => toggle.getAttribute('aria-label')!.replace(/, level 1$/, ''))
     expect(rootNames).toEqual([...rootNames].sort((left, right) => left.localeCompare(right)))
+  })
+
+  it('offers the new food groups as category filters under their full authored path', () => {
+    renderCatalogue()
+
+    const options = Array.from(screen.getByLabelText(/category/i).querySelectorAll('option'))
+      .map((option) => option.textContent)
+    expect(options).toEqual(expect.arrayContaining([
+      'Confectionery',
+      'Ingredients and additives',
+      'Soups',
+      'Desserts > Baked desserts',
+      'Drinks > Alcoholic drinks',
+    ]))
+    expect(options.some((option) => option?.includes('animal-derived'))).toBe(false)
+  })
+
+  it('shows the retired animal-derived heading nowhere, and its foods under real food groups', () => {
+    renderCatalogue()
+
+    const rootNames = screen.getAllByRole('button', { name: /, level 1$/ })
+      .map((toggle) => toggle.getAttribute('aria-label')!.replace(/, level 1$/, ''))
+    expect(rootNames).not.toContain('Foods that may contain animal-derived ingredients')
+    expect(rootNames).toEqual(expect.arrayContaining(['Confectionery', 'Ingredients and additives', 'Soups']))
+
+    expandGroup('Confectionery')
+    for (const name of ['Gummy bears', 'Jelly', 'Marshmallows', 'Starburst']) {
+      expect(screen.getByRole('link', { name })).toBeInTheDocument()
+    }
+
+    expandGroup('Ingredients and additives')
+    expect(screen.getByRole('link', { name: 'Gelatin' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'White sugar' })).toBeInTheDocument()
+  })
+
+  it('shows orange juice once, on the juice group rather than either pasteurisation child', () => {
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=drinks')
+
+    const orangeJuiceLinks = screen.getAllByRole('link', { name: 'Orange juice' })
+    expect(orangeJuiceLinks).toHaveLength(1)
+
+    const juiceGroup = screen.getByRole('button', { name: /^Fruit juice, kombucha and cider \(non-alcoholic\), level \d+$/ })
+      .closest('.category-group') as HTMLElement
+    expect(within(juiceGroup).getByRole('link', { name: 'Orange juice' })).toBeInTheDocument()
   })
 
   it('renders every ancestor heading so a nested entry is never shown under an unrelated group', () => {

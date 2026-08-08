@@ -11,7 +11,7 @@ test.describe('Food catalogue', () => {
     await page.goto('/')
     await page.getByRole('button', { name: 'Dairy, level 1' }).click()
     await page.getByRole('button', { name: 'Seafood, level 1' }).click()
-    await page.getByRole('button', { name: 'Foods that may contain animal-derived ingredients, level 1' }).click()
+    await page.getByRole('button', { name: 'Confectionery, level 1' }).click()
 
     await expect(page.getByRole('heading', { name: "Polly's Food Guide" })).toBeVisible()
     await expect(page.getByRole('checkbox', { name: 'Pregnancy food safety' })).toBeChecked()
@@ -281,6 +281,34 @@ test.describe('Food catalogue', () => {
     await expect(page.getByRole('heading', { name: 'Gelatin' })).toBeVisible()
     await expect(page.getByText('Contains animal-derived ingredients')).toBeVisible()
     await expect(page.getByText('Gelatin is an animal-derived gelling ingredient.')).toBeVisible()
+  })
+
+  test('browses to a migrated food through the food group it now belongs to', async ({ page }) => {
+    await page.goto('/')
+
+    await expect(page.getByRole('button', { name: 'Foods that may contain animal-derived ingredients, level 1' })).toHaveCount(0)
+
+    await page.getByRole('button', { name: 'Confectionery, level 1' }).click()
+    await page.getByRole('link', { name: 'Marshmallows', exact: true }).click()
+
+    await expect(page.getByRole('heading', { name: 'Marshmallows' })).toBeVisible()
+    await expect(page.getByText('Not assessed').first()).toBeVisible()
+  })
+
+  test('keeps an unassessed new food group as a plain browse heading rather than a route', async ({ page }) => {
+    await page.goto('/category/confectionery')
+
+    await expect(page.getByRole('heading', { name: 'Category not found' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Return to the food guide' })).toBeVisible()
+  })
+
+  test('returns the unchanged vegetarian entry set for a migrated food on a filtered URL', async ({ page }) => {
+    await page.goto('/?v=1&scope=vegetarian-suitability&q=gelatin')
+
+    const gelatinCard = foodCard(page, 'Gelatin')
+    await expect(gelatinCard).toBeVisible()
+    await expect(gelatinCard.getByText('Contains animal-derived ingredients')).toBeVisible()
+    await expect(gelatinCard.getByText('Gelatin is an animal-derived gelling ingredient.')).toBeVisible()
   })
 
   test('removes unavailable URL constraints without dropping valid search text', async ({ page }) => {

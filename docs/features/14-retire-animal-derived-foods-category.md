@@ -1,6 +1,6 @@
 # F-14: Retire the Animal-Derived Ingredients Category
 
-**Status:** Planned
+**Status:** Done
 
 **Implementation plan:** [F-14 implementation plan](<14-retire-animal-derived-foods-category-plan.md>)
 
@@ -135,10 +135,12 @@ removing any guidance.
   about roots versus children.
 - Resolved: migrated foods with no reviewed pregnancy rule display `Not assessed`, and no pregnancy
   guidance is authored to avoid that.
-- **Needs review before publication:** `Confectionery`, `Ingredients and additives`, `Soups`,
+- **Reviewed and accepted before publication:** `Confectionery`, `Ingredients and additives`, `Soups`,
   `Baked desserts`, and `Alcoholic drinks` are editorial groupings this feature invents, not headings
-  any reviewed source states. They must read as neutral browse headings and must never be presented as
-  something a source claims.
+  any reviewed source states. A maintainer reviewed them on 2026-08-08 and confirmed they read as
+  neutral browse headings, carry no assessment, scope statement, or citation, and are never presented
+  as something a source claims. The `Ingredients and additives` placement was confirmed rather than
+  overturned.
 - Resolved, reversibly: `Gelatin` and `White sugar` go to `Ingredients and additives`. The heading is
   the weakest of the new ones, but it names a food group rather than a reason for assessment, which is
   the point of the feature. Overturning it in favour of `Miscellaneous` moves two `primaryCategoryId`

@@ -1,7 +1,48 @@
 # F-14 Implementation Plan: Retire the Animal-Derived Ingredients Category
 
 **Feature:** [F-14](<14-retire-animal-derived-foods-category.md>)
-**Status:** Approved, not started
+**Status:** Implemented, content-reviewed, and verified
+
+## Implementation record
+
+Delivered on `agents/f14-retire-animal-derived-category`. Three findings changed the plan as written;
+each is a fact the plan could not know before the migration was attempted.
+
+1. **Two foods gain inherited pregnancy guidance.** `breads` and
+   `commercial-sauces-dressings-and-spreads` both carry their own cited pregnancy rule, so `tortillas`
+   now resolves to the green `Breads` rule and `worcestershire-sauce` to the amber commercial-sauces
+   rule, instead of `Not assessed`. No guidance was authored: both foods simply now sit under a group
+   that already had a reviewed rule, which is exactly the resolution order working as designed. Each
+   is asserted explicitly in `migrationInvariant.test.ts` rather than exempted, and the eleven other
+   migrated foods are asserted to resolve byte-identically to their pre-migration baseline.
+2. **Tasks 2-4 were committed together, not separately.** The plan wanted the root renumbering
+   isolated, but a contiguous alphabetical root sequence cannot exist while the retired root is still
+   present, and Zod validation runs at module load, so the intermediate states do not build. The
+   category additions, re-parenting, renumbering, and deletion are therefore one commit.
+3. **Two planned assertions did not match the application.** `FoodDetailPage` renders no category
+   path, so the path assertion moved to the catalogue's category-filter breadcrumbs and the domain
+   tree test; the detail-page test instead asserts the inherited group rule a migrated food now
+   discloses. `/category/confectionery` is deliberately not routable, because unassessed categories
+   are plain browse headings, so the Playwright scenario asserts that not-found behaviour rather than
+   a category page.
+
+An existing alias-uniqueness test was relaxed from "reaches exactly one entry" to "reaches at most one
+assessed entry, and never entries with differing guidance". `commercial mayonnaise` now legitimately
+reaches both the assessed commercial-sauces category and its one inheriting descendant food; the
+relaxed assertion keeps the real intent, which is that an alias never surfaces conflicting advice.
+
+Validation: 154 unit tests pass, 49 Chromium Playwright tests pass including the WCAG 2.2 AA axe
+scans, `typecheck`, `lint`, and `build` are clean, and coverage holds at 100% statements, branches,
+functions, and lines.
+
+Content review: a maintainer reviewed the five invented headings on 2026-08-08 and accepted them as
+neutral browse headings, confirming rather than overturning the `Ingredients and additives` placement.
+
+Pre-PR `prepare`: run by a subagent against the branch diff. It raised no blockers and four
+documentation-drift findings, all in this plan — a stale status line, a stale affected-areas row, and
+two stale test-list items that still described the pre-implementation assertions for
+`FoodDetailPage` and `/category/confectionery`. Each was corrected in place, and the final re-run
+reported ready to raise with zero findings.
 
 **Governing decisions:** [model food groups as an unbounded category tree](<../decisions/2026-08-04 ADR - model food groups as an unbounded category tree.md>), [use independent guidance lists for food assessments](<../decisions/2026-08-04 ADR - use independent guidance lists for food assessments.md>), [assess categories as first-class subjects with inherited guidance](<../decisions/2026-08-06 ADR - assess categories as first-class subjects with inherited guidance.md>), [store reviewed guide content as version-controlled static data](<../decisions/2026-08-04 ADR - store reviewed guide content as version-controlled static data.md>), and [resolve unassessed guidance from a single not-assessed state](<../decisions/2026-08-07 ADR - resolve unassessed guidance from a single not-assessed state.md>)
 
@@ -94,7 +135,7 @@ exists (`breads` has none today, `fruit-juice-kombucha-and-cider` has none today
 | `src/domain/migrationInvariant.test.ts` | Confirm the existing pre-migration invariant still passes unchanged; extend only if it is scoped to prior features. |
 | `src/domain/search.test.ts` | Each migrated food is still reached by name and existing aliases. |
 | `src/features/catalogue/CataloguePage.test.tsx` | No retired heading; new roots render in alphabetical position; migrated foods render under their new parents. |
-| `src/features/food-detail/FoodDetailPage.test.tsx` | A migrated food's category path shows its new ancestry. |
+| `src/features/food-detail/FoodDetailPage.test.tsx` | A migrated food discloses the group rule it now inherits. The page renders no category path, so ancestry is asserted in the catalogue filter breadcrumbs and the domain tree test instead. |
 | `e2e/catalogue.spec.ts` | Replace the line-14 expansion of the retired heading with a real food group; add a browse-to-migrated-food scenario and a vegetarian-scoped filtered URL. |
 
 No change to `src/domain/` production code, `src/app/`, any component, the URL contract, or
@@ -200,7 +241,10 @@ React Testing Library:
 12. `CataloguePage` renders the twelve roots in alphabetical order, including the three new ones.
 13. `CataloguePage` shows `Orange juice` once, under `Fruit juice, kombucha and cider
     (non-alcoholic)`, and no juice entry outside the drinks subtree.
-14. `FoodDetailPage` shows a migrated food's new category path.
+14. `CataloguePage` offers each new food group as a category filter under its full authored path, and
+    `FoodDetailPage` discloses the group rule a migrated food now inherits. Amended during
+    implementation: `FoodDetailPage` renders no category path, so the path assertion lives in the
+    catalogue's filter breadcrumbs and in the domain tree test instead.
 15. Filtering by the vegetarian scope returns the same entry set and the same announced result count
     as before the migration.
 
@@ -208,8 +252,10 @@ Chromium Playwright, `e2e/catalogue.spec.ts`:
 
 16. Line 14's expansion of the retired heading is retargeted at a real food group and the surrounding
     scenario still passes.
-17. Browse from the catalogue into a migrated food through its new category, and load
-    `/category/confectionery` directly.
+17. Browse from the catalogue into a migrated food through its new category, and confirm
+    `/category/confectionery` is not routable. Amended during implementation: an unassessed category
+    is a plain browse heading rather than a guide entry, so the direct load correctly reaches the
+    category-not-found page rather than a category page.
 18. A vegetarian-scoped filtered URL returns the unchanged entry set. The axe 2.2 AA scans cover the
     new headings.
 

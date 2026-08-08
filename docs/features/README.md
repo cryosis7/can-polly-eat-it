@@ -39,7 +39,7 @@ feature IDs below, must not reference the feature itself, and must not form a cy
 | F-11 | [Make the browse hierarchy legible and collapsible](<11-make-browse-hierarchy-legible.md>) | Done | F-01, F-09 | See every entry under the group it belongs to, and collapse the groups you do not need. |
 | F-12 | [Lift group-level guidance onto categories](<12-lift-group-guidance-onto-categories.md>) | Done | F-04, F-09, F-11 | Show a group-wide rule once against its group instead of repeating it on near-identical entries. |
 | F-13 | [Surface raw-egg foods where people browse for them](<13-surface-raw-egg-foods.md>) | Done | F-04, F-12 | Find raw-egg sauces, desserts, and drinks in the categories you browse, not only under eggs. |
-| F-14 | [Retire the animal-derived ingredients category](<14-retire-animal-derived-foods-category.md>) | Planned | F-04, F-12, F-13, F-15 | Find every food under what it is, not under why it was assessed. |
+| F-14 | [Retire the animal-derived ingredients category](<14-retire-animal-derived-foods-category.md>) | Done | F-04, F-12, F-13, F-15 | Find every food under what it is, not under why it was assessed. |
 | F-15 | [Retire the outside-coverage state](<15-retire-outside-coverage-state.md>) | Done | F-08, F-12, F-13 | Get one plain answer when a guide has nothing to say about a food. |
 | F-16 | [Express guidance that accumulates across subject levels](<16-express-accumulating-guidance.md>) | Done | F-04, F-09 | See every instruction a source gives about a food, not only its most specific one. |
 

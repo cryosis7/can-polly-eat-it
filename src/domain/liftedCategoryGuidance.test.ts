@@ -19,6 +19,13 @@ const entriesMatching = (query: string) => [
     .map((category) => `category:${category.id}`),
 ]
 
+const resolveMatch = (match: string) => {
+  const [kind, id] = match.split(/:(.*)/s)
+  return kind === 'food'
+    ? resolveAssessment({ kind: 'food', food: foodById(id) }, pregnancy, index)
+    : resolveAssessment({ kind: 'category', category: categoryById(id) }, pregnancy, index)
+}
+
 describe('guidance lifted onto categories', () => {
   it('makes the merged pasteurised cheese foods inherit one rule with its origin disclosed', () => {
     for (const foodId of ['cottage-cheese', 'cream-cheese']) {
@@ -85,7 +92,7 @@ describe('guidance lifted onto categories', () => {
     expect(index.assessedCategoryIds.has('sauces-dressings-and-spreads')).toBe(false)
   })
 
-  it('reaches each migrated alias on exactly one entry, and never on entries with differing statuses', () => {
+  it('reaches each migrated alias on one assessed entry, and never on entries with differing guidance', () => {
     const migratedAliases = [
       'mince',
       'raw chicken',
@@ -100,7 +107,17 @@ describe('guidance lifted onto categories', () => {
 
     for (const alias of migratedAliases) {
       const matches = entriesMatching(alias)
-      expect(matches, `alias "${alias}" should reach exactly one guide entry`).toHaveLength(1)
+      expect(matches.length, `alias "${alias}" should reach at least one guide entry`).toBeGreaterThan(0)
+
+      const assessedMatches = matches.filter((match) => resolveMatch(match).origin.kind === 'own')
+      expect(assessedMatches.length, `alias "${alias}" should reach no more than one assessed guide entry`)
+        .toBeLessThanOrEqual(1)
+
+      const guidance = matches.map((match) => {
+        const resolved = resolveMatch(match)
+        return `${resolved.status.id}|${resolved.assessment?.summary ?? ''}`
+      })
+      expect(new Set(guidance).size, `alias "${alias}" reaches entries with differing guidance`).toBe(1)
     }
   })
 

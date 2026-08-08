@@ -117,6 +117,15 @@ describe('FoodDetailPage', () => {
     )
   })
 
+  it('discloses the group rule a migrated food now inherits from its real food group', () => {
+    renderDetail('/food/worcestershire-sauce?v=1&scope=pregnancy-food-safety,vegetarian-suitability')
+
+    expect(screen.getByRole('heading', { name: 'Worcestershire sauce' })).toBeInTheDocument()
+    expect(screen.getByText(/Refrigerate opened products and follow their manufacturer storage/)).toBeInTheDocument()
+    expect(screen.getByText(/Applies to commercially manufactured sauces, dressings and spreads\./)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'See Commercial sauces, dressings and spreads guidance' })).toBeInTheDocument()
+  })
+
   it('renders distinct guidance scenarios, optional facts, and authored reason links', () => {
     renderDetail('/food/fresh-filled-pasta?v=1&scope=pregnancy-food-safety', detailedContent)
 

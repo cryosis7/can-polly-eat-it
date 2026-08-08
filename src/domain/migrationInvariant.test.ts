@@ -80,11 +80,20 @@ const rawEggFoodIds = [
 ]
 
 /**
- * Foods whose guidance F-13 and F-16 deliberately change. Panna cotta moves from a root outside
+ * Foods whose guidance F-13, F-14 and F-16 deliberately change. Panna cotta moves from a root outside
  * pregnancy coverage into `Cold desserts`, which is inside it. The two footnoted shellfish gain the
- * group's cooking instruction as a second layer, which F-16 exists to surface.
+ * group's cooking instruction as a second layer, which F-16 exists to surface. Tortillas and
+ * Worcestershire sauce leave the retired animal-derived root for real food groups that carry their
+ * own cited pregnancy rule, so each inherits that rule instead of the not-assessed fallback. Every
+ * one of these changes is asserted explicitly below rather than merely exempted.
  */
-const intentionallyChangedFoodIds = ['panna-cotta', 'bluff-and-pacific-oysters', 'queen-scallops']
+const intentionallyChangedFoodIds = [
+  'panna-cotta',
+  'bluff-and-pacific-oysters',
+  'queen-scallops',
+  'tortillas',
+  'worcestershire-sauce',
+]
 
 /**
  * Statuses retired by F-15, which collapsed the two grey fallback states into one. A baseline entry
@@ -181,6 +190,61 @@ describe('guidance migration invariant', () => {
       expect(after.scenarios, foodId).toEqual(before.scenarios)
       expect(after.citations, foodId).toEqual(before.citations)
     }
+  })
+
+  it('changes the two F-14 foods only by inheriting their new group rule, leaving vegetarian guidance intact', () => {
+    const inheritedPregnancyRule: Record<string, { statusId: string, locator: string }> = {
+      tortillas: { statusId: 'pregnancy-ok', locator: 'Breads and cereals: Breads' },
+      'worcestershire-sauce': {
+        statusId: 'pregnancy-conditions',
+        locator: 'Miscellaneous: Sauces, dressings and spreads',
+      },
+    }
+
+    for (const [foodId, expected] of Object.entries(inheritedPregnancyRule)) {
+      const before = baseline[foodId]
+      const after = resolveForFood(foodId)
+
+      expect(before['pregnancy-food-safety'].statusId, foodId).toBe('pregnancy-not-assessed')
+      expect(after['pregnancy-food-safety'].statusId, foodId).toBe(expected.statusId)
+      expect(after['pregnancy-food-safety'].citations.map((citation) => citation.locator), foodId)
+        .toEqual([expected.locator])
+      expect(after['vegetarian-suitability'], foodId).toEqual(before['vegetarian-suitability'])
+    }
+  })
+
+  it('leaves every other F-14 migrated food resolving exactly as it did before the move', () => {
+    const unchangedByTheMove = [
+      'apple-pie',
+      'french-fries',
+      'gelatin',
+      'gummy-bears',
+      'jelly',
+      'marshmallows',
+      'orange-juice',
+      'starburst',
+      'vegetable-soup',
+      'white-sugar',
+      'wine-and-beer',
+    ]
+
+    for (const foodId of unchangedByTheMove) {
+      expect(resolveForFood(foodId), `guidance changed for migrated food "${foodId}"`)
+        .toEqual(baseline[foodId])
+      expect(resolveForFood(foodId)['pregnancy-food-safety'].statusId, foodId)
+        .toBe('pregnancy-not-assessed')
+    }
+  })
+
+  it('retires the animal-derived root without leaving any reference to it', () => {
+    const retiredCategoryId = 'foods-that-may-contain-animal-derived-ingredients'
+
+    expect(content.categories.some((category) => category.id === retiredCategoryId)).toBe(false)
+    expect(content.categories.some((category) => category.parentId === retiredCategoryId)).toBe(false)
+    expect(content.foods.some((food) => food.primaryCategoryId === retiredCategoryId)).toBe(false)
+    expect(content.assessments.some((assessment) =>
+      assessment.subject.kind === 'category' && assessment.subject.categoryId === retiredCategoryId,
+    )).toBe(false)
   })
 
   it('collapses the retired outside-coverage state onto not-assessed and nothing else', () => {
