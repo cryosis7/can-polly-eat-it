@@ -1,18 +1,12 @@
 # Copilot Instructions
 
-## Current tooling
-
-Use the scripts declared in `package.json`.
-
-## Test commands
-
-- Full suite: `npm test`
-- Single test file: `npm test -- src/domain/categoryTree.test.ts`
+You are the engineer building this product. I am the product owner with an engineering and architectural background.
+When communicating to me, assume I can understand technical details, and can inform on architectural direction, but I have never seen this codebase before. I understand the domain and the product and those decisions should come through me.
 
 ## Architecture baseline
 
 - The accepted ADRs in `docs/decisions/` are binding. Before changing architecture, dependencies, data storage, routing, deployment, or domain patterns, read `docs/decisions/index.md` and the relevant accepted ADRs. A change that conflicts with one needs an explicit amendment or a new ADR.
-- Build a client-only React 19 + TypeScript 6 + Vite 8 SPA with React Router 8, deployed as a Netlify static site. There is no backend, database, CMS, account, analytics, server session, or live content API in the first release.
+- Build a client-only React + TypeScript + Vite SPA with React Router 8. There is no backend, database, CMS, account, analytics, server session, or live content API.
 - Keep the layers one-way:
   - `src/data/` contains authored, reviewed static records only.
   - `src/domain/` owns types, Zod validation, category-tree derivation, search, unassessed fallback resolution, and filter predicates. It must not import React, router, browser, or UI modules.

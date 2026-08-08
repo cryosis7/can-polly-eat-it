@@ -17,24 +17,28 @@ and [F-07](../../../docs/features/07-ai-assisted-guidance-list-curation.md).
 - Accept only a maintainer-supplied HTTPS source URL. Do not search the web for alternative or
   corroborating sources.
 - You may read the supplied page and pages directly linked from it on the same official domain. Do
-  not follow another link depth or any off-domain link. Record every page you use.
-- Do not add a network request, scraper, content API, CMS, browser editor, runtime mutation, commit,
-  publication, or deployment.
+  not follow another link depth or any off-domain link.
 - Do not infer an assessment from a food name, category, ingredient, reason link, common knowledge,
   or a source's omission. Do not turn ambiguity into a favourable result.
 - Paraphrase source material concisely; do not copy substantive source prose into the application.
 - Stop and ask the maintainer for guidance when the source is inaccessible, conflicting, ambiguous,
-  incomplete, brand-specific, unsupported, or does not establish the requested list's authority.
+  incomplete, brand-specific, unsupported.
 
 ## Required input
 
 Before editing, establish all of the following:
 
-1. The supplied HTTPS source URL and why its publisher is authoritative for the requested
-   guidance perspective.
+1. The supplied HTTPS source URL
 2. The list title and purpose, or the existing list being extended.
-3. The intended list-owned status vocabulary for a new list.
+3. For a new list: its status vocabulary, its `citationPolicy`, and, when that policy is
+   `optional`, its `evidentiaryBasis`.
 4. The intended coverage: all catalogue foods or named categories and/or foods.
+
+A list owns its own status labels, but the vocabulary is not free-form. Every status maps to exactly
+one generic outcome band (`okay`, `maybe`, `not-okay`, `not-assessed`), and each list must own one
+grey `not-assessed` status, referenced by `unassessedStatusId`, with an authored `unassessedNotice`.
+A new list therefore proposes list-specific wording for the existing bands; it never proposes a new
+band. Confirm the band mapping with the maintainer before drafting.
 
 Ask one focused question at a time for any missing input. A credible URL alone is not proof that it
 supports the requested perspective; for example, pregnancy guidance cannot establish vegetarian
@@ -48,48 +52,45 @@ the requested perspective.
 
 ## Drafting workflow
 
-1. Read `docs/decisions/index.md`, the accepted decisions named above,
-   `docs/features/07-ai-assisted-guidance-list-curation.md`, `src/domain/schemas.ts`,
-   `src/domain/contentValidation.ts`, and the relevant `src/data/` files.
-2. Retrieve the supplied page. Before using any directly linked page, confirm it remains on the same
-   official domain and record its URL and the link that led to it.
-3. Build an evidence table before writing data. For each proposed list, coverage declaration, and
+1. Retrieve the supplied page, record its URL and the link that led to it.
+2. Build an evidence table before writing data. For each proposed list, coverage declaration, and
    food assessment, record:
    - source URL and exact locator;
-   - the source-supported status and concise paraphrase;
+   - the source-supported status, its generic outcome band, and a concise paraphrase;
    - conditions or alternative scenarios;
    - uncertainties requiring maintainer review.
-4. Check whether each named item already exists in `src/data/foods.ts`. Reuse the canonical food
-   record where possible. Add a food or category only when the source and the intended coverage
-   require it; do not duplicate the catalogue for a new list.
-5. Create or update `GuidanceList` data with list-owned statuses, distinct grey `Not assessed` and
-   `Outside current coverage` fallbacks, explicit coverage, an explicit `citationPolicy`, and
-   citations. Do not use a fallback status on an assessment.
-6. Create only source-supported `Assessment` records, whose subject is one food or one category. Each
-   requires an independent citation **regardless of the target list's `citationPolicy`**, because
-   this skill works from a maintainer-supplied source; an uncited generated claim is fabrication, not
-   maintainer knowledge. Each also requires a list-owned non-fallback status, a concise paraphrase,
-   and separate guidance scenarios for alternatives. A category subject additionally requires a
-   `scopeStatement` naming the breadth of the claim, and the source must actually support a claim
-   that broad. Keep uncertain in-scope foods unassessed or use an explicit, source-supported
-   review/check-ingredients outcome.
-7. When adding a food beneath a category that is already assessed, confirm the inherited outcome is
-   correct for that specific food. If it is not, author a food-level assessment; a food-level
-   assessment replaces the category's guidance entirely.
-8. Use a reason link only when the source supports the assessed food's own conclusion and its target
+3. Check whether each named food item already exists in `src/data/foods.ts`. Reuse the canonical food
+   record where possible. Add a food or category only when the source does not have a suitable place to slot the new item.
+4. Create or update `GuidanceList` data with list-owned statuses mapped to generic outcome bands.
+5. Author one `Assessment` per `(subject, guidanceListId)`, where the subject is exactly one food or
+   one category. A category assessment requires an authored `scopeStatement`; a food assessment must
+   not have one. Attach a citation with a durable HTTPS URL and exact locator whenever the list's
+   `citationPolicy` is `required`. Never merge statuses, summaries, scenarios, conditions, or
+   citations across subject levels or across guidance lists.
+6. When adding a food beneath a category that is already assessed, confirm the inherited outcome is
+   correct for that specific food. If it is not, author a food-level assessment and choose its
+   `relation` deliberately: the default `replaces` supersedes the ancestor's guidance entirely, while
+   `adds-to` keeps the nearest assessment's status and displays the inherited guidance as a separate,
+   fully attributed layer.
+7. Use a reason link only when the source supports the assessed food's own conclusion and its target
    is an existing canonical food. A reason link never supplies a status or citation by itself.
-9. Update focused domain, rendering, and browser tests when the draft adds a visible list or changes
-   an assessment outcome. Run the narrowest existing relevant checks first, then `npm run
-   test:coverage`, `npm run test:e2e`, and `npm run build` for user-visible content. Report each
-   command and its outcome; surface a failure rather than treating the draft as validated.
+8. Prefer the smallest set of records that expresses the source faithfully:
+   - A `(subject, guidanceListId)` pair may only be assessed once. When the source repeats advice
+     already assessed for that subject and list, cite the additional locator on the existing
+     assessment instead of authoring a second one, and surface any wording change for maintainer
+     review rather than silently rewriting reviewed guidance.
+   - When several sibling foods share genuinely identical advice, propose one category assessment
+     with a `scopeStatement` rather than repeating per-food assessments.
+   - Merge only where the source treats the items identically. Differing conditions, scenarios, or
+     strength of wording are distinct advice: keep them as separate records and let the maintainer
+     decide.
+   - Never merge across guidance lists, and never reuse one food record for two foods the source
+     distinguishes.
 
 ## Review gate
 
-After drafting and validation, stop. Do not commit or publish the changes. Ask the maintainer to
-review the source evidence and working-tree diff, specifically confirming each list status, coverage
-claim, assessment, citation locator, paraphrase, and unresolved item. Do not
-silently omit an unsupported item from the review packet: identify it as excluded or unassessed and
-explain why.
+After drafting and validation, stop. Do not commit or publish the changes. Present the maintainer with a 
+summary of the proposed changes, the evidence table, and any items needing a decision. Ask for explicit approval before committing or publishing.
 
 ## Required final response
 
@@ -106,9 +107,9 @@ End every invocation with this review packet:
 - [URL] — exact locator(s) used
 
 ### Claim-by-claim evidence
-| Record | Proposed status or coverage | Source URL and exact locator | Paraphrase or condition |
-| --- | --- | --- | --- |
-| ... | ... | ... | ... |
+| Record | Proposed status or coverage | Outcome band | Source URL and exact locator | Paraphrase or condition | Inherited advice |
+| --- | --- | --- | --- | --- | --- |
+| ... | ... | ... | ... | ... | ... |
 
 ### Proposed content changes
 - Lists:
