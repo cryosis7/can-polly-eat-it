@@ -1,6 +1,10 @@
 import { Link } from 'react-router'
-import type { ResolvedAssessment } from '../domain/assessment'
+import type { AssessmentOrigin, GuidanceLayer, ResolvedAssessment } from '../domain/assessment'
 import type { GuidanceList } from '../domain/schemas'
+
+type InheritedLayer = GuidanceLayer & { origin: Extract<AssessmentOrigin, { kind: 'inherited' }> }
+
+const isInheritedLayer = (layer: GuidanceLayer): layer is InheritedLayer => layer.origin.kind === 'inherited'
 
 export type GuideEntrySummaryProps = {
   guidanceList: GuidanceList
@@ -17,10 +21,9 @@ const statusIcon = {
 
 export const GuideEntrySummary = ({ guidanceList, resolved, returnSearch }: GuideEntrySummaryProps) => {
   const citations = resolved.assessment?.citations ?? guidanceList.unassessedNotice.citations
-  // With more than one layer the broadest is always an ancestor category, because the nearest
-  // assessment is ordered last.
-  const broadestOrigin = resolved.layers.length > 1 ? resolved.layers[0].origin : undefined
-  const groupCategory = broadestOrigin?.kind === 'inherited' ? broadestOrigin.category : undefined
+  // Every layer before the last is an ancestor category, because the nearest assessment is ordered
+  // last. Each accumulated layer states its own authored summary; layers are never merged.
+  const accumulatedLayers = resolved.layers.slice(0, -1).filter(isInheritedLayer)
 
   return (
     <section className="food-guidance">
@@ -38,14 +41,14 @@ export const GuideEntrySummary = ({ guidanceList, resolved, returnSearch }: Guid
           </Link>
         </p>
       )}
-      {groupCategory && (
-        <p className="accumulated-note">
-          Further {groupCategory.name} guidance also applies.{' '}
-          <Link to={`/category/${groupCategory.slug}?${returnSearch}`}>
-            See {groupCategory.name} guidance
+      {accumulatedLayers.map(({ assessment, origin }) => (
+        <p className="accumulated-note" key={assessment.id}>
+          {assessment.summary}{' '}
+          <Link to={`/category/${origin.category.slug}?${returnSearch}`}>
+            See {origin.category.name} guidance
           </Link>
         </p>
-      )}
+      ))}
       {citations.length > 0 && (
         <a href={citations[0].url} target="_blank" rel="noreferrer">
           Primary source: {citations[0].title}

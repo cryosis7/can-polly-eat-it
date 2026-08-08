@@ -127,8 +127,8 @@ layer holding more than one scenario introduces them as **"Follow whichever appl
 - Bad, because it amends an accepted ADR's total-override rule, and the boundary between *authored
   accumulation of cited statements* and *forbidden blending* now has to be understood by every future
   author and agent.
-- Bad, because the browse view shows only one summary, so an accumulated food needs an explicit marker
-  or its catalogue entry understates its guidance.
+- Bad, because the browse view shows only one summary, so an accumulated food's card must also state
+  each inherited layer's summary or its catalogue entry understates its guidance.
 - Bad, because `GuidanceSection` gains a nesting level, taking scenario applicability headings to `h6`.
 
 ## Decision Drivers
@@ -212,8 +212,8 @@ layer holding more than one scenario introduces them as **"Follow whichever appl
   "all of the following apply" heading and one block per layer carrying the layer's scope statement or
   the food's name, the layer's summary, its scenarios, and its citation; introduce a layer's scenarios
   with "Follow whichever applies" when it has more than one. The `Sources` list aggregates every
-  layer's citations, de-duplicated by URL and locator. `GuideEntrySummary` shows a marker that further
-  group guidance applies when `layers.length > 1`.
+  layer's citations, de-duplicated by URL and locator. `GuideEntrySummary` shows each inherited layer's
+  own authored summary, with a link to its origin category, when `layers.length > 1`.
 
 - **Content**: lift the freshly-cooked-seafood group rule onto the `freshly-cooked-seafood` category
   with an authored `scopeStatement`, retire its mirror food record, and set `relation: 'adds-to'` on
@@ -230,7 +230,7 @@ layer holding more than one scenario introduces them as **"Follow whichever appl
   `src/domain/contentValidation.test.ts` for both new failure rules.
   `src/components/GuidanceSection` tests, via `FoodDetailPage.test.tsx`, for layered rendering, the
   multi-scenario layer heading, and de-duplicated sources.
-  `CataloguePage.test.tsx` for the accumulated-entry marker.
+  `CataloguePage.test.tsx` for the accumulated entry showing the inherited summary.
   `e2e/catalogue.spec.ts` for the oysters detail route showing both instructions, and
   `e2e/accessibility.spec.ts` extended to scan it. Repository-wide 100% statements, branches,
   functions, and lines coverage for application source must be retained.

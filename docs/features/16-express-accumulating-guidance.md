@@ -79,9 +79,10 @@ this question must be answered correctly.
   crayfish, scallops, etc` category with an authored `scopeStatement`, and its mirror food record is
   retired. Without this there is no ancestor guidance for the footnoted shellfish to accumulate from.
   [F-12](<12-lift-group-guidance-onto-categories.md>) deliberately excludes this work.
-- An accumulated food's catalogue entry shows its own summary plus a marker that further group
-  guidance applies, because the browse view renders only a status and one summary and would otherwise
-  understate the guidance.
+- An accumulated food's catalogue entry shows its own summary plus each inherited layer's authored
+  summary and a link to that layer's origin category, because the browse view renders only a status and
+  one summary and would otherwise understate the guidance. The summaries are shown whole and side by
+  side; neither is reworded or merged into the other.
 - A food resolves to exactly one status and one outcome band, so search, filtering, and the result
   count are unaffected. The feature must define which status governs when an additive rule and its
   inherited rule differ, and that resolution must be authored or deterministic, never averaged.

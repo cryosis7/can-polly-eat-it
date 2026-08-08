@@ -25,11 +25,14 @@ cannot appear on an authored assessment — an existing rule already rejects a f
 assessment — so it needs no position in the ordering, and the comparison never has to rank a neutral
 band against a real one.
 
-### 3. The catalogue marker is text, not an icon or a colour
+### 3. The catalogue card states the inherited guidance itself
 
-`GuideEntrySummary` gains a plain sentence stating that further group guidance also applies, with the
-existing link to the origin category. It is not a badge, a tooltip, or a colour, because the guide
-never uses colour as the only signal and the browse view must not rely on hover.
+`GuideEntrySummary` renders each inherited layer's own authored summary, with the existing link to the
+origin category, rather than a marker sentence saying that further guidance applies. A reader browsing
+the catalogue therefore sees the group's actual instruction, not just a pointer to it. It is not a
+badge, a tooltip, or a colour, because the guide never uses colour as the only signal and the browse
+view must not rely on hover. Summaries are shown whole and are never merged with the food's own
+summary.
 
 ## Affected areas
 
@@ -39,7 +42,7 @@ never uses colour as the only signal and the browse view must not rely on hover.
 | `src/domain/assessment.ts` | `GuidanceLayer`, `layers` on `ResolvedAssessment`, and the accumulating ancestor walk. |
 | `src/domain/contentValidation.ts` | Reject an `'adds-to'` assessment with no same-list ancestor assessment, and one less restrictive than what it adds to. |
 | `src/components/GuidanceSection.tsx` | Render `layers`; single-layer markup unchanged. |
-| `src/components/GuideEntrySummary.tsx` | Further-group-guidance marker when `layers.length > 1`. |
+| `src/components/GuideEntrySummary.tsx` | Render each inherited layer's authored summary and origin link when `layers.length > 1`. |
 | `src/data/categories.ts` | No change; `freshly-cooked-seafood` already exists as a category. |
 | `src/data/foods.ts` | Retire the `freshly-cooked-seafood` mirror food. |
 | `src/data/assessments.ts` | Lift the group rule onto the category with a `scopeStatement`; set `relation: 'adds-to'` on the two footnoted shellfish; add optional `relation` to both spec helpers. |
@@ -103,8 +106,8 @@ React Testing Library:
     statement and citation, under the "all of the following apply" heading, with de-duplicated sources.
 14. `FoodDetailPage.test.tsx`: a layer with more than one scenario introduces them with
     "Follow whichever applies".
-15. `CataloguePage.test.tsx`: an accumulated food's card shows the further-group-guidance marker, and a
-    single-layer card does not.
+15. `CataloguePage.test.tsx`: an accumulated food's card shows both its own summary and the inherited
+    layer's summary with a link to the origin category, and a single-layer card shows neither.
 
 Chromium Playwright:
 
@@ -119,7 +122,7 @@ Chromium Playwright:
 4. Migrate the seafood content: lift the group rule onto the category, retire the mirror food, and set
    `relation: 'adds-to'` on the two footnoted shellfish. Add tests 10-12 and update the migration
    invariant to record the retirement and the intended change.
-5. Render layers in `GuidanceSection` and the marker in `GuideEntrySummary`. Add tests 13-15.
+5. Render layers in `GuidanceSection` and the inherited summaries in `GuideEntrySummary`. Add tests 13-15.
 6. Add the Playwright scenarios 16-17.
 7. Content review gate, before the pull request: a human reviewer confirms against the source that the
    MPI seafood footnote is genuinely additive rather than a carve-out. Record the outcome in the brief.
