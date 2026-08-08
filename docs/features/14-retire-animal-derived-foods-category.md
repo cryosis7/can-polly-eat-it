@@ -1,6 +1,8 @@
 # F-14: Retire the Animal-Derived Ingredients Category
 
-**Status:** Proposed
+**Status:** Planned
+
+**Implementation plan:** [F-14 implementation plan](<14-retire-animal-derived-foods-category-plan.md>)
 
 **Depends on:** [F-04: Maintain Trustworthy Guidance Content](<04-maintain-trustworthy-guidance-content.md>), [F-12: Lift Group-Level Guidance onto Categories](<12-lift-group-guidance-onto-categories.md>), [F-13: Surface Raw-Egg Foods Where People Browse for Them](<13-surface-raw-egg-foods.md>), [F-15: Retire the Outside-Coverage State](<15-retire-outside-coverage-state.md>)
 
@@ -137,9 +139,11 @@ removing any guidance.
   `Baked desserts`, and `Alcoholic drinks` are editorial groupings this feature invents, not headings
   any reviewed source states. They must read as neutral browse headings and must never be presented as
   something a source claims.
-- Open: `Gelatin` and `White sugar` are ingredients rather than dishes, and `Ingredients and
-  additives` is the weakest of the new headings. If review prefers it, both could sit directly under
-  `Miscellaneous` instead, at the cost of a less legible browse tree.
+- Resolved, reversibly: `Gelatin` and `White sugar` go to `Ingredients and additives`. The heading is
+  the weakest of the new ones, but it names a food group rather than a reason for assessment, which is
+  the point of the feature. Overturning it in favour of `Miscellaneous` moves two `primaryCategoryId`
+  values and deletes one category, so the content review gate in the implementation plan may reverse
+  it without affecting anything else.
 
 ## Acceptance criteria
 
