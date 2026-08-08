@@ -64,21 +64,61 @@ const foodGroups: FoodGroup[] = [
     ],
   },
   {
-    categoryId: 'foods-that-may-contain-animal-derived-ingredients',
+    categoryId: 'confectionery',
     foods: [
-      { id: 'apple-pie', name: 'Apple pie' },
-      { id: 'french-fries', name: 'French fries', aliases: ['chips'] },
-      { id: 'gelatin', name: 'Gelatin', aliases: ['gelatine'] },
       { id: 'gummy-bears', name: 'Gummy bears' },
       { id: 'jelly', name: 'Jelly', aliases: ['jello'] },
       { id: 'marshmallows', name: 'Marshmallows' },
-      { id: 'orange-juice', name: 'Orange juice' },
       { id: 'starburst', name: 'Starburst' },
-      { id: 'tortillas', name: 'Tortillas' },
-      { id: 'vegetable-soup', name: 'Vegetable soup', aliases: ['vegetable soups'] },
+    ],
+  },
+  {
+    categoryId: 'ingredients-and-additives',
+    foods: [
+      { id: 'gelatin', name: 'Gelatin', aliases: ['gelatine'] },
       { id: 'white-sugar', name: 'White sugar' },
+    ],
+  },
+  {
+    categoryId: 'soups',
+    foods: [
+      { id: 'vegetable-soup', name: 'Vegetable soup', aliases: ['vegetable soups'] },
+    ],
+  },
+  {
+    categoryId: 'baked-desserts',
+    foods: [
+      { id: 'apple-pie', name: 'Apple pie' },
+    ],
+  },
+  {
+    categoryId: 'alcoholic-drinks',
+    foods: [
       { id: 'wine-and-beer', name: 'Wine and beer', aliases: ['wine', 'beer'] },
+    ],
+  },
+  {
+    categoryId: 'fruit-juice-kombucha-and-cider',
+    foods: [
+      { id: 'orange-juice', name: 'Orange juice' },
+    ],
+  },
+  {
+    categoryId: 'breads',
+    foods: [
+      { id: 'tortillas', name: 'Tortillas' },
+    ],
+  },
+  {
+    categoryId: 'commercial-sauces-dressings-and-spreads',
+    foods: [
       { id: 'worcestershire-sauce', name: 'Worcestershire sauce' },
+    ],
+  },
+  {
+    categoryId: 'miscellaneous',
+    foods: [
+      { id: 'french-fries', name: 'French fries', aliases: ['chips'] },
     ],
   },
   {
