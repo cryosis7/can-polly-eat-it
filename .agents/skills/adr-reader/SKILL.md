@@ -9,21 +9,17 @@ This skill helps with **reading, consulting, and enforcing** existing ADRs. It d
 is the job of the sibling **adr-writer** skill. Its only job is making sure the decisions already
 recorded in the repo are found, understood, and respected.
 
-ADRs generally live under `docs/decisions/` (or sometimes `contributing/decisions/`, `adr/`, `docs/adr/`, `decisions/`) with one file per decision. Each has a **Status** (`Proposed`,
+ADRs live under `docs/decisions/`, one file per decision. Each has a **Status** (`Proposed`,
 `Accepted`, `Rejected`, `Superseded`, `Deprecated`) and sections including **Context and Problem
 Statement**, **Considered Options**, **Decision Outcome** with **Consequences**, and sometimes an
 **Implementation Plan** and **Confirmation** checklist.
 
-The directory usually also has an **index** (an `index.md`) that maps each ADR to a
+The directory also has an **index** (`index.md`) that maps each ADR to a
 one-line summary of its decision. **Scan the index first and open only the ADRs it flags as relevant,
 rather than reading every file.** That is the whole point of the index.
 
-## Why This Matters
-
 An ADR is an executable specification: a human approved a decision, and agents are expected to build
-code that honours it. Reading ADRs before you act keeps the codebase coherent and stops you from
-silently undoing a deliberate choice. If you skip this step you risk reintroducing a rejected option,
-contradicting an accepted decision, or duplicating a pattern that already has a mandated home.
+code that honours it.
 
 ## When to Consult ADRs
 
@@ -34,15 +30,13 @@ Consult the ADRs when any of these are true:
 - When you encounter a pattern in the code and wonder "why is it done this way?"
 - Before proposing a change that might contradict an existing decision
 - When a human says "check the ADRs" or "there's a decision about this"
-- When you find an ADR reference in a code comment or PR description
+- When you find an ADR reference in a code comment or commit message
 - Before introducing a new dependency or architectural pattern (an ADR may already govern it, or one
   may need to be written first with adr-writer)
 
 ## How to Consult ADRs
 
-1. **Find the ADR directory and its index.** Check `docs/decisions/` first (the repo default). If
-   that is absent, also check `contributing/decisions/`, `adr/`, `docs/adr/`, and `decisions/`. Look
-   for the ADR index, an `index.md` in that directory that maps each ADR to a one-line
+1. **Find the ADR index.** Read `docs/decisions/index.md`, which maps each ADR to a one-line
    summary and its status.
 
 2. **Scan the index first, then shortlist only what is relevant.** Read the index and use its per-ADR
@@ -53,7 +47,7 @@ Consult the ADRs when any of these are true:
    are not yet binding but signal work in flight.
 
    If there is no index, fall back to scanning filenames and titles (they carry the dated, imperative
-   title, e.g. `2025-06-15 ADR - cache tax form definitions in memory.md`), and consider asking the
+   title, e.g. `2025-06-15 ADR - cache tax form definitions in memory.md`), and ask the
    adr-writer skill to bootstrap an index so future reads are cheaper.
 
 3. **Read the shortlisted ADRs in full.** The index summary is a pointer, not the decision itself,
@@ -82,38 +76,24 @@ Consult the ADRs when any of these are true:
    to be checkable.
 
 8. **Reference the ADR in your work.** When your change is guided by an ADR, cite it in code comments
-   and in the PR description (see below).
+   and in the commit message (see below).
 
 ## Code and ADR Linking
 
-ADRs should be discoverable from the code they govern, and vice versa. When reading, use these links
-to navigate; when writing code guided by an ADR, add them.
+ADRs should be discoverable from the code they govern, and vice versa.
 
-### ADR to Code (in the Implementation Plan)
+An ADR's **Implementation Plan** names the specific files, directories, and patterns the decision
+governs. Use it as your map for where a decision lands and what convention new code there must follow.
 
-The **Implementation Plan** section of an ADR names the specific files, directories, and patterns the
-decision governs. Use it as your map: it tells you where a decision lands and what convention new code
-in that area must follow.
+When you implement or modify code guided by an ADR, add a lightweight comment referencing it:
 
-### Code to ADR (in comments)
-
-When you implement or modify code guided by an ADR, add a lightweight comment referencing it so the
-next agent can find the reasoning:
-
-```csharp
-// ADR: Cache tax form definitions in memory
-// See: docs/decisions/2025-06-15 ADR - cache tax form definitions in memory.md
+```ts
+// ADR: Assess categories as first-class subjects with inherited guidance
+// See: docs/decisions/2026-08-06 ADR - assess categories as first-class subjects with inherited guidance.md
 ```
 
-Keep these lightweight: one comment at the entry point of the governed area, not on every line. The
-goal is discoverability, not noise. When you spot such a comment while reading code, open the
-referenced ADR before changing that code.
-
-### Why bidirectional links matter
-
-- An agent working in a governed area (e.g. `src/db/`) can find which ADRs constrain it.
-- An agent reading an ADR can jump to the code that implements it.
-- When an ADR is superseded, the code references make it easy to find every place that needs updating.
+One comment at the entry point of the governed area, not on every line. When you spot such a comment
+while reading code, open the referenced ADR before changing that code.
 
 ## Handing Off to the Writer
 

@@ -23,20 +23,12 @@ the portfolio view and must agree with every brief.
 
 ## Lifecycle
 
-Use only these statuses:
+`docs/features/README.md` owns the lifecycle definitions and transition rules. Read it before
+changing any status; do not restate or reinterpret it here. In short: statuses are `Idea`,
+`Proposed`, `Planned`, `In progress`, `Done`, and `Deferred`, and a feature cannot reach `Planned` or
+`In progress` while a dependency is not `Done` unless its brief records an approved exception.
 
-| Status | Meaning | Allowed next state |
-| --- | --- | --- |
-| Idea | Captured opportunity, not yet shaped or prioritised. | Proposed, Deferred |
-| Proposed | Outcome, boundaries, and risks are ready for discussion. | Planned, Deferred |
-| Planned | Dependencies are done and a feature-specific implementation plan is approved. | In progress, Deferred |
-| In progress | Work has started against the approved plan. | Done, Deferred |
-| Done | Acceptance criteria and validation are satisfied. | None |
-| Deferred | Intentionally paused with a resumption condition. | Proposed |
-
-Do not move a feature to `Planned` or `In progress` while a dependency is not `Done`, unless the
-brief records an approved exception and rationale. Never mark a feature `Done` from an intention or
-an unverified placeholder.
+Never mark a feature `Done` from an intention or an unverified placeholder.
 
 ## Discovery before editing
 
@@ -70,43 +62,10 @@ confirmation before adding a new feature or making a material scope/status chang
 Use a stable, zero-padded ID and filename such as `06-mobile-filter-disclosure.md`. Add the feature
 and its one-sentence user outcome to the index in the same change.
 
-Use this template:
-
-```markdown
-# F-XX: Imperative feature title
-
-**Status:** Idea | Proposed | Planned | In progress | Done | Deferred
-**Depends on:** None, or [F-YY: Title](<filename.md>)
-**Governing decisions:** Relevant accepted ADR links, or None
-
-## Goal
-
-As a [user], I need [capability] so that [outcome].
-
-## Primary experience
-
-1. ...
-
-## Required behaviour
-
-- ...
-
-## Non-goals
-
-- ...
-
-## Assumptions and open questions
-
-- ...
-
-## Acceptance criteria
-
-- ...
-
-## Validation
-
-...
-```
+Follow the structure of an existing brief — [`docs/features/01-browse-food-guide.md`](../../../docs/features/01-browse-food-guide.md)
+is a good model. Every brief carries a `Status`, `Depends on`, and `Governing decisions` header, then
+the goal as a user story, primary experience, required behaviour, non-goals, assumptions and open
+questions, acceptance criteria, and validation.
 
 For a deferred feature, state the deferral rationale and the condition for resuming it. For a planned
 or in-progress feature, link its approved implementation plan from `Assumptions and open questions`
@@ -125,8 +84,8 @@ Before finishing:
    `In progress`.
 4. Ensure that acceptance criteria are observable outcomes, not a list of implementation steps.
 5. For feature-specific implementation plans, ensure the verification steps include instructing a
-   subagent to run the `prepare` skill after implementation and targeted validation, before opening
-   a PR or marking the feature `Done`.
+   subagent to run the `prepare` skill after implementation and targeted validation, before merging
+   into `main` or marking the feature `Done`.
 6. Ensure a feature governed by an ADR links to it rather than duplicating or contradicting it.
 7. State what changed and any unresolved decisions in the final response.
 
@@ -136,9 +95,10 @@ When a feature is approved for delivery:
 
 1. Confirm it is `Planned`, dependencies are `Done`, and its acceptance criteria are stable.
 2. Create or update its technical implementation plan with affected areas, constraints, tests, and
-   rollout/validation steps. Include a pre-PR verification task that instructs a subagent to run the
-   `prepare` skill so documentation drift, dependency-version issues, and undocumented architecture
-   changes are checked independently. Do not change architecture without the relevant ADR workflow.
+   rollout/validation steps. Include a verification task, to run before merging into `main`, that
+   instructs a subagent to run the `prepare` skill so documentation drift, dependency-version issues,
+   and undocumented architecture changes are checked independently. Do not change architecture
+   without the relevant ADR workflow.
 3. Break the plan into ordered tasks and mark the feature `In progress` only when work actually
    begins.
 4. Mark it `Done` only after its acceptance criteria and validation evidence are complete, including

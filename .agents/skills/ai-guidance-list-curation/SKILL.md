@@ -22,7 +22,8 @@ and [F-07](../../../docs/features/07-ai-assisted-guidance-list-curation.md).
   or a source's omission. Do not turn ambiguity into a favourable result.
 - Paraphrase source material concisely; do not copy substantive source prose into the application.
 - Stop and ask the maintainer for guidance when the source is inaccessible, conflicting, ambiguous,
-  incomplete, brand-specific, unsupported.
+  incomplete, brand-specific, or unsupported, or when it does not establish the requested list's
+  authority.
 
 ## Required input
 
@@ -32,7 +33,7 @@ Before editing, establish all of the following:
 2. The list title and purpose, or the existing list being extended.
 3. For a new list: its status vocabulary, its `citationPolicy`, and, when that policy is
    `optional`, its `evidentiaryBasis`.
-4. The intended coverage: all catalogue foods or named categories and/or foods.
+4. The intended scope of the draft: all catalogue foods, or named categories and/or foods.
 
 A list owns its own status labels, but the vocabulary is not free-form. Every status maps to exactly
 one generic outcome band (`okay`, `maybe`, `not-okay`, `not-assessed`), and each list must own one
@@ -53,8 +54,7 @@ the requested perspective.
 ## Drafting workflow
 
 1. Retrieve the supplied page, record its URL and the link that led to it.
-2. Build an evidence table before writing data. For each proposed list, coverage declaration, and
-   food assessment, record:
+2. Build an evidence table before writing data. For each proposed list and food assessment, record:
    - source URL and exact locator;
    - the source-supported status, its generic outcome band, and a concise paraphrase;
    - conditions or alternative scenarios;
@@ -86,6 +86,10 @@ the requested perspective.
      decide.
    - Never merge across guidance lists, and never reuse one food record for two foods the source
      distinguishes.
+9. Update focused domain, rendering, and browser tests when the draft adds a visible list or changes
+   an assessment outcome. Run the narrowest relevant existing checks first, then the repository's
+   coverage, end-to-end, and build commands for user-visible content. Report each command and its
+   outcome; surface a failure rather than treating the draft as validated.
 
 ## Review gate
 
@@ -107,7 +111,7 @@ End every invocation with this review packet:
 - [URL] — exact locator(s) used
 
 ### Claim-by-claim evidence
-| Record | Proposed status or coverage | Outcome band | Source URL and exact locator | Paraphrase or condition | Inherited advice |
+| Record | Proposed status | Outcome band | Source URL and exact locator | Paraphrase or condition | Inherited advice |
 | --- | --- | --- | --- | --- | --- |
 | ... | ... | ... | ... | ... | ... |
 

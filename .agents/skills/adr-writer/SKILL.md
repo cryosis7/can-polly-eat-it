@@ -10,19 +10,11 @@ existing ADRs. Its only job is producing a good decision record.
 
 ## Philosophy
 
-ADRs created with this skill are clear enough to be **executable specifications for coding agents**.
-A human approves the decision; an agent implements it. The ADR must contain everything the agent needs to write correct code without asking follow-up questions.
-
-This means:
-
-- Constraints must be explicit and measurable, not vibes
-- Decisions must be specific enough to act on ("use PostgreSQL 16 with pgvector" not "use a database")
-- Consequences must map to concrete follow-up tasks
-- Non-goals must be stated to prevent scope creep
-- The ADR must be self-contained, with no tribal knowledge assumptions
-- **The ADR should say how it lands in code**, naming which files and patterns the decision governs
-  and how to verify it. For a decision you are making up front, that is a forward implementation plan;
-  for one you have already started building, it points at the code that now embodies the decision
+ADRs created with this skill are **executable specifications for coding agents**. A human approves
+the decision; an agent implements it. The ADR must contain everything the agent needs to write
+correct code without asking follow-up questions: explicit constraints, a specific decision ("use
+PostgreSQL 16 with pgvector", not "use a database"), stated non-goals, and **how it lands in code** —
+which files and patterns it governs and how to verify it.
 
 ## There are two ways a decision arrives
 
@@ -40,12 +32,18 @@ Either way the record lives in the repo under `docs/decisions/` and follows the 
 
 ## When to Write an ADR
 
-Write an ADR when a decision:
+Write an ADR when a decision changes how the system is built or operated (new dependency,
+architecture pattern, infrastructure choice, API design), is hard to reverse once code is written
+against it, affects the people or agents who work here later, or has real alternatives that were
+considered and rejected.
 
-- **Changes how the system is built or operated** (new dependency, architecture pattern, infrastructure choice, API design)
-- **Is hard to reverse** once code is written against it
-- **Affects other people or agents** who will work in this codebase later
-- **Has real alternatives** that were considered and rejected
+While coding, **stop and propose an ADR** the moment you are about to:
+
+- introduce a new dependency that doesn't already exist in the project
+- create a new architectural pattern (error handling, data access, API convention) other code must follow
+- choose between two or more real alternatives where the tradeoffs are non-obvious
+- change something that contradicts an existing accepted ADR
+- write a long code comment explaining "why" — that reasoning belongs in an ADR
 
 Do NOT write an ADR for:
 
@@ -53,18 +51,6 @@ Do NOT write an ADR for:
 - Bug fixes or typo corrections
 - Decisions already captured in an existing ADR (update it instead)
 - Style preferences already covered by linters or formatters
-
-When in doubt: if a future agent working in this codebase would benefit from knowing _why_ this choice was made, write the ADR.
-
-### Proactive ADR Triggers (For Agents)
-
-If you are an agent coding in a repo and you encounter any of these situations, **stop and propose an ADR** before continuing:
-
-- You are about to introduce a new dependency that doesn't already exist in the project
-- You are about to create a new architectural pattern (new way of handling errors, new data access layer, new API convention) that other code will need to follow
-- You are about to make a choice between two or more real alternatives and the tradeoffs are non-obvious
-- You are about to change something that contradicts an existing accepted ADR
-- You realize you're writing a long code comment explaining "why" — that reasoning belongs in an ADR
 
 **How to propose**: Tell the human what decision you've hit, why it matters, and ask if they want to capture it as an ADR. If yes, run the full four-phase workflow. If no, do nothing and move on.
 
@@ -76,19 +62,13 @@ Every ADR goes through four phases. Do not skip phases.
 
 Before asking any questions, gather context from the repo:
 
-1. **Find existing ADRs and the index.** Check `contributing/decisions/`, `docs/decisions/`, `adr/`, `docs/adr/`, `decisions/` for existing records, and look for the ADR index (`index.md`) in that directory. Read them. Note:
-   - Existing conventions (directory, naming, template style)
-   - Whether an index exists and the format it uses
-   - Decisions that relate to or constrain the current one
-   - Any ADRs this new decision might supersede
-
-2. **Check the tech stack.** Read `package.json`, `ProjectName.csproj`, `README.md`, or equivalent. Note relevant dependencies and versions.
-
-3. **Find related code patterns.** If the decision involves a specific area (e.g., "how we handle auth"), scan for existing implementations. Identify the specific files, directories, and patterns that will be affected by the decision.
-
-4. **Check for ADR references in code.** Look for ADR references in comments and docs. This reveals which existing decisions govern which parts of the codebase.
-
-5. **Note what you found.** Carry this context into Phase 1 — it will sharpen your questions and prevent the ADR from contradicting existing decisions.
+1. **Read the existing decisions.** Use the **adr-reader** skill to scan `docs/decisions/index.md`
+   and read the ADRs relevant to this decision. Note which ones constrain it, and which it might
+   supersede.
+2. **Check the tech stack and related code.** Read `package.json` and the implementation of the area
+   the decision touches, so the ADR can name the specific files and patterns it will govern.
+3. **Note what you found.** Carry this context into Phase 1 — it will sharpen your questions and
+   prevent the ADR from contradicting existing decisions.
 
 ### Phase 1: Capture Intent (Socratic Questioning)
 
@@ -137,28 +117,26 @@ Do NOT proceed to Phase 2 until the human confirms the summary.
 
 ### Phase 2: Draft the ADR
 
-1. **Choose the ADR directory.**
-   - If one exists (found in Phase 0), use it.
-   - If none exists, create `docs/decisions/`
+1. **Choose the ADR directory.** Use `docs/decisions/`.
 
-2. **Choose a filename strategy.**
-   - If existing ADRs exist, follow the estiablished pattern.
-  - Otherwise follow this Windows-safe format: `YYYY-MM-DD ADR - imperative-name.md`.
+2. **Choose a filename.** Follow the established Windows-safe format:
+   `YYYY-MM-DD ADR - imperative-name.md`.
 
-3. **Use the template.** There is one template, [references/template.md](references/template.md).
-   Its required sections cover every decision; its optional sections (drivers, pros and cons,
-   implementation plan, confirmation, more information) are kept or dropped per decision. A
-   straightforward or already-implemented decision may only need the required sections.
+3. **Use the template.** Copy the block from [references/template.md](references/template.md) into
+   that path. Its required sections cover every decision; keep the optional sections that add value
+   and delete the rest. A straightforward or already-implemented decision may only need the required
+   ones.
 
-4. **Fill every section from the confirmed intent summary.** Do not leave placeholder text. Every section should contain real content or be removed (optional sections only).
+4. **Fill every section from the confirmed intent summary.** No placeholder text: every section
+   holds real content, or is deleted (optional sections only).
 
-5. **Say how it lands in code.** For a decision you are making up front, write a forward Implementation Plan naming the files and patterns to touch and the tests that prove it. For a decision already built, point at the code that now embodies it instead. This is what makes the ADR actionable for the next agent.
+5. **Say how it lands in code.** For a decision made up front, write a forward Implementation Plan
+   naming the files and patterns to touch and the tests that prove it. For a decision already built,
+   point at the code that now embodies it. This is what makes the ADR actionable for the next agent.
+   Write the verification criteria as checkboxes specific enough to actually check.
 
-6. **Write verification criteria as checkboxes.** These must be specific enough that an agent can programmatically or manually check each one.
-
-7. **Generate the file.** Copy the block from [references/template.md](references/template.md) into the chosen path and fill in every placeholder.
-
-8. **Update the ADR index.** Add or update this ADR's row in the index so the reader can find it without opening every file. If no index exists yet, create one. See [Maintaining the ADR Index](#maintaining-the-adr-index).
+6. **Update the ADR index.** Add or update this ADR's row so a reader can find it without opening
+   every file. See [Maintaining the ADR Index](#maintaining-the-adr-index).
 
 After drafting, review the ADR against this agent-readiness checklist:
 
@@ -170,22 +148,9 @@ After drafting, review the ADR against this agent-readiness checklist:
 - **Verifiable**. There is a way to confirm the decision was implemented (checkable criteria).
 - **No placeholders**. Every `{...}` is filled and unused optional sections are deleted.
 
-**Present the review as a summary**, not a raw checklist dump. Format:
-
-> **ADR Review**
->
-> ✅ **Passes**: {list what's solid — e.g., "context is self-contained, implementation plan covers affected files, verification criteria are checkable"}
->
-> ⚠️ **Gaps found**:
->
-> - {specific gap 1 — e.g., "Implementation Plan doesn't mention test files — which test suite should cover this?"}
-> - {specific gap 2}
->
-> **Recommendation**: {Ship it / Fix the gaps first / Needs more Phase 1 work}
-
-Only surface failures and notable strengths — do not recite every passing checkbox.
-
-If there are gaps, propose specific fixes. Do not just flag problems — offer solutions and ask the human to approve.
+Report only the gaps you found and any notable strengths, not every passing checkbox. For each gap,
+propose a specific fix rather than just flagging it, and end with a recommendation: ship it, fix the
+gaps first, or go back to Phase 1.
 
 Do not finalize until the ADR passes the checklist or the human explicitly accepts the gaps.
 
