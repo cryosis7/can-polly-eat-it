@@ -3,18 +3,30 @@ import type { Assessment, AssessmentSubject, Category } from './schemas'
 
 export type ContentIndex = {
   tree: CategoryTree
-  assessmentsBySubjectKey: Map<string, Assessment>
+  assessmentsBySubjectKey: Map<string, Assessment[]>
   assessedCategoryIds: Set<string>
 }
 
 export const subjectKey = (subject: AssessmentSubject): string =>
   subject.kind === 'food' ? `food:${subject.foodId}` : `category:${subject.categoryId}`
 
+const groupAssessments = (assessments: Assessment[]): Map<string, Assessment[]> => {
+  const grouped = new Map<string, Assessment[]>()
+  for (const assessment of assessments) {
+    const key = `${assessment.guidanceListId}:${subjectKey(assessment.subject)}`
+    const existing = grouped.get(key)
+    if (existing) {
+      existing.push(assessment)
+    } else {
+      grouped.set(key, [assessment])
+    }
+  }
+  return grouped
+}
+
 export const createContentIndex = (categories: Category[], assessments: Assessment[]): ContentIndex => ({
   tree: buildCategoryTree(categories),
-  assessmentsBySubjectKey: new Map(
-    assessments.map((assessment) => [`${assessment.guidanceListId}:${subjectKey(assessment.subject)}`, assessment]),
-  ),
+  assessmentsBySubjectKey: groupAssessments(assessments),
   assessedCategoryIds: new Set(
     assessments
       .filter((assessment) => assessment.subject.kind === 'category')
@@ -22,8 +34,12 @@ export const createContentIndex = (categories: Category[], assessments: Assessme
   ),
 })
 
-export const findAssessment = (
+/**
+ * Every authored assessment for a subject in a list — one per source that assessed it, in authored
+ * order. Empty when no source has assessed the subject.
+ */
+export const findAssessments = (
   index: ContentIndex,
   guidanceListId: string,
   subject: AssessmentSubject,
-): Assessment | undefined => index.assessmentsBySubjectKey.get(`${guidanceListId}:${subjectKey(subject)}`)
+): Assessment[] => index.assessmentsBySubjectKey.get(`${guidanceListId}:${subjectKey(subject)}`) ?? []

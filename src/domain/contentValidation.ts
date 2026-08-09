@@ -3,17 +3,20 @@ import {
   categorySchema,
   foodSchema,
   guidanceListSchema,
+  sourceSchema,
   type Assessment,
   type Category,
   type Food,
   type GuidanceList,
+  type Source,
   type StatusDefinition,
 } from './schemas'
-import { createContentIndex, findAssessment, subjectKey, type ContentIndex } from './contentIndex'
+import { createContentIndex, findAssessments, subjectKey, type ContentIndex } from './contentIndex'
 
 export type ContentData = {
   categories: Category[]
   foods: Food[]
+  sources: Source[]
   guidanceLists: GuidanceList[]
   assessments: Assessment[]
 }
@@ -56,11 +59,18 @@ const validateCategories = (categories: Category[]) => {
   }
 }
 
-const validateGuidanceLists = (guidanceLists: GuidanceList[]) => {
+const validateGuidanceLists = (guidanceLists: GuidanceList[], sources: Source[]) => {
   assertUnique(guidanceLists.map((list) => list.id), 'guidance-list ID')
   assertUnique(guidanceLists.map((list) => list.slug), 'guidance-list slug')
+  const sourceIds = new Set(sources.map((source) => source.id))
 
   for (const list of guidanceLists) {
+    assertUnique(list.sourceIds, `source reference in "${list.id}"`)
+    for (const sourceId of list.sourceIds) {
+      if (!sourceIds.has(sourceId)) {
+        fail(`guidance list "${list.id}" references an unknown source.`)
+      }
+    }
     assertUnique(list.statuses.map((status) => status.id), `status ID in "${list.id}"`)
     assertUnique(list.statuses.map((status) => status.slug), `status slug in "${list.id}"`)
     assertUnique(list.statuses.map((status) => status.label), `status label in "${list.id}"`)
@@ -87,8 +97,10 @@ const restrictiveness: Record<string, number> = { okay: 0, maybe: 1, 'not-okay':
 
 /**
  * An additive assessment must have something to add to, and must not be less restrictive than what
- * it adds to. Neutral bands never appear here, because a fallback status on an assessment is
- * already rejected.
+ * it adds to. Comparison is within a source only: across sources the check would let one authority's
+ * caution invalidate another authority's authored record, which is a veto rather than a coherence
+ * check. Neutral bands never appear here, because a fallback status on an assessment is already
+ * rejected.
  */
 const validateAdditiveAssessment = (
   assessment: Assessment,
@@ -102,19 +114,48 @@ const validateAdditiveAssessment = (
     ? index.tree.pathByCategoryId.get(foodsById.get(subject.foodId)!.primaryCategoryId)!
     : index.tree.pathByCategoryId.get(subject.categoryId)!.slice(0, -1)
 
+  let hasAncestorGuidance = false
   for (let position = path.length - 1; position >= 0; position -= 1) {
-    const inherited = findAssessment(index, guidanceList.id, { kind: 'category', categoryId: path[position].id })
-    if (!inherited) {
+    const ancestors = findAssessments(index, guidanceList.id, { kind: 'category', categoryId: path[position].id })
+    if (ancestors.length === 0) {
+      continue
+    }
+    hasAncestorGuidance = true
+    const sameSource = ancestors.find((candidate) => candidate.sourceId === assessment.sourceId)
+    if (!sameSource) {
       continue
     }
     const own = getStatusById(guidanceList, assessment.statusId)
-    const target = getStatusById(guidanceList, inherited.statusId)
+    const target = getStatusById(guidanceList, sameSource.statusId)
     if (restrictiveness[own.outcomeBand] < restrictiveness[target.outcomeBand]) {
       fail(`assessment "${assessment.id}" adds to guidance that is more restrictive than itself.`)
     }
     return
   }
-  fail(`assessment "${assessment.id}" adds to inherited guidance, but no ancestor is assessed in its guidance list.`)
+  if (!hasAncestorGuidance) {
+    fail(`assessment "${assessment.id}" adds to inherited guidance, but no ancestor is assessed in its guidance list.`)
+  }
+}
+
+const validateSources = (sources: Source[]) => {
+  assertUnique(sources.map((source) => source.id), 'source ID')
+  assertUnique(sources.map((source) => source.slug), 'source slug')
+}
+
+/**
+ * Attribution is required only where it carries meaning. A list declaring two or more sources must
+ * name one on every assessment; a single-source or no-source list supplies the attribution itself.
+ */
+const validateAttribution = (assessment: Assessment, guidanceList: GuidanceList) => {
+  if (assessment.sourceId === undefined) {
+    if (guidanceList.sourceIds.length > 1) {
+      fail(`assessment "${assessment.id}" belongs to a guidance list with more than one source and must name its source.`)
+    }
+    return
+  }
+  if (!guidanceList.sourceIds.includes(assessment.sourceId)) {
+    fail(`assessment "${assessment.id}" names a source that its guidance list does not declare.`)
+  }
 }
 
 const validateAssessments = (
@@ -126,8 +167,8 @@ const validateAssessments = (
 ) => {
   assertUnique(assessments.map((assessment) => assessment.id), 'assessment ID')
   assertUnique(
-    assessments.map((assessment) => `${subjectKey(assessment.subject)}:${assessment.guidanceListId}`),
-    'subject/list assessment pair',
+    assessments.map((assessment) => `${subjectKey(assessment.subject)}:${assessment.guidanceListId}:${assessment.sourceId ?? ''}`),
+    'subject/list/source assessment pair',
   )
   const foodIds = new Set(foods.map((food) => food.id))
   const categoryIds = new Set(categories.map((category) => category.id))
@@ -159,6 +200,7 @@ const validateAssessments = (
       if (guidanceList.citationPolicy === 'required' && assessment.citations.length === 0) {
         fail(`assessment "${assessment.id}" belongs to a guidance list that requires citations.`)
       }
+      validateAttribution(assessment, guidanceList)
       if (assessment.relation === 'adds-to') {
         validateAdditiveAssessment(assessment, guidanceList, index, foodsById)
       }
@@ -176,6 +218,7 @@ const validateAssessments = (
 export const validateContent = (rawContent: ContentData): ContentData => {
   const categories = rawContent.categories.map((record) => categorySchema.parse(record))
   const foods = rawContent.foods.map((record) => foodSchema.parse(record))
+  const sources = rawContent.sources.map((record) => sourceSchema.parse(record))
   const guidanceLists = rawContent.guidanceLists.map((record) => guidanceListSchema.parse(record))
   const assessments = rawContent.assessments.map((record) => assessmentSchema.parse(record))
 
@@ -186,10 +229,11 @@ export const validateContent = (rawContent: ContentData): ContentData => {
   if (foods.some((food) => !categoryIds.has(food.primaryCategoryId))) {
     fail('a food references an unknown primary category.')
   }
-  validateGuidanceLists(guidanceLists)
+  validateSources(sources)
+  validateGuidanceLists(guidanceLists, sources)
   const index = createContentIndex(categories, assessments)
   validateAssessments(assessments, foods, categories, guidanceLists, index)
-  return { categories, foods, guidanceLists, assessments }
+  return { categories, foods, sources, guidanceLists, assessments }
 }
 
 export const getStatusById = (guidanceList: GuidanceList, statusId: string): StatusDefinition =>

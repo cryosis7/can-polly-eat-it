@@ -26,10 +26,7 @@ test.describe('Food catalogue', () => {
 
     const cheddarCard = foodCard(page, 'Cheddar')
     await expect(cheddarCard.getByRole('heading', { name: 'Pregnancy food safety' })).toBeVisible()
-    await expect(cheddarCard.getByRole('link', { name: 'Primary source: New Zealand Food Safety: Pullout guide to food safety in pregnancy' })).toHaveAttribute(
-      'href',
-      mpiSourceUrl,
-    )
+    await expect(cheddarCard.getByRole('link', { name: /Primary source/ })).toHaveCount(0)
   })
 
   test('lands with top-level groups collapsed and a much shorter page', async ({ page }) => {
@@ -159,15 +156,17 @@ test.describe('Food catalogue', () => {
     await expect(page.getByRole('link', { name: 'Parmesan', exact: true })).toHaveCount(0)
   })
 
-  test('shows a cited pregnancy source and the vegetarian evidentiary basis on a filtered URL', async ({ page }) => {
+  test('shows the cited pregnancy source on the food page and the vegetarian evidentiary basis on a filtered URL', async ({ page }) => {
     await page.goto('/?v=1&scope=pregnancy-food-safety,vegetarian-suitability&category=dairy')
 
-    const cheddarCard = foodCard(page, 'Cheddar')
-    await expect(cheddarCard.getByRole('link', { name: 'Primary source: New Zealand Food Safety: Pullout guide to food safety in pregnancy' })).toHaveAttribute(
+    await expect(foodCard(page, 'Cheddar').getByRole('link', { name: /Primary source/ })).toHaveCount(0)
+    await expect(page.getByText(/Reflects general vegetarian knowledge/)).toBeVisible()
+
+    await page.goto('/food/cheddar?v=1&scope=pregnancy-food-safety')
+    await expect(page.getByRole('link', { name: 'New Zealand Food Safety: Pullout guide to food safety in pregnancy' }).first()).toHaveAttribute(
       'href',
       mpiSourceUrl,
     )
-    await expect(page.getByText(/Reflects general vegetarian knowledge/)).toBeVisible()
   })
 
   test('updates outcome controls, then clears filters', async ({ page }) => {

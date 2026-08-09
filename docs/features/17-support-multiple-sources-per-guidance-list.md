@@ -1,6 +1,8 @@
 # F-17: Support Multiple Sources Within One Guidance List
 
-**Status:** Proposed
+**Status:** Done
+
+**Implementation plan:** [F-17 implementation plan](<17-support-multiple-sources-per-guidance-list-plan.md>)
 
 **Depends on:** [F-04: Maintain Trustworthy Guidance Content](<04-maintain-trustworthy-guidance-content.md>), [F-05: Add Independent Guidance Lists](<05-add-independent-guidance-lists.md>), [F-08: Rework Guidance-Scope Filtering](<08-rework-guidance-scope-filtering.md>), [F-10: Vary Citation Expectations by Guidance List](<10-vary-citation-expectations-by-list.md>), [F-16: Express Guidance That Accumulates Across Subject Levels](<16-express-accumulating-guidance.md>)
 
@@ -196,9 +198,25 @@ sentence twice for no reason.
   It records the most-cautious-wins rule, the single attributed layer set, and the conditional
   attribution rule. The remaining prerequisite for `Planned` is an approved feature-specific
   implementation plan.
-- Deferred to that plan, and recorded by the ADR review: whether identical-text collapse should rely
-  on string equality, which is brittle against punctuation and whitespace, or on an authored "these
-  are the same statement" link; and whether a source in a multi-source list must carry a `homeUrl`.
+- **Resolved by the implementation plan:** identical-statement collapse is exact structural equality
+  over the authored body, never fuzzy matching, biased towards showing two layers rather than
+  misattributing wording; `homeUrl` stays optional, and the dissent disclosure links to the dissenting
+  assessment's first citation, then `homeUrl`, then names the source without a link.
+- **Resolved by the implementation plan:** sources disagree when their nearest authored status IDs
+  differ; a most-cautious tie within an outcome band breaks on the nearest subject level, then on the
+  list's declared source order.
+- **Resolved by the implementation plan:** a contested entry is worded, on both the catalogue and the
+  detail page, as "<Source> reached a different conclusion: <status label>. Read <Source>."
+- **Resolved by the implementation plan:** a layer is labelled with its source whenever the
+  assessment names one, which happens only in a list declaring two or more sources. A food assessed
+  by just one authority in a two-source list is still labelled, so that the other authority's silence
+  is not read as agreement. The unchanged-rendering guarantee attaches to a list that declares fewer
+  than two sources, which is what both authored lists are.
+- **Amended by the implementation plan:** the Chromium Playwright scenarios for a contested route move
+  to the later content feature that curates a real second authority. Every route is built from
+  reviewed data in `src/data/`, and this feature curates no second authority, so no contested route
+  exists to visit. Multi-source behaviour is proven by domain and React Testing Library fixtures, and
+  the existing end-to-end suite stays green and unchanged.
 - **Resolved:** attribution is mandatory only in a list with two or more sources. A single-source
   list, or one standing on its `evidentiaryBasis`, authors exactly as it does today. The vegetarian
   list's answer to "who says this?" is already declared once per list — "Reflects general vegetarian
@@ -214,11 +232,6 @@ sentence twice for no reason.
   contradictory instructions asserts a combined regime no authority stated.
 - **Resolved:** the restrictiveness guard applies within a source only, so one authority cannot
   invalidate another's authored record.
-- Open: how a contested entry is worded in the catalogue, where space is tight and the note must
-  still name the source and its conclusion. This is a content and interface question for the
-  implementation plan, not a model question.
-- Open: whether "most cautious wins" needs a tie-break rule when two sources reach the same outcome
-  band through differently worded statuses.
 - Assumed: two sources agreeing on a status but authoring different bespoke summaries show as one
   status with each summary attributed. Only identical authored text collapses into a single layer.
 - The application is unreleased, so schema and data shapes can change without migration concerns.
@@ -261,15 +274,30 @@ duplicate layers, most-cautious selection across disagreeing sources, silence of
 collapse of identical statements from two sources, the within-source restrictiveness guard,
 list-owned status wording fallback, and each new validation failure. React Testing Library tests for
 the agreement, disagreement, and single-source renderings on both catalogue and food detail,
-including the catalogue dissent note. Chromium Playwright coverage for a contested food's detail
-route and a filtered URL containing a contested food, plus the existing axe-core WCAG 2.2 AA scans
-over both states. Repository-wide 100% statements, branches, functions, and lines coverage for
-application source is retained.
+including the catalogue dissent note. The existing Chromium Playwright suite and its axe-core WCAG 2.2
+AA scans stay green and unchanged; contested-route end-to-end coverage lands with the content feature
+that curates a real second authority, as recorded above. The existing end-to-end suite gains no new
+scenarios; two of its assertions change because the catalogue's "Primary source" affordance is
+removed. Repository-wide 100% statements, branches, functions, and lines coverage for application
+source is retained.
 
 Fixtures, not published health content, prove the multi-source behaviour: no real second authority is
 curated in this feature.
 
 ### Pre-PR `prepare` review
 
-To be run by a subagent after implementation and targeted validation, and before this feature moves
-to `Done`. Its findings, or their resolution, are recorded here.
+Run by a subagent against the local diff of `agents/next-steps-in-development` against `main` after
+implementation and targeted validation. Verdict: 0 blockers, 1 should-fix.
+
+- **Documentation drift (resolved):** the plan and this brief claimed the end-to-end suite was
+  "unchanged", while `e2e/catalogue.spec.ts` in fact updates two assertions for the removed catalogue
+  "Primary source" affordance. Both documents now state that no new scenarios were added and that two
+  assertions changed for that removal.
+- No accepted ADR contradiction, no `.github/copilot-instructions.md` contradiction, no undocumented
+  architecture, and no dependency-version findings.
+
+### Recorded validation
+
+`npm run typecheck`, `npm run lint`, `npm run build`, `npm run test:coverage` (176 tests; 100%
+statements, branches, functions, and lines), and `npm run test:e2e` (49 Chromium scenarios including
+the axe-core WCAG 2.2 AA scans) all pass on this branch.

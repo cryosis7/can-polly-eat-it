@@ -172,14 +172,11 @@ describe('CataloguePage', () => {
     expect(screen.getByText(/No foods match these filters/i)).toBeInTheDocument()
   })
 
-  it('renders a primary source link for a cited scope', () => {
+  it('names no primary source on a catalogue card, because a citation array carries no authored ranking', () => {
     renderCatalogue('/?v=1&scope=vegetarian-suitability&q=marshmallows')
 
     const marshmallowsCard = screen.getByRole('link', { name: 'Marshmallows' }).closest('.food-card') as HTMLElement
-    expect(within(marshmallowsCard).getByRole('link', { name: /Primary source: Veggy Malta/ })).toHaveAttribute(
-      'href',
-      'https://veggymalta.com/15-products-not-vegetarian/',
-    )
+    expect(within(marshmallowsCard).queryByRole('link', { name: /Primary source/ })).not.toBeInTheDocument()
   })
 
   it('omits the source affordance for an uncited assessment and shows the evidentiary basis once per view', () => {
@@ -205,7 +202,6 @@ describe('CataloguePage', () => {
     expect(within(entry).getByText('OK to eat')).toBeInTheDocument()
     expect(within(entry).getByRole('heading', { name: 'Vegetarian suitability' })).toBeInTheDocument()
     expect(within(entry).getByText('Check ingredients')).toBeInTheDocument()
-    expect(within(entry).getAllByRole('link', { name: /^Primary source:/ }).length).toBeGreaterThan(0)
   })
 
   it('splits sauces into commercial and home-made groups without either showing the other rule', () => {
@@ -415,6 +411,5 @@ describe('CataloguePage', () => {
     const entry = toggle.closest('.category-group')!.querySelector('.category-entry') as HTMLElement
     expect(within(entry).getByText('Only with conditions')).toBeInTheDocument()
     expect(within(entry).getByText(/Use pasteurised cheese from sealed packs within two days of opening/)).toBeInTheDocument()
-    expect(within(entry).getByRole('link', { name: /^Primary source:/ })).toBeInTheDocument()
   })
 })

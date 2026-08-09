@@ -189,31 +189,31 @@ it is never averaged, blended, or invented.
 
 ## Confirmation
 
-- [ ] A source is an authored record with its own identity, and no code infers provenance from a
+- [x] A source is an authored record with its own identity, and no code infers provenance from a
       citation's URL, title, or array position.
-- [ ] Two assessments for the same subject, list, and source fail validation; two for the same
+- [x] Two assessments for the same subject, list, and source fail validation; two for the same
       subject and list from different sources validate.
-- [ ] An assessment naming a source unknown to its guidance list fails validation.
-- [ ] An assessment with no source fails validation in a list declaring two or more sources, and
+- [x] An assessment naming a source unknown to its guidance list fails validation.
+- [x] An assessment with no source fails validation in a list declaring two or more sources, and
       validates in a single-source or no-source list.
-- [ ] A food renders one ordered set of guidance layers, each labelled with its source, and no
+- [x] A food renders one ordered set of guidance layers, each labelled with its source, and no
       statement appears twice because two sources agree on it.
-- [ ] An `adds-to` assessment may accumulate onto an ancestor rule stated by a different source, and
+- [x] An `adds-to` assessment may accumulate onto an ancestor rule stated by a different source, and
       the restrictiveness guard compares only same-source guidance.
-- [ ] Sources agreeing on a status render as one cumulative stack; sources disagreeing render as
+- [x] Sources agreeing on a status render as one cumulative stack; sources disagreeing render as
       competing positions.
-- [ ] A contested food shows the most cautious authored status, names the dissenting source and its
+- [x] A contested food shows the most cautious authored status, names the dissenting source and its
       conclusion in text on the catalogue overview as well as food detail, and does not rely on
       colour to convey the disagreement.
-- [ ] A contested food filters under its most cautious band only, and is counted once.
-- [ ] A source that has not assessed a subject is never presented as agreeing or disagreeing.
-- [ ] No existing pregnancy or vegetarian assessment is edited, and the vegetarian scope's rendered
+- [x] A contested food filters under its most cautious band only, and is counted once.
+- [x] A source that has not assessed a subject is never presented as agreeing or disagreeing.
+- [x] No existing pregnancy or vegetarian assessment is edited, and the vegetarian scope's rendered
       output is unchanged.
-- [ ] No rendering path indexes into a citation array without checking it is non-empty, and the
+- [x] No rendering path indexes into a citation array without checking it is non-empty, and the
       "Primary source" affordance in `GuideEntrySummary` is gone.
-- [ ] The `ai-guidance-list-curation` skill no longer instructs curators to append a second
+- [x] The `ai-guidance-list-curation` skill no longer instructs curators to append a second
       authority's locator to an existing assessment.
-- [ ] `docs/architecture/overview.md` and `.github/copilot-instructions.md` describe assessments as
+- [x] `docs/architecture/overview.md` and `.github/copilot-instructions.md` describe assessments as
       keyed by subject, list, and source.
 
 ## More Information

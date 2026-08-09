@@ -1,7 +1,8 @@
 import { Link } from 'react-router'
-import type { GuidanceLayer, ResolvedAssessment } from '../domain/assessment'
+import { assessmentSummary, type GuidanceLayer, type ResolvedAssessment } from '../domain/assessment'
 import type { ContentData } from '../domain/contentValidation'
-import type { GuidanceList, SourceCitation } from '../domain/schemas'
+import type { GuidanceList, Source, SourceCitation } from '../domain/schemas'
+import { DissentNotice } from './DissentNotice'
 
 export type GuidanceSectionProps = {
   guidanceList: GuidanceList
@@ -36,6 +37,10 @@ type LayerBodyProps = {
   returnSearch: string
   isAccumulated: boolean
 }
+
+// Validation guarantees that every source named on an assessment is declared by its guidance list.
+const sourceNames = (sourceIds: string[], sources: Source[]): string =>
+  sourceIds.map((id) => sources.find((source) => source.id === id)!.name).join(' and ')
 
 // ADR: Accumulate inherited guidance through additive assessments.
 // See: docs/decisions/2026-08-07 ADR - accumulate inherited guidance through additive assessments.md
@@ -117,7 +122,7 @@ export const GuidanceSection = ({
   returnSearch,
 }: GuidanceSectionProps) => {
   const citations = resolved.layers.length > 0
-    ? dedupeCitations(resolved.layers.flatMap((layer) => layer.assessment.citations))
+    ? dedupeCitations(resolved.layers.flatMap((layer) => layer.citations))
     : guidanceList.unassessedNotice.citations
   const isAccumulated = resolved.layers.length > 1
 
@@ -129,15 +134,43 @@ export const GuidanceSection = ({
         <span>{resolved.status.label}</span>
       </p>
       {resolved.assessment ? (
-        <p>{resolved.assessment.summary}</p>
+        <p>{assessmentSummary(resolved.assessment, guidanceList)}</p>
       ) : (
         <p>{guidanceList.unassessedNotice.description}</p>
       )}
+      <DissentNotice resolved={resolved} sources={content.sources} />
       {guidanceList.evidentiaryBasis && (
         <p className="evidentiary-basis">{guidanceList.evidentiaryBasis}</p>
       )}
 
-      {isAccumulated ? (
+      {resolved.positions.length > 0 ? (
+        <section aria-labelledby={`positions-${guidanceList.id}`} className="guidance-positions">
+          <h4 id={`positions-${guidanceList.id}`}>What each source says</h4>
+          {resolved.positions.map((position) => (
+            <section
+              aria-labelledby={`position-${guidanceList.id}-${position.sourceId}`}
+              className="guidance-position"
+              key={position.sourceId}
+            >
+              <h5 id={`position-${guidanceList.id}-${position.sourceId}`}>
+                {sourceNames([position.sourceId!], content.sources)}: {position.status.label}
+              </h5>
+              {position.layers.map((layer) => (
+                <div className="guidance-layer" key={layer.assessment.id}>
+                  <p>{assessmentSummary(layer.assessment, guidanceList)}</p>
+                  <LayerBody
+                    content={content}
+                    headingId={`${guidanceList.id}-${position.sourceId}-${layer.assessment.id}`}
+                    isAccumulated
+                    layer={layer}
+                    returnSearch={returnSearch}
+                  />
+                </div>
+              ))}
+            </section>
+          ))}
+        </section>
+      ) : isAccumulated ? (
         <section aria-labelledby={`layers-${guidanceList.id}`} className="guidance-layers">
           <h4 id={`layers-${guidanceList.id}`}>All of the following apply</h4>
           {resolved.layers.map((layer) => (
@@ -145,7 +178,10 @@ export const GuidanceSection = ({
               <h5 id={`layer-${guidanceList.id}-${layer.assessment.id}`}>
                 {layer.assessment.scopeStatement ?? 'Specific to this food'}
               </h5>
-              <p>{layer.assessment.summary}</p>
+              {layer.sourceIds.length > 0 && (
+                <p className="layer-source">Stated by {sourceNames(layer.sourceIds, content.sources)}</p>
+              )}
+              <p>{assessmentSummary(layer.assessment, guidanceList)}</p>
               <LayerBody
                 content={content}
                 headingId={`${guidanceList.id}-${layer.assessment.id}`}
@@ -157,13 +193,18 @@ export const GuidanceSection = ({
           ))}
         </section>
       ) : resolved.layers.length === 1 && (
-        <LayerBody
-          content={content}
-          headingId={guidanceList.id}
-          isAccumulated={false}
-          layer={resolved.layers[0]}
-          returnSearch={returnSearch}
-        />
+        <>
+          {resolved.layers[0].sourceIds.length > 0 && (
+            <p className="layer-source">Stated by {sourceNames(resolved.layers[0].sourceIds, content.sources)}</p>
+          )}
+          <LayerBody
+            content={content}
+            headingId={guidanceList.id}
+            isAccumulated={false}
+            layer={resolved.layers[0]}
+            returnSearch={returnSearch}
+          />
+        </>
       )}
 
       {citations.length > 0 && (

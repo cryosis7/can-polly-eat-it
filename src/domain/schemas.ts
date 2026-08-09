@@ -27,6 +27,14 @@ export const sourceCitationSchema = z.object({
   locator: z.string().trim().min(1),
 })
 
+export const sourceSchema = z.object({
+  id: identifier,
+  slug: identifier,
+  name: z.string().trim().min(1),
+  organisation: z.string().trim().min(1),
+  homeUrl: z.url().refine((value) => value.startsWith('https://'), 'Source URL must use HTTPS.').optional(),
+})
+
 export const statusDefinitionSchema = z.object({
   id: identifier,
   slug: identifier,
@@ -35,6 +43,12 @@ export const statusDefinitionSchema = z.object({
   outcomeBand: z.enum(['okay', 'maybe', 'not-okay', 'not-assessed']),
   sortOrder: z.number().int().nonnegative(),
   filterLabel: z.string().trim().min(1),
+  /**
+   * The list's own wording for this status, displayed when an assessment authors no summary of its
+   * own. It belongs to the list so that agreeing sources can share one authored sentence rather than
+   * two sentences being merged into a third nobody wrote.
+   */
+  summary: z.string().trim().min(1),
 })
 
 export const unassessedNoticeSchema = z.object({
@@ -48,6 +62,11 @@ export const guidanceListSchema = z.object({
   title: z.string().trim().min(1),
   description: z.string().trim().min(1),
   citationPolicy: z.enum(['required', 'optional']),
+  /**
+   * The authorities this list draws on. A list standing on its `evidentiaryBasis` rather than a
+   * named authority declares none.
+   */
+  sourceIds: z.array(identifier),
   evidentiaryBasis: z.string().trim().min(1).optional(),
   unassessedStatusId: identifier,
   statuses: z.array(statusDefinitionSchema).min(2),
@@ -87,7 +106,16 @@ export const assessmentSchema = z.object({
   subject: assessmentSubjectSchema,
   guidanceListId: identifier,
   statusId: identifier,
-  summary: z.string().trim().min(1),
+  /**
+   * The authority that stated this assessment. Required in a list declaring two or more sources,
+   * and absent in a single-source or no-source list, where the list itself supplies attribution.
+   */
+  sourceId: identifier.optional(),
+  /**
+   * The source's own wording. Absent where the source has nothing specific to say, in which case the
+   * list's canonical wording for the resolved status is displayed.
+   */
+  summary: z.string().trim().min(1).optional(),
   scopeStatement: z.string().trim().min(1).optional(),
   /**
    * Whether this assessment replaces the guidance it inherits or adds to it. Absent means
@@ -101,6 +129,7 @@ export const assessmentSchema = z.object({
 
 export type Category = z.infer<typeof categorySchema>
 export type Food = z.infer<typeof foodSchema>
+export type Source = z.infer<typeof sourceSchema>
 export type GuidanceList = z.infer<typeof guidanceListSchema>
 export type AssessmentSubject = z.infer<typeof assessmentSubjectSchema>
 export type Assessment = z.infer<typeof assessmentSchema>

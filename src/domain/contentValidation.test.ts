@@ -166,7 +166,7 @@ describe('guide content validation', () => {
     expect(() => validateContent({
       ...content,
       assessments: [...content.assessments, { ...categoryAssessment, id: 'duplicate-category-subject' }],
-    })).toThrow('duplicate subject/list assessment pair')
+    })).toThrow('duplicate subject/list/source assessment pair')
   })
 
   it('resolves an assessed subject the same wherever it sits, with no containment rule to satisfy', () => {
@@ -255,6 +255,61 @@ describe('guide content validation', () => {
       ...content,
       foods: [...content.foods, { ...content.foods[0] }],
     })).toThrow('duplicate food ID')
+  })
+
+  it('rejects invalid source records and unknown source references', () => {
+    expect(() => validateContent({
+      ...content,
+      sources: [...content.sources, { ...content.sources[0] }],
+    })).toThrow('duplicate source ID')
+
+    expect(() => validateContent({
+      ...content,
+      sources: [...content.sources, { ...content.sources[0], id: 'another-authority' }],
+    })).toThrow('duplicate source slug')
+
+    expect(() => validateContent({
+      ...content,
+      sources: content.sources.map((source) => ({ ...source, homeUrl: 'http://insecure.test/' })),
+    })).toThrow('Source URL must use HTTPS')
+
+    expect(() => validateContent({
+      ...content,
+      guidanceLists: content.guidanceLists.map((list) => ({ ...list, sourceIds: ['no-such-authority'] })),
+    })).toThrow('references an unknown source')
+
+    expect(() => validateContent({
+      ...content,
+      guidanceLists: content.guidanceLists.map((list) => ({
+        ...list,
+        sourceIds: ['new-zealand-food-safety', 'new-zealand-food-safety'],
+      })),
+    })).toThrow('duplicate source reference')
+  })
+
+  it('requires attribution only in a list that declares more than one source', () => {
+    const pregnancyId = 'pregnancy-food-safety'
+    const secondSource = { ...content.sources[0], id: 'second-authority', slug: 'second-authority' }
+
+    expect(() => validateContent({
+      ...content,
+      sources: [...content.sources, secondSource],
+      guidanceLists: content.guidanceLists.map((list) => (
+        list.id === pregnancyId ? { ...list, sourceIds: [...list.sourceIds, secondSource.id] } : list
+      )),
+    })).toThrow('must name its source')
+
+    expect(() => validateContent({
+      ...content,
+      assessments: content.assessments.map((assessment) => (
+        assessment.guidanceListId === pregnancyId
+          ? { ...assessment, sourceId: 'an-authority-this-list-does-not-declare' }
+          : assessment
+      )),
+    })).toThrow('does not declare')
+
+    // Both authored lists are single-source or no-source today, so nothing needs attribution.
+    expect(() => validateContent(content)).not.toThrow()
   })
 
   it('rejects invalid guidance-list ownership', () => {

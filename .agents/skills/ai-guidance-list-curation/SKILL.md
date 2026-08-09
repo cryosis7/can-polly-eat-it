@@ -21,9 +21,10 @@ and [F-07](../../../docs/features/07-ai-assisted-guidance-list-curation.md).
 - Do not infer an assessment from a food name, category, ingredient, reason link, common knowledge,
   or a source's omission. Do not turn ambiguity into a favourable result.
 - Paraphrase source material concisely; do not copy substantive source prose into the application.
-- Stop and ask the maintainer for guidance when the source is inaccessible, conflicting, ambiguous,
-  incomplete, brand-specific, or unsupported, or when it does not establish the requested list's
-  authority.
+- Stop and ask the maintainer for guidance when the source is inaccessible, ambiguous, incomplete,
+  brand-specific, or unsupported, or when it does not establish the requested list's authority. A
+  source that disagrees with another already in the list is not a reason to stop: author it as its
+  own attributed assessment.
 
 ## Required input
 
@@ -75,10 +76,16 @@ the requested perspective.
 7. Use a reason link only when the source supports the assessed food's own conclusion and its target
    is an existing canonical food. A reason link never supplies a status or citation by itself.
 8. Prefer the smallest set of records that expresses the source faithfully:
-   - A `(subject, guidanceListId)` pair may only be assessed once. When the source repeats advice
-     already assessed for that subject and list, cite the additional locator on the existing
-     assessment instead of authoring a second one, and surface any wording change for maintainer
-     review rather than silently rewriting reviewed guidance.
+   - A `(subject, guidanceListId, sourceId)` triple may only be assessed once. When the *same* source
+     repeats advice already assessed for that subject and list, cite the additional locator on the
+     existing assessment instead of authoring a second one, and surface any wording change for
+     maintainer review rather than silently rewriting reviewed guidance.
+   - When a *different* source in the same list also assesses that subject, author its advice as its
+     own assessment naming that source. Never attach one authority's locator to another authority's
+     sentence. Where the sources reach different statuses, that disagreement is authored and
+     displayed, not resolved by you and not a reason to halt.
+   - In a list declaring two or more sources, every assessment must name its `sourceId`. In a
+     single-source or no-source list, author no `sourceId` at all; the list supplies the attribution.
    - When several sibling foods share genuinely identical advice, propose one category assessment
      with a `scopeStatement` rather than repeating per-food assessments.
    - Merge only where the source treats the items identically. Differing conditions, scenarios, or
