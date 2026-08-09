@@ -126,6 +126,10 @@ h3 { font-size: 1.35rem; }
 .guidance-scenario { margin-bottom: var(--space-3); }
 .guidance-layer { border-inline-start: .2rem solid var(--line); margin-bottom: var(--space-3); padding-inline-start: var(--space-3); }
 .guidance-layer h5 { color: var(--muted-ink); font-size: .95rem; margin-bottom: var(--space-1); }
+.layer-source { color: var(--muted-ink); font-size: .88rem; margin-bottom: var(--space-1); text-transform: none; }
+.dissent-note { border-inline-start: .2rem solid var(--status-amber); font-size: .95rem; margin-bottom: var(--space-2); padding-inline-start: var(--space-2); }
+.guidance-position { border-inline-start: .2rem solid var(--line); margin-bottom: var(--space-3); padding-inline-start: var(--space-3); }
+.guidance-position h5 { font-size: 1rem; margin-bottom: var(--space-1); }
 .guidance-scenario ol { padding-left: var(--space-4); }
 .guidance-facts { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); margin: 0; }
 .guidance-facts div { display: flex; gap: .3rem; }

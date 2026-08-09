@@ -1,4 +1,4 @@
-import { findAssessment, type ContentIndex } from './contentIndex'
+import { findAssessments, type ContentIndex } from './contentIndex'
 import { getStatusById } from './contentValidation'
 import type { Assessment, Category, Food, GuidanceList, StatusDefinition } from './schemas'
 
@@ -14,6 +14,27 @@ export type AssessmentOrigin =
 export type GuidanceLayer = {
   assessment: Assessment
   origin: AssessmentOrigin
+  /**
+   * The authorities that stated this layer. Empty in a single-source or no-source list, where the
+   * list itself supplies the attribution and no attribution is rendered.
+   */
+  sourceIds: string[]
+  /**
+   * Every citation behind this layer, including those of an identically worded statement collapsed
+   * into it. Only citations are unioned; no authored text is ever merged.
+   */
+  citations: Assessment['citations']
+}
+
+/**
+ * One source's whole position on a subject, present only where assessed sources disagree. Positions
+ * are shown as competing alternatives, never stacked, because stacking contradictory instructions
+ * would assert a combined regime no authority stated.
+ */
+export type GuidancePosition = {
+  sourceId?: string
+  status: StatusDefinition
+  layers: GuidanceLayer[]
 }
 
 export type ResolvedAssessment = {
@@ -22,63 +43,186 @@ export type ResolvedAssessment = {
   origin: AssessmentOrigin
   /**
    * Every authored assessment that applies, broadest ancestor first and ending with the nearest
-   * one. Length 1 unless an assessment declares `relation: 'adds-to'`, and empty when nothing
-   * applies. Layers are never merged; each keeps its own summary, scenarios, and citations.
+   * one. Length 1 unless an assessment declares `relation: 'adds-to'` or more than one source
+   * assessed the subject, and empty when nothing applies. Layers are never merged; each keeps its
+   * own summary, scenarios, and citations.
    */
   layers: GuidanceLayer[]
+  /**
+   * One position per source, present only where assessed sources reached different statuses. Empty
+   * whenever the sources agree, so a single-source list never renders attribution machinery.
+   */
+  positions: GuidancePosition[]
 }
 
 export const isAdditive = (assessment: Assessment) => assessment.relation === 'adds-to'
 
 /**
- * Walks towards the root collecting each assessed ancestor, stopping at and including the first
- * one that replaces rather than adds to the guidance it inherits.
+ * The wording to display for an assessment: the source's own where it authored one, otherwise the
+ * list's canonical wording for that status. Nothing is synthesised, and no two authored statements
+ * are ever combined into a third.
+ */
+export const assessmentSummary = (assessment: Assessment, guidanceList: GuidanceList): string =>
+  assessment.summary ?? getStatusById(guidanceList, assessment.statusId).summary
+
+const restrictiveness: Record<string, number> = { okay: 0, maybe: 1, 'not-okay': 2 }
+
+type AssessedLevel = {
+  origin: AssessmentOrigin
+  assessments: Assessment[]
+}
+
+const toLayer = (assessment: Assessment, origin: AssessmentOrigin): GuidanceLayer => ({
+  assessment,
+  origin,
+  sourceIds: assessment.sourceId === undefined ? [] : [assessment.sourceId],
+  citations: assessment.citations,
+})
+
+/**
+ * The authored body of an assessment, excluding its identity, its source, and its citations. Two
+ * layers collapse into one only when these are exactly equal: near-identical wording is treated as
+ * two statements, because showing a sentence twice is safer than attributing wording to an
+ * authority that did not write it.
+ */
+const statementKey = (assessment: Assessment): string => JSON.stringify({
+  statusId: assessment.statusId,
+  summary: assessment.summary?.trim(),
+  scopeStatement: assessment.scopeStatement?.trim(),
+  relation: assessment.relation,
+  guidanceScenarios: assessment.guidanceScenarios,
+  reasonLinks: assessment.reasonLinks,
+})
+
+const collapseIdenticalStatements = (layers: GuidanceLayer[]): GuidanceLayer[] => {
+  const collapsed: GuidanceLayer[] = []
+  const byStatement = new Map<string, GuidanceLayer>()
+  for (const layer of layers) {
+    const key = statementKey(layer.assessment)
+    const existing = byStatement.get(key)
+    if (existing) {
+      existing.sourceIds = [...existing.sourceIds, ...layer.sourceIds]
+      existing.citations = [...existing.citations, ...layer.citations]
+      continue
+    }
+    const merged = { ...layer }
+    byStatement.set(key, merged)
+    collapsed.push(merged)
+  }
+  return collapsed
+}
+
+/**
+ * Walks towards the root collecting every assessed ancestor, whichever source stated it, and
+ * stopping at and including the first level that replaces rather than adds to what it inherits.
  */
 const collectAncestorLayers = (
   ancestors: Category[],
   guidanceList: GuidanceList,
   index: ContentIndex,
+  from: number,
 ): GuidanceLayer[] => {
   const layers: GuidanceLayer[] = []
-  for (let position = ancestors.length - 1; position >= 0; position -= 1) {
+  for (let position = from; position >= 0; position -= 1) {
     const category = ancestors[position]
-    const assessment = findAssessment(index, guidanceList.id, { kind: 'category', categoryId: category.id })
-    if (assessment) {
-      layers.push({ assessment, origin: { kind: 'inherited', category } })
-      if (!isAdditive(assessment)) {
-        break
-      }
+    const assessments = findAssessments(index, guidanceList.id, { kind: 'category', categoryId: category.id })
+    if (assessments.length === 0) {
+      continue
+    }
+    for (const assessment of assessments) {
+      layers.push(toLayer(assessment, { kind: 'inherited', category }))
+    }
+    if (assessments.some((assessment) => !isAdditive(assessment))) {
+      break
     }
   }
   return layers
 }
 
+/** The nearest subject level holding any assessment, and where the ancestor walk resumes above it. */
+const findNearestLevel = (
+  own: Assessment[],
+  ancestors: Category[],
+  guidanceList: GuidanceList,
+  index: ContentIndex,
+): { level: AssessedLevel, nextAncestor: number } | undefined => {
+  if (own.length > 0) {
+    return { level: { origin: { kind: 'own' }, assessments: own }, nextAncestor: ancestors.length - 1 }
+  }
+  for (let position = ancestors.length - 1; position >= 0; position -= 1) {
+    const category = ancestors[position]
+    const assessments = findAssessments(index, guidanceList.id, { kind: 'category', categoryId: category.id })
+    if (assessments.length > 0) {
+      return {
+        level: { origin: { kind: 'inherited', category }, assessments },
+        nextAncestor: position - 1,
+      }
+    }
+  }
+  return undefined
+}
+
+/**
+ * The authored status that governs the chip, the outcome band, filtering, and the count. It is
+ * selected from authored statuses by caution and never averaged, blended, or invented. Every
+ * candidate sits at the same subject level, so a tie on caution falls to the order the list declares
+ * its sources in: display determinism, not a ranking, since both positions are shown and named.
+ */
+const governingAssessment = (assessments: Assessment[], guidanceList: GuidanceList): Assessment =>
+  [...assessments].sort((left, right) => {
+    const byCaution = restrictiveness[getStatusById(guidanceList, right.statusId).outcomeBand]
+      - restrictiveness[getStatusById(guidanceList, left.statusId).outcomeBand]
+    // A level holding more than one assessment can only exist in a list declaring more than one
+    // source, where validation requires every assessment to name one, so the comparator never
+    // compares an unattributed assessment.
+    return byCaution === 0
+      ? guidanceList.sourceIds.indexOf(left.sourceId!) - guidanceList.sourceIds.indexOf(right.sourceId!)
+      : byCaution
+  })[0]
+
 const resolveWithAncestors = (
-  own: Assessment | undefined,
+  own: Assessment[],
   ancestors: Category[],
   guidanceList: GuidanceList,
   index: ContentIndex,
 ): ResolvedAssessment => {
-  const nearest: GuidanceLayer[] = own ? [{ assessment: own, origin: { kind: 'own' } }] : []
-  const ancestorLayers = own && !isAdditive(own)
-    ? []
-    : collectAncestorLayers(ancestors, guidanceList, index)
-  const collected = [...nearest, ...ancestorLayers]
+  const nearest = findNearestLevel(own, ancestors, guidanceList, index)
 
-  if (collected.length === 0) {
+  if (!nearest) {
     return {
       status: getStatusById(guidanceList, guidanceList.unassessedStatusId),
       origin: { kind: 'not-assessed' },
       layers: [],
+      positions: [],
     }
   }
 
-  const nearestLayer = collected[0]
+  const { level, nextAncestor } = nearest
+  const inherited = level.assessments.every(isAdditive)
+    ? collectAncestorLayers(ancestors, guidanceList, index, nextAncestor)
+    : []
+  const governing = governingAssessment(level.assessments, guidanceList)
+  const contested = new Set(level.assessments.map((assessment) => assessment.statusId)).size > 1
+
+  const positions: GuidancePosition[] = contested
+    ? level.assessments.map((assessment) => ({
+      sourceId: assessment.sourceId,
+      status: getStatusById(guidanceList, assessment.statusId),
+      layers: (isAdditive(assessment)
+        ? [...collectAncestorLayers(ancestors, guidanceList, index, nextAncestor)].reverse()
+        : []
+      ).concat(toLayer(assessment, level.origin)),
+    }))
+    : []
+
   return {
-    status: getStatusById(guidanceList, nearestLayer.assessment.statusId),
-    assessment: nearestLayer.assessment,
-    origin: nearestLayer.origin,
-    layers: [...collected].reverse(),
+    status: getStatusById(guidanceList, governing.statusId),
+    assessment: governing,
+    origin: level.origin,
+    layers: collapseIdenticalStatements(
+      [...inherited].reverse().concat(level.assessments.map((assessment) => toLayer(assessment, level.origin))),
+    ),
+    positions,
   }
 }
 
@@ -90,7 +234,7 @@ export const resolveAssessment = (
   if (subjectRef.kind === 'food') {
     const { food } = subjectRef
     return resolveWithAncestors(
-      findAssessment(index, guidanceList.id, { kind: 'food', foodId: food.id }),
+      findAssessments(index, guidanceList.id, { kind: 'food', foodId: food.id }),
       index.tree.pathByCategoryId.get(food.primaryCategoryId) ?? [],
       guidanceList,
       index,
@@ -99,7 +243,7 @@ export const resolveAssessment = (
 
   const { category } = subjectRef
   return resolveWithAncestors(
-    findAssessment(index, guidanceList.id, { kind: 'category', categoryId: category.id }),
+    findAssessments(index, guidanceList.id, { kind: 'category', categoryId: category.id }),
     (index.tree.pathByCategoryId.get(category.id) ?? []).slice(0, -1),
     guidanceList,
     index,

@@ -9,12 +9,15 @@ const list: GuidanceList = {
   title: 'Test list',
   description: 'A test guidance list.',
   citationPolicy: 'optional',
+  sourceIds: [],
   evidentiaryBasis: 'Test basis.',
   unassessedStatusId: 'not-assessed',
   statuses: [
-    { id: 'ok', slug: 'ok', label: 'OK', tone: 'green', outcomeBand: 'okay', sortOrder: 1, filterLabel: 'OK' },
-    { id: 'avoid', slug: 'avoid', label: 'Avoid', tone: 'red', outcomeBand: 'not-okay', sortOrder: 2, filterLabel: 'Avoid' },
-    { id: 'not-assessed', slug: 'not-assessed', label: 'Not assessed', tone: 'grey', outcomeBand: 'not-assessed', sortOrder: 3, filterLabel: 'Not assessed' },
+    { id: 'ok', slug: 'ok', label: 'OK', tone: 'green', outcomeBand: 'okay', sortOrder: 1, filterLabel: 'OK', summary: 'The list says this is okay.' },
+    { id: 'careful', slug: 'careful', label: 'Careful', tone: 'amber', outcomeBand: 'maybe', sortOrder: 4, filterLabel: 'Careful', summary: 'The list says to take care.' },
+    { id: 'avoid', slug: 'avoid', label: 'Avoid', tone: 'red', outcomeBand: 'not-okay', sortOrder: 2, filterLabel: 'Avoid', summary: 'The list says to avoid this.' },
+    { id: 'steer-clear', slug: 'steer-clear', label: 'Steer clear', tone: 'red', outcomeBand: 'not-okay', sortOrder: 5, filterLabel: 'Steer clear', summary: 'The list says to steer clear of this.' },
+    { id: 'not-assessed', slug: 'not-assessed', label: 'Not assessed', tone: 'grey', outcomeBand: 'not-assessed', sortOrder: 3, filterLabel: 'Not assessed', summary: 'This has not been assessed.' },
   ],
   unassessedNotice: {
     description: 'This guide has no reviewed rule for this item.',
@@ -190,7 +193,8 @@ describe('accumulating guidance across subject levels', () => {
 
     const resolved = resolveAssessment({ kind: 'food', food: cheddar }, list, index)
     expect(resolved.layers).toHaveLength(1)
-    expect(resolved.layers[0]).toEqual({ assessment: resolved.assessment, origin: { kind: 'own' } })
+    expect(resolved.layers[0]).toEqual({ assessment: resolved.assessment, origin: { kind: 'own' }, sourceIds: [], citations: [] })
+    expect(resolved.positions).toEqual([])
   })
 
   it('returns two layers, broadest first, for an additive food beneath an assessed category', () => {

@@ -15,8 +15,8 @@ Read these rather than assuming; they are authoritative and current.
 
 - This is a client-only SPA. There is no backend, database, CMS, account, analytics, server session, or live content API. Do not introduce one.
 - Keep the layers one-way. `src/data/` holds authored, reviewed static records; `src/domain/` owns types, Zod validation, derivation, search, and filter predicates, and must not import React, router, browser, or UI modules; `src/app/` and the feature directories compose routes, URL state, and rendering.
-- This product gives health guidance, so never infer a food status. Do not derive one from a food name, a sibling, or an unassessed ancestor. Resolve nearest-subject-first, then fall back to the guidance list's not-assessed state.
-- Apply each guidance layer whole. Never merge statuses, summaries, scenarios, conditions, or citations across subject levels or across guidance lists.
+- This product gives health guidance, so never infer a food status. Do not derive one from a food name, a sibling, or an unassessed ancestor. Resolve nearest-subject-first, then fall back to the guidance list's not-assessed state. An assessment is keyed by subject, guidance list, and source.
+- Apply each guidance layer whole. Never merge statuses, summaries, scenarios, conditions, or citations across subject levels, across sources, or across guidance lists. Where sources disagree, the most cautious authored status governs and the dissent is stated in words.
 - `not-assessed` is a neutral fallback. It never means safe, and must never be authored onto an assessment.
 - Guidance text is manually reviewed and paraphrased from cited sources. Do not scrape, fetch, infer, or automatically update advice.
 - Use en-NZ spelling in code, content, and documentation.

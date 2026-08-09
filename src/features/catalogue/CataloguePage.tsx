@@ -309,6 +309,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                           key={guidanceList.id}
                           resolved={resolveAssessment({ kind: 'category', category }, guidanceList, index)}
                           returnSearch={returnSearch}
+                          sources={content.sources}
                         />
                       ))}
                     </div>
@@ -326,6 +327,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                               key={guidanceList.id}
                               resolved={resolveAssessment({ kind: 'food', food }, guidanceList, index)}
                               returnSearch={returnSearch}
+                              sources={content.sources}
                             />
                           ))}
                         </li>

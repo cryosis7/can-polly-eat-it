@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
-import type { AssessmentOrigin, GuidanceLayer, ResolvedAssessment } from '../domain/assessment'
-import type { GuidanceList } from '../domain/schemas'
+import { assessmentSummary, type AssessmentOrigin, type GuidanceLayer, type ResolvedAssessment } from '../domain/assessment'
+import type { GuidanceList, Source } from '../domain/schemas'
+import { DissentNotice } from './DissentNotice'
 
 type InheritedLayer = GuidanceLayer & { origin: Extract<AssessmentOrigin, { kind: 'inherited' }> }
 
@@ -9,6 +10,7 @@ const isInheritedLayer = (layer: GuidanceLayer): layer is InheritedLayer => laye
 export type GuideEntrySummaryProps = {
   guidanceList: GuidanceList
   resolved: ResolvedAssessment
+  sources: Source[]
   returnSearch: string
 }
 
@@ -19,8 +21,7 @@ const statusIcon = {
   grey: '?',
 } as const
 
-export const GuideEntrySummary = ({ guidanceList, resolved, returnSearch }: GuideEntrySummaryProps) => {
-  const citations = resolved.assessment?.citations ?? guidanceList.unassessedNotice.citations
+export const GuideEntrySummary = ({ guidanceList, resolved, sources, returnSearch }: GuideEntrySummaryProps) => {
   // Every layer before the last is an ancestor category, because the nearest assessment is ordered
   // last. Each accumulated layer states its own authored summary; layers are never merged.
   const accumulatedLayers = resolved.layers.slice(0, -1).filter(isInheritedLayer)
@@ -32,7 +33,12 @@ export const GuideEntrySummary = ({ guidanceList, resolved, returnSearch }: Guid
         <span aria-hidden="true" className="status-icon">{statusIcon[resolved.status.tone]}</span>
         <span>{resolved.status.label}</span>
       </p>
-      <p>{resolved.assessment?.summary ?? guidanceList.unassessedNotice.description}</p>
+      <p>
+        {resolved.assessment
+          ? assessmentSummary(resolved.assessment, guidanceList)
+          : guidanceList.unassessedNotice.description}
+      </p>
+      <DissentNotice resolved={resolved} sources={sources} />
       {resolved.origin.kind === 'inherited' && (
         <p className="inherited-note">
           {resolved.assessment!.scopeStatement}{' '}
@@ -43,17 +49,12 @@ export const GuideEntrySummary = ({ guidanceList, resolved, returnSearch }: Guid
       )}
       {accumulatedLayers.map(({ assessment, origin }) => (
         <p className="accumulated-note" key={assessment.id}>
-          {assessment.summary}{' '}
+          {assessmentSummary(assessment, guidanceList)}{' '}
           <Link to={`/category/${origin.category.slug}?${returnSearch}`}>
             See {origin.category.name} guidance
           </Link>
         </p>
       ))}
-      {citations.length > 0 && (
-        <a href={citations[0].url} target="_blank" rel="noreferrer">
-          Primary source: {citations[0].title}
-        </a>
-      )}
     </section>
   )
 }

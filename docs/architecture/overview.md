@@ -167,10 +167,19 @@ type GuidanceList = {
   title: string;
   description: string;
   citationPolicy: "required" | "optional";
+  sourceIds: string[];
   evidentiaryBasis?: string;
   unassessedStatusId: string;
   statuses: StatusDefinition[];
   unassessedNotice: UnassessedNotice;
+};
+
+type Source = {
+  id: string;
+  slug: string;
+  name: string;
+  organisation: string;
+  homeUrl?: string;
 };
 
 type StatusDefinition = {
@@ -181,6 +190,7 @@ type StatusDefinition = {
   outcomeBand: "okay" | "maybe" | "not-okay" | "not-assessed";
   sortOrder: number;
   filterLabel: string;
+  summary: string;
 };
 
 type UnassessedNotice = {
@@ -196,9 +206,10 @@ type Assessment = {
   id: string;
   subject: AssessmentSubject;
   guidanceListId: string;
+  sourceId?: string;
   relation?: "replaces" | "adds-to";
   statusId: string;
-  summary: string;
+  summary?: string;
   scopeStatement?: string;
   guidanceScenarios: GuidanceScenario[];
   reasonLinks: AssessmentReasonLink[];
@@ -212,11 +223,31 @@ type AssessmentReasonLink = {
 };
 ```
 
-An assessment is unique for a `(subject, guidanceListId)` pair, where the subject is exactly one food
-or one category. A food's status resolves nearest-subject-first: its own assessment; otherwise the
-nearest ancestor category assessed in the same guidance list, walking the category path from the
-nearest parent to the root; otherwise the list-owned grey `unassessedStatusId`. The fallback status
-must not be authored on an assessment.
+An assessment is unique for a `(subject, guidanceListId, sourceId)` triple, where the subject is
+exactly one food or one category. A food's status resolves nearest-subject-first: its own
+assessments; otherwise the nearest ancestor category assessed in the same guidance list, walking the
+category path from the nearest parent to the root; otherwise the list-owned grey
+`unassessedStatusId`. The fallback status must not be authored on an assessment.
+
+A **source** is the authority that stands behind a statement, and is distinct from a citation, which
+is a link to a passage. Provenance is never inferred from a citation's URL, title, or array position.
+A guidance list declares the sources it draws on; a list standing on its `evidentiaryBasis` declares
+none. Attribution is required only where it carries meaning: a list declaring two or more sources
+must name a `sourceId` on every assessment, and a single-source or no-source list authors none and
+renders no attribution.
+
+Where several sources assessed the same subject and agree on a status, the guide shows one status and
+one ordered set of attributed layers; two sources whose whole authored body is identical collapse
+into one layer carrying both names and both citations. Where they disagree, the most cautious
+authored status governs the chip, the outcome band, filtering, and the count — selected by generic
+outcome band, never by `sortOrder`, and never averaged, blended, or invented — and each source's
+position is shown whole as a competing alternative rather than stacked. Wherever a contested status
+appears, including the catalogue overview, the guide states in text which source concluded otherwise,
+what it concluded, and where to read it, without relying on colour. A source that has not assessed a
+subject is silent: it never counts as agreeing or dissenting.
+
+Where an assessment authors no `summary`, the list's canonical wording for its resolved status is
+displayed. A source-specific summary stays authored on the assessment and is attributed to its source.
 
 `relation` states how an assessment relates to inherited guidance. An absent value means
 `"replaces"`, preserving the total-override behaviour for existing records. An assessment authored as
@@ -226,19 +257,23 @@ UI renders the collected guidance broadest ancestor first and then the nearest a
 discrete layers with their own summaries, scenarios, scope statements, and citations.
 
 Inherited assessments are applied whole. Statuses, summaries, scenarios, conditions, and citations
-are never merged across subject levels, and inheritance never crosses guidance lists. Wherever
-guidance is inherited or accumulated, the interface names the origin category, shows its
-`scopeStatement`, and shows that layer's source if it has one. A category assessment requires a
-`scopeStatement`; a food assessment must not have one. Validators must reject an additive assessment
-with no same-list ancestor assessment, or one whose generic outcome band is less restrictive than the
-assessment it adds to.
+are never merged across subject levels or across sources, and inheritance never crosses guidance
+lists. Wherever guidance is inherited or accumulated, the interface names the origin category, shows
+its `scopeStatement`, and shows that layer's source if it has one. An `adds-to` assessment may
+accumulate onto an ancestor rule stated by a *different* source, and each layer keeps its own source
+label. A category assessment requires a `scopeStatement`; a food assessment must not have one.
+Validators must reject an additive assessment with no same-list ancestor assessment, or one whose
+generic outcome band is less restrictive than the *same source's* assessment it adds to. The
+restrictiveness comparison is within a source only: across sources it would let one authority's
+caution invalidate another authority's authored record.
 
 A category that carries its own authored assessment is a **guide entry**: it is searchable,
 filterable, counted in results, and addressable at `/category/<slug>`. Categories that merely inherit
 remain plain browse headings.
 
 Validators must ensure unique status IDs, slugs, and labels per list, one list-owned grey
-not-assessed fallback status, valid subject references, and unique subject/list pairs.
+not-assessed fallback status, valid subject references, unique source IDs and slugs, list source
+references that resolve, and unique subject/list/source triples.
 
 Citation requirements are owned by the list, not the application. A list declares
 `citationPolicy: "required" | "optional"` with no default. A `required` list, such as
@@ -351,9 +386,11 @@ that unavailable shared filters were removed.
 ## Trust, accessibility, and privacy
 
 - Show the list name, status label, meaningful icon/text, and neutral state wherever an assessment or
-  fallback is shown, with a direct primary-source link whenever a citation exists. For a list whose
-  citation policy is optional, show its declared evidentiary basis once per view instead. Colour must
-  never be the only status signal.
+  fallback is shown. The food-detail view lists every citation behind the displayed guidance; the
+  catalogue names no "primary source", because the order of a citation array carries no authored
+  meaning. For a list whose citation policy is optional, show its declared evidentiary basis once per
+  view. Colour must never be the only status signal, and a disagreement between sources is always
+  stated in words.
 - Where guidance is inherited from an ancestor category, including as one layer of accumulated
   guidance, name that category, show its scope statement, and link to it, so inherited advice is never
   presented as food-specific.
