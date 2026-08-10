@@ -26,27 +26,6 @@ task that instructs a subagent to run the `prepare` skill after implementation a
 validation. Resolve or record any `prepare` findings before opening a PR or marking the feature
 `Done`.
 
-## Delivery sequence
-
-1. F-01: Browse the Food Guide
-2. F-02: Search and Filter Foods
-3. F-03: Explain Food Guidance
-4. F-04: Maintain Trustworthy Guidance Content
-5. F-05: Add Independent Guidance Lists
-6. F-06: Improve the Mobile-First Accessible Guide Experience
-7. F-07: Add AI-Assisted Guidance-List Curation
-8. F-08: Rework Guidance-Scope Filtering
-9. F-10: Vary Citation Expectations by Guidance List
-10. F-09: Assess and Browse Food Categories
-11. F-11: Make the Browse Hierarchy Legible and Collapsible
-12. F-12: Lift Group-Level Guidance onto Categories
-
-F-11 precedes F-12 because retiring a mirror food would visibly lose its summary and source from the
-browse view until an assessed category renders them as a food does.
-
-F-10 precedes F-09 so that the vegetarian guidance content is migrated to categories once, under its
-final citation policy, rather than in two passes.
-
 ## Decision baseline
 
 The Accepted ADRs in [`docs/decisions/`](decisions/) govern this implementation plan. Create a new
