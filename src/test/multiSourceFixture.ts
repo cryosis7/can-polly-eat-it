@@ -1,5 +1,5 @@
 import type { ContentData } from '../domain/contentValidation'
-import type { Assessment, Category, Food, GuidanceList, Source } from '../domain/schemas'
+import type { Assessment, Category, Food, GuidanceList, Preparation, Source } from '../domain/schemas'
 
 /**
  * Fixture content for a guidance list carrying two attributed authorities. F-17 curates no real
@@ -61,12 +61,13 @@ export const shellfish: Category = {
   sortOrder: 1,
 }
 
-export const makeFood = (id: string, primaryCategoryId = 'shellfish'): Food => ({
+export const makeFood = (id: string, primaryCategoryId = 'shellfish', preparationIds: string[] = []): Food => ({
   id,
   slug: id,
   name: id,
   aliases: [],
   primaryCategoryId,
+  preparationIds,
   tags: [],
   sortOrder: 1,
 })
@@ -111,9 +112,16 @@ export const categoryAssessment = (
   ...overrides,
 })
 
-export const dualSourceContent = (assessments: Assessment[]): ContentData => ({
+export const fixturePreparations: Preparation[] = [
+  { id: 'raw', slug: 'raw', name: 'Raw', sortOrder: 1 },
+  { id: 'smoked', slug: 'smoked', name: 'Smoked', sortOrder: 3 },
+  { id: 'cooked', slug: 'cooked', name: 'Cooked', sortOrder: 4 },
+]
+
+export const dualSourceContent = (assessments: Assessment[], foods: Food[] = [oysters, mussels, scallops, crayfish]): ContentData => ({
   categories: [seafood, shellfish],
-  foods: [oysters, mussels, scallops, crayfish],
+  foods,
+  preparations: fixturePreparations,
   sources: [nzfs, nswHealth],
   guidanceLists: [dualSourceList],
   assessments,

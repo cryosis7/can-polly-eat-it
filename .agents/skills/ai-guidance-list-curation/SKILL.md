@@ -63,11 +63,14 @@ the requested perspective.
 3. Check whether each named food item already exists in `src/data/foods.ts`. Reuse the canonical food
    record where possible. Add a food or category only when the source does not have a suitable place to slot the new item.
 4. Create or update `GuidanceList` data with list-owned statuses mapped to generic outcome bands.
-5. Author one `Assessment` per `(subject, guidanceListId)`, where the subject is exactly one food or
-   one category. A category assessment requires an authored `scopeStatement`; a food assessment must
-   not have one. Attach a citation with a durable HTTPS URL and exact locator whenever the list's
-   `citationPolicy` is `required`. Never merge statuses, summaries, scenarios, conditions, or
-   citations across subject levels or across guidance lists.
+5. Author one `Assessment` per `(subject, preparationId, guidanceListId)`, where the subject is exactly
+   one food or one category. A category assessment requires an authored `scopeStatement`; a food
+   assessment must not have one. Attach a citation with a durable HTTPS URL and exact locator whenever
+   the list's `citationPolicy` is `required`. Never merge statuses, summaries, scenarios, conditions, or
+   citations across subject levels, across preparation states, or across guidance lists.
+5a. Where the source's advice depends on how a food is prepared, qualify the assessment with a
+   `preparationId` rather than creating a preparation-shaped category. "Raw fish" is the `fish`
+   category assessed for the `raw` preparation, not a category of its own.
 6. When adding a food beneath a category that is already assessed, confirm the inherited outcome is
    correct for that specific food. If it is not, author a food-level assessment and choose its
    `relation` deliberately: the default `replaces` supersedes the ancestor's guidance entirely, while
@@ -76,7 +79,8 @@ the requested perspective.
 7. Use a reason link only when the source supports the assessed food's own conclusion and its target
    is an existing canonical food. A reason link never supplies a status or citation by itself.
 8. Prefer the smallest set of records that expresses the source faithfully:
-   - A `(subject, guidanceListId, sourceId)` triple may only be assessed once. When the *same* source
+   - A `(subject, preparationId, guidanceListId, sourceId)` tuple may only be assessed once. When the
+     *same* source
      repeats advice already assessed for that subject and list, cite the additional locator on the
      existing assessment instead of authoring a second one, and surface any wording change for
      maintainer review rather than silently rewriting reviewed guidance.
@@ -97,6 +101,33 @@ the requested perspective.
    an assessment outcome. Run the narrowest relevant existing checks first, then the repository's
    coverage, end-to-end, and build commands for user-visible content. Report each command and its
    outcome; surface a failure rather than treating the draft as validated.
+
+## Declaring preparation states
+
+A food declares the preparation states it is eaten in. This is a **separate judgement from the
+assessment**, and it answers one question only:
+
+> Do people in New Zealand eat this food in this state, commercially or home-prepared?
+
+- It is never a risk judgement. Whether a state is safe is the assessment's job, and a state being
+  risky is never a reason to leave it undeclared.
+- **Find evidence of what people do; never reason about what they should do.** In practice every
+  wrong declaration came from culinary theory — flesh type, oiliness, "that species isn't smoked" —
+  and every evidence-led finding survived. Live retail product listings, fishmonger and supermarket
+  catalogues, and government consumption studies settle it; plausibility does not.
+- Everyday community practice counts, including the practice of a particular community. A single
+  fine-dining menu item does not.
+- A missing citation is not counter-evidence. Where a state rests on judgement, declare it, and
+  record the evidence gap for the maintainer.
+- Prefer the recoverable direction: an undeclared state still shows the reader the group's authored
+  rule, whereas a wrongly declared one presents group advice as advice about that food.
+- Authored source content in this repository outranks secondary web evidence. If our own cited
+  guidance already gives serving advice for a food, that settles whether it is eaten.
+
+Two tests must pass before you declare a state:
+
+1. **Evidence test** — can you point to a source showing people eat it that way here?
+2. **Everyday test** — is it ordinary practice for some community, rather than a novelty?
 
 ## Review gate
 
@@ -125,6 +156,7 @@ End every invocation with this review packet:
 ### Proposed content changes
 - Lists:
 - Foods/categories:
+- Preparation declarations (with the evidence for each):
 - Assessments:
 
 ### Items needing a maintainer decision

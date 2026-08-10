@@ -1,6 +1,8 @@
 # F-18: Model Preparation as a Catalogue Dimension
 
-**Status:** Proposed
+**Status:** Done
+
+**Implementation plan:** [F-18 implementation plan](<18-model-preparation-as-a-catalogue-dimension-plan.md>)
 
 **Depends on:** [F-09: Assess and Browse Food Categories](<09-assess-and-browse-food-categories.md>), [F-11: Make the Browse Hierarchy Legible and Collapsible](<11-make-browse-hierarchy-legible.md>), [F-12: Lift Group-Level Guidance onto Categories](<12-lift-group-guidance-onto-categories.md>), [F-16: Express Guidance That Accumulates Across Subject Levels](<16-express-accumulating-guidance.md>)
 
@@ -93,9 +95,10 @@ spending a tree level on it.
   second axis — sushi by provenance *and* by whether its fish is raw — the second axis is expressed
   in the assessment's guidance scenarios and conditions, which already exist for exactly this.
 - An **assessment may be qualified by a preparation state**, at food or category level. An
-  unqualified assessment applies however the food is prepared and layers onto the preparation-specific
-  advice through the existing `relation: 'adds-to'` accumulation. Assessment uniqueness extends to
-  `(subject, preparation, guidanceList, source)`.
+  unqualified assessment applies however the food is prepared. Resolution runs on two axes — the
+  food-wide axis and the preparation being rendered — each walked nearest-subject-first and then
+  combined, food-wide layers first, with the most cautious authored status governing. Assessment
+  uniqueness extends to `(subject, preparation, guidanceList, source)`.
 - **Browse renders `Category → … → Preparation → Food`.** The preparation level appears only where
   a grouping is derived, so groups with no preparation dimension are unchanged.
 - **Every browse and search entry sits inside a preparation context and therefore shows exactly one
@@ -112,7 +115,7 @@ spending a tree level on it.
   at, and both the bare and preparation-scoped URLs are shareable.
 - **`fish-mercury-guidance` is retired.** Its species move under real food categories, and every
   mercury limit becomes an unqualified species-level assessment that applies in every preparation.
-- The ten existing categories that model preparation, processing, or provenance as child categories
+- The fourteen existing preparation, processing, provenance, and guidance-shaped category levels
   are **normalised onto the new dimension**, so the tree expresses food structure only.
 - No reviewed status, summary, scenario, condition, citation, or locator wording changes. This feature
   moves authored guidance to a subject that can hold it; it does not reword or reassess any of it.
@@ -155,7 +158,8 @@ spending a tree level on it.
 - **The ADR is accepted:** [model preparation as a catalogue dimension](<../decisions/2026-08-10 ADR - model preparation as a catalogue dimension.md>).
   It records why preparation is a crossing dimension rather than a category or a second parent, why no
   status-collapse rule is specified, and how it amends the category-tree and category-assessment ADRs.
-  The remaining prerequisite for `Planned` is an approved feature-specific implementation plan.
+  Its questions for implementation are settled by the approved
+  [F-18 implementation plan](<18-model-preparation-as-a-catalogue-dimension-plan.md>).
 - Surfaced by the ADR: `filterFoods` returns `Food[]` and `foodsByCategoryId` groups by category, so
   per-row filtering makes both return `(food, preparation)` rows. This is a signature change rippling
   into the catalogue page rather than an additive field.
@@ -206,8 +210,8 @@ spending a tree level on it.
   preparation states, and adding a food with a new declared state makes the grouping appear.
 - `fish-mercury-guidance` no longer exists, and no category in the tree names a kind of guidance
   rather than a kind of food.
-- The ten preparation, processing, and provenance category levels are normalised, and every food
-  remains reachable by browse and by search.
+- The fourteen preparation, processing, provenance, and guidance-shaped category levels are
+  normalised, and every food remains reachable by browse and by search.
 - No reviewed status, summary, scenario, condition, citation, or locator wording differs from its
   pre-change value.
 - Content validation rejects a food declaring an unknown preparation state, an assessment qualified by
@@ -231,3 +235,20 @@ filtered view returning one preparation row of a food but not another. Chromium 
 for browsing to a preparation group, a preparation-scoped food URL, and a filtered URL containing a
 preparation-varying food, with the existing axe-core WCAG 2.2 AA scans. Repository-wide 100%
 statements, branches, functions, and lines coverage for application source is retained.
+
+### Validation evidence
+
+All gates green before merge: `npm run typecheck`, `npm run lint`, `npm run test:coverage` (223 tests,
+100% statements/branches/functions/lines), `npm run build`, and `npm run test:e2e` (58 Chromium tests
+including axe-core WCAG 2.2 AA scans on the preparation-scoped food page, the catalogue showing
+preparation groupings, and a category page with per-preparation sections).
+
+Two migration-specific safety nets prove nothing authored was lost: `src/test/preF18Resolution.ts`
+captures every body each food resolved to before the migration, and `src/domain/wordingPreservation.test.ts`
+asserts the union of bodies across a food's rows still contains every pre-migration body.
+
+A subagent ran the `prepare` skill against the local diff against `main`. It raised three findings,
+all documentation drift and all resolved: the ADR and this brief described unqualified guidance
+layering through `relation: 'adds-to'` when the implementation combines two axes; both stated ten
+retired category levels when fourteen were retired; and the architecture overview's project layout
+omitted preparation records. No dependency-version or undocumented-architecture findings.

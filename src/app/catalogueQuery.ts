@@ -1,4 +1,4 @@
-import type { GuidanceList, OutcomeBand } from '../domain/schemas'
+import type { GuidanceList, OutcomeBand, Preparation } from '../domain/schemas'
 
 export type CatalogueQueryState = {
   scopeSlugs: string[]
@@ -99,4 +99,30 @@ export const buildCatalogueQuery = (
   }
 
   return searchParams
+}
+
+// ADR: Model preparation as a catalogue dimension.
+// See: docs/decisions/2026-08-10 ADR - model preparation as a catalogue dimension.md
+/**
+ * The preparation a food page was opened in. It is deliberately not part of `CatalogueQueryState`,
+ * so the catalogue's canonical URL never carries one and the back link from a preparation-scoped
+ * food page returns to the catalogue the reader came from. An unknown value is stripped, like any
+ * other unavailable shared filter, and the page renders as the bare food URL.
+ */
+export const parsePreparationSlug = (
+  searchParams: URLSearchParams,
+  preparations: Preparation[],
+): string | undefined => {
+  const slug = searchParams.get('prep')
+  return preparations.some((preparation) => preparation.slug === slug) ? slug! : undefined
+}
+
+/** The search string for a link into a food in a preparation context. */
+export const withPreparationSlug = (search: string, preparationSlug?: string): string => {
+  if (preparationSlug === undefined) {
+    return search
+  }
+  const searchParams = new URLSearchParams(search)
+  searchParams.set('prep', preparationSlug)
+  return searchParams.toString()
 }

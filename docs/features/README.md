@@ -43,7 +43,7 @@ feature IDs below, must not reference the feature itself, and must not form a cy
 | F-15 | [Retire the outside-coverage state](<15-retire-outside-coverage-state.md>) | Done | F-08, F-12, F-13 | Get one plain answer when a guide has nothing to say about a food. |
 | F-16 | [Express guidance that accumulates across subject levels](<16-express-accumulating-guidance.md>) | Done | F-04, F-09 | See every instruction a source gives about a food, not only its most specific one. |
 | F-17 | [Support multiple sources within one guidance list](<17-support-multiple-sources-per-guidance-list.md>) | Done | F-04, F-05, F-08, F-10, F-16 | See what every reviewed authority says about a food, and decide when they disagree. |
-| F-18 | [Model preparation as a catalogue dimension](<18-model-preparation-as-a-catalogue-dimension.md>) | Proposed | F-09, F-11, F-12, F-16 | Find a food under what it is, and see the advice for the way you will actually eat it. |
+| F-18 | [Model preparation as a catalogue dimension](<18-model-preparation-as-a-catalogue-dimension.md>) | Done | F-09, F-11, F-12, F-16 | Find a food under what it is, and see the advice for the way you will actually eat it. |
 
 ## Maintaining this register
 

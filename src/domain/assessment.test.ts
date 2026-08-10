@@ -36,12 +36,13 @@ const category = (id: string, parentId: string | null): Category => ({
   sortOrder: 1,
 })
 
-const food = (id: string, primaryCategoryId: string): Food => ({
+const food = (id: string, primaryCategoryId: string, preparationIds: string[] = []): Food => ({
   id,
   slug: id,
   name: id,
   aliases: [],
   primaryCategoryId,
+  preparationIds,
   tags: [],
   sortOrder: 1,
 })

@@ -167,7 +167,7 @@ describe('guidance from more than one source', () => {
     expect(() => validateContent(dualSourceContent([
       nzfsSays('dual-ok', 'Eat freely.'),
       foodAssessment('oysters-nzfs-again', 'oysters', 'dual-avoid', { sourceId: 'nzfs', summary: 'Avoid.' }),
-    ]))).toThrow('duplicate subject/list/source assessment pair')
+    ]))).toThrow('duplicate subject/preparation/list/source assessment pair')
   })
 
   it('filters a contested food under its most cautious band only, and counts it once', () => {
@@ -179,7 +179,7 @@ describe('guidance from more than one source', () => {
     const filters = { query: '', guidanceListIds: [dualSourceList.id], outcomeBands: [] }
 
     expect(filterFoods(content.foods, content.guidanceLists, index, { ...filters, outcomeBands: ['not-okay'] })
-      .map((food) => food.id)).toEqual(['oysters'])
+      .map((row) => row.food.id)).toEqual(['oysters'])
     expect(filterFoods(content.foods, content.guidanceLists, index, { ...filters, outcomeBands: ['okay'] }))
       .toEqual([])
   })

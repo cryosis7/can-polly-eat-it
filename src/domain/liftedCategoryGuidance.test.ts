@@ -12,12 +12,12 @@ const foodById = (id: string) => content.foods.find((food) => food.id === id)!
 const categoryById = (id: string) => content.categories.find((category) => category.id === id)!
 const resolveFood = (id: string, list = pregnancy) => resolveAssessment({ kind: 'food', food: foodById(id) }, list, index)
 
-const entriesMatching = (query: string) => [
+const entriesMatching = (query: string) => [...new Set([
   ...filterFoods(content.foods, content.guidanceLists, index, { query, guidanceListIds: [], outcomeBands: [] })
-    .map((food) => `food:${food.id}`),
-  ...filterCategoryEntries(content.categories, content.guidanceLists, index, { query, guidanceListIds: [], outcomeBands: [] })
-    .map((category) => `category:${category.id}`),
-]
+    .map((row) => `food:${row.food.id}`),
+  ...filterCategoryEntries(content.categories, content.assessments, content.preparations, content.guidanceLists, index, { query, guidanceListIds: [], outcomeBands: [] })
+    .map((row) => `category:${row.category.id}`),
+])]
 
 const resolveMatch = (match: string) => {
   const [kind, id] = match.split(/:(.*)/s)
@@ -53,8 +53,8 @@ describe('guidance lifted onto categories', () => {
   })
 
   it('lifts the freshly cooked seafood group rule onto its category so the footnote can add to it', () => {
-    expect(content.foods.some((food) => food.id === 'freshly-cooked-seafood')).toBe(false)
-    expect(index.assessedCategoryIds.has('freshly-cooked-seafood')).toBe(true)
+    expect(content.foods.some((food) => food.id === 'seafood')).toBe(false)
+    expect(index.assessedCategoryIds.has('seafood')).toBe(true)
 
     for (const foodId of ['bluff-and-pacific-oysters', 'queen-scallops']) {
       const resolved = resolveFood(foodId)
@@ -64,14 +64,16 @@ describe('guidance lifted onto categories', () => {
   })
 
   it('keeps the migrated pasteurised yoghurt entry independent in each guidance list', () => {
-    const category = categoryById('pasteurised-yoghurt')
+    const category = categoryById('yoghurt')
 
-    const pregnancyResolved = resolveAssessment({ kind: 'category', category }, pregnancy, index)
+    // Both authorities scoped their yoghurt rule to the pasteurised state, so each is reached on
+    // that axis. They stay independent: neither list's wording or citation leaks into the other.
+    const pregnancyResolved = resolveAssessment({ kind: 'category', category }, pregnancy, index, 'pasteurised')
     expect(pregnancyResolved.origin).toEqual({ kind: 'own' })
     expect(pregnancyResolved.status.id).toBe('pregnancy-conditions')
     expect(pregnancyResolved.assessment?.citations[0].title).toContain('New Zealand Food Safety')
 
-    const vegetarianResolved = resolveAssessment({ kind: 'category', category }, vegetarian, index)
+    const vegetarianResolved = resolveAssessment({ kind: 'category', category }, vegetarian, index, 'pasteurised')
     expect(vegetarianResolved.origin).toEqual({ kind: 'own' })
     expect(vegetarianResolved.status.id).toBe('vegetarian-check-ingredients')
     expect(vegetarianResolved.assessment?.citations[0].title).toContain('Veggy Malta')
@@ -85,21 +87,27 @@ describe('guidance lifted onto categories', () => {
     }
   })
 
-  it('keeps the commercial sauces rule on its own qualified child category', () => {
-    const commercial = categoryById('commercial-sauces-dressings-and-spreads')
-    expect(commercial.parentId).toBe('sauces-dressings-and-spreads')
-    expect(resolveAssessment({ kind: 'category', category: commercial }, pregnancy, index).origin).toEqual({ kind: 'own' })
-    expect(index.assessedCategoryIds.has('sauces-dressings-and-spreads')).toBe(false)
+  it('keeps the commercial and home-made sauce rules apart on the surviving parent', () => {
+    const sauces = categoryById('sauces-dressings-and-spreads')
+    expect(sauces.parentId).toBe('miscellaneous')
+
+    const commercial = resolveAssessment({ kind: 'category', category: sauces }, pregnancy, index, 'store-bought')
+    const homeMade = resolveAssessment({ kind: 'category', category: sauces }, pregnancy, index, 'home-made')
+
+    expect(commercial.origin).toEqual({ kind: 'own' })
+    expect(homeMade.origin).toEqual({ kind: 'own' })
+    expect(commercial.assessment?.summary).toContain('manufacturer storage')
+    expect(homeMade.assessment?.summary).toContain('raw egg')
   })
 
   it('reaches each migrated alias on one assessed entry, and never on entries with differing guidance', () => {
+    // Aliases that named a whole food group. An alias moved onto a broad surviving parent, such as
+    // the seafood smoking aliases, now reaches every food beneath it and is covered separately.
     const migratedAliases = [
       'mince',
       'raw chicken',
-      'cold smoked fish',
       'cooked leftovers',
       'Chicken or turkey stuffing',
-      'commercial mayonnaise',
       'karengo',
       'alfalfa sprouts',
       'pasteurised yogurt',
@@ -121,18 +129,18 @@ describe('guidance lifted onto categories', () => {
     }
   })
 
-  it('retires every mirror food while keeping its guidance on the category it mirrored', () => {
+  it('retires every mirror food while keeping its guidance on the subject it mirrored', () => {
     const retiredWithCategoryEntry: [string, string][] = [
       ['butter', 'butter'],
-      ['cooked-eggs', 'cooked-eggs'],
+      ['cooked-eggs', 'eggs'],
       ['leftover-cooked-foods', 'leftover-cooked-foods'],
-      ['raw-eggs-and-raw-egg-foods', 'raw-eggs'],
+      ['raw-eggs-and-raw-egg-foods', 'eggs'],
       ['chicken-or-turkey-stuffing', 'stuffing'],
     ]
 
     for (const [retiredFoodId, categoryId] of retiredWithCategoryEntry) {
       expect(content.foods.some((food) => food.id === retiredFoodId)).toBe(false)
-      expect(index.assessedCategoryIds.has(categoryId)).toBe(true)
+      expect(index.assessedCategoryIds.has(categoryId), categoryId).toBe(true)
     }
   })
 })

@@ -15,7 +15,7 @@ const scannedStates = [
   {
     name: 'a searched and category-filtered catalogue',
     url: '/?v=1&scope=pregnancy-food-safety&q=yogurt&category=dairy',
-    settled: (page: Page) => page.getByRole('link', { name: 'Pasteurised yoghurt guidance', exact: true }),
+    settled: (page: Page) => page.getByRole('link', { name: 'Yoghurt guidance', exact: true }),
   },
   {
     name: 'the no-results state',
@@ -34,8 +34,8 @@ const scannedStates = [
   },
   {
     name: 'a migrated category detail page with conditions and a citation',
-    url: '/category/cooked-eggs?v=1&scope=pregnancy-food-safety',
-    settled: (page: Page) => page.getByRole('heading', { name: 'Cooked eggs' }),
+    url: '/category/eggs?v=1&scope=pregnancy-food-safety&prep=cooked',
+    settled: (page: Page) => page.getByRole('heading', { name: 'Eggs' }),
   },
   {
     name: 'a food detail page with reason links',
@@ -50,7 +50,22 @@ const scannedStates = [
   {
     name: 'a food detail page with accumulated guidance layers',
     url: '/food/bluff-and-pacific-oysters?v=1&scope=pregnancy-food-safety',
-    settled: (page: Page) => page.getByRole('heading', { name: 'All of the following apply' }),
+    settled: (page: Page) => page.getByRole('heading', { name: 'All of the following apply' }).first(),
+  },
+  {
+    name: 'a preparation-scoped food detail page',
+    url: '/food/farmed-salmon?v=1&scope=pregnancy-food-safety&prep=raw',
+    settled: (page: Page) => page.getByRole('heading', { name: /^Raw/ }),
+  },
+  {
+    name: 'a catalogue showing preparation groupings',
+    url: '/?v=1&scope=pregnancy-food-safety&q=farmed%20salmon',
+    settled: (page: Page) => page.locator('.preparation-group').first(),
+  },
+  {
+    name: 'a category detail page with per-preparation sections',
+    url: '/category/ice-cream?v=1&scope=pregnancy-food-safety&prep=soft-serve',
+    settled: (page: Page) => page.getByRole('heading', { name: 'Ice cream' }),
   },
   {
     name: 'the food-not-found route',

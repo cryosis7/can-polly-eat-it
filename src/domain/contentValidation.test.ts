@@ -9,7 +9,7 @@ const index = createContentIndex(content.categories, content.assessments)
 
 describe('guide content validation', () => {
   it('accepts the authored fixture content', () => {
-    expect(content.categories).toHaveLength(80)
+    expect(content.categories).toHaveLength(49)
     expect(content.foods).toHaveLength(109)
     expect(content.assessments).toHaveLength(142)
     expect(content.guidanceLists.map((list) => list.id)).toEqual(['pregnancy-food-safety', 'vegetarian-suitability'])
@@ -166,7 +166,7 @@ describe('guide content validation', () => {
     expect(() => validateContent({
       ...content,
       assessments: [...content.assessments, { ...categoryAssessment, id: 'duplicate-category-subject' }],
-    })).toThrow('duplicate subject/list/source assessment pair')
+    })).toThrow('duplicate subject/preparation/list/source assessment pair')
   })
 
   it('resolves an assessed subject the same wherever it sits, with no containment rule to satisfy', () => {
@@ -190,9 +190,12 @@ describe('guide content validation', () => {
   })
 
   it('rejects an additive assessment with nothing to add to, or one less restrictive than its target', () => {
-    const yellowfinAssessment: Assessment = {
-      id: 'yellowfin-tuna-pregnancy',
-      subject: { kind: 'food', foodId: 'yellowfin-tuna' },
+    // Confectionery carries no guidance anywhere on its path, so nothing inherits onto a sweet on
+    // any axis. Yellowfin tuna would no longer serve: it declares raw and cooked, and its group
+    // carries a rule on both, which is exactly what the additive relation is entitled to add to.
+    const danglingAssessment: Assessment = {
+      id: 'gummy-bears-pregnancy',
+      subject: { kind: 'food', foodId: 'gummy-bears' },
       guidanceListId: 'pregnancy-food-safety',
       statusId: 'pregnancy-avoid',
       summary: 'Adds to guidance that does not exist.',
@@ -204,30 +207,47 @@ describe('guide content validation', () => {
 
     expect(() => validateContent({
       ...content,
-      assessments: [...content.assessments, yellowfinAssessment],
+      assessments: [...content.assessments, danglingAssessment],
     })).toThrow('no ancestor is assessed in its guidance list')
 
     expect(() => validateContent({
       ...content,
       assessments: content.assessments.map((assessment) => (
-        assessment.id === 'mayonnaise-pregnancy'
+        assessment.id === 'mousse-pregnancy'
           ? { ...assessment, relation: 'adds-to' as const, statusId: 'pregnancy-ok' }
           : assessment
       )),
     })).toThrow('more restrictive than itself')
   })
 
-  it('accepts an additive category assessment that adds to an assessed ancestor category', () => {
+  it('accepts an additive category assessment that adds to an assessed ancestor on the same axis', () => {
+    // Built rather than borrowed: after the migration no authored category happens to sit beneath an
+    // ancestor assessed on its own preparation axis, and the rule under test is about that axis.
+    const ancestorRule: Assessment = {
+      ...content.assessments[0],
+      id: 'desserts-frozen-pregnancy',
+      subject: { kind: 'category', categoryId: 'desserts' },
+      preparationId: 'frozen',
+      statusId: 'pregnancy-conditions',
+      scopeStatement: 'Applies to all frozen desserts.',
+      relation: undefined,
+    }
+    const additiveChild: Assessment = {
+      ...content.assessments[0],
+      id: 'ice-cream-frozen-pregnancy',
+      subject: { kind: 'category', categoryId: 'ice-cream' },
+      preparationId: 'frozen',
+      statusId: 'pregnancy-avoid',
+      scopeStatement: 'Applies to all frozen ice cream.',
+      relation: 'adds-to',
+    }
+
     const validated = validateContent({
       ...content,
-      assessments: content.assessments.map((assessment) => (
-        assessment.id === 'soft-serve-ice-cream-pregnancy'
-          ? { ...assessment, relation: 'adds-to' as const }
-          : assessment
-      )),
+      assessments: [...content.assessments, ancestorRule, additiveChild],
     })
 
-    expect(validated.assessments.find((assessment) => assessment.id === 'soft-serve-ice-cream-pregnancy')?.relation)
+    expect(validated.assessments.find((assessment) => assessment.id === 'ice-cream-frozen-pregnancy')?.relation)
       .toBe('adds-to')
   })
 
@@ -247,7 +267,7 @@ describe('guide content validation', () => {
     expect(() => validateContent({
       ...content,
       categories: content.categories.map((category) => category.id === 'seafood'
-        ? { ...category, parentId: 'fish-mercury-guidance' }
+        ? { ...category, parentId: 'fish' }
         : category),
     })).toThrow('part of a cycle')
 
@@ -416,6 +436,109 @@ describe('guide content validation', () => {
       expect(list).not.toHaveProperty('outOfCoverageStatusId')
       expect(list.statuses.filter((status) => status.tone === 'grey')).toHaveLength(1)
       expect(list.unassessedNotice.description).toBeTruthy()
+    }
+  })
+})
+
+// ADR: Model preparation as a catalogue dimension.
+// See: docs/decisions/2026-08-10 ADR - model preparation as a catalogue dimension.md
+describe('preparation validation', () => {
+  const assessedFood = content.foods[0]
+  const raw = { id: 'raw', slug: 'raw', name: 'Raw', sortOrder: 1 }
+
+  const withPreparations = (overrides: Partial<typeof content>) => validateContent({
+    ...content,
+    ...overrides,
+  })
+
+  const declaring = (foodId: string, preparationIds: string[]) => content.foods.map((food) => (
+    food.id === foodId ? { ...food, preparationIds } : food
+  ))
+
+  it('rejects duplicate preparation IDs and slugs', () => {
+    expect(() => withPreparations({ preparations: [raw, { ...raw, slug: 'raw-again' }] }))
+      .toThrow('duplicate preparation ID')
+    expect(() => withPreparations({ preparations: [raw, { ...raw, id: 'raw-again' }] }))
+      .toThrow('duplicate preparation slug')
+  })
+
+  it('rejects a food declaring an unknown or repeated preparation state', () => {
+    expect(() => withPreparations({ foods: declaring(assessedFood.id, ['grilled']) }))
+      .toThrow('declares an unknown preparation state')
+    expect(() => withPreparations({ foods: declaring(assessedFood.id, ['raw', 'raw']) }))
+      .toThrow(`duplicate preparation state on food "${assessedFood.id}"`)
+  })
+
+  it('rejects an assessment qualified by an unknown preparation state', () => {
+    const qualified: Assessment = {
+      ...content.assessments[0],
+      id: 'unknown-preparation',
+      subject: { kind: 'food', foodId: assessedFood.id },
+      preparationId: 'grilled',
+      scopeStatement: undefined,
+    }
+
+    expect(() => withPreparations({
+      foods: declaring(assessedFood.id, ['raw']),
+      assessments: [...content.assessments, qualified],
+    })).toThrow('qualified by an unknown preparation state')
+  })
+
+  it('rejects an assessment qualified by a preparation its food does not declare', () => {
+    const qualified: Assessment = {
+      ...content.assessments[0],
+      id: 'undeclared-preparation',
+      subject: { kind: 'food', foodId: assessedFood.id },
+      preparationId: 'raw',
+      scopeStatement: undefined,
+    }
+
+    expect(() => withPreparations({ assessments: [...content.assessments, qualified] }))
+      .toThrow('qualified by a preparation its food does not declare')
+  })
+
+  it('accepts a category assessment qualified by a preparation no food beneath it declares', () => {
+    const ancestor = index.tree.pathByCategoryId.get(assessedFood.primaryCategoryId)![0]
+    const qualified: Assessment = {
+      ...content.assessments[0],
+      id: 'undeclared-category-preparation',
+      subject: { kind: 'category', categoryId: ancestor.id },
+      preparationId: 'raw',
+      scopeStatement: `Applies to all ${ancestor.name}.`,
+    }
+
+    // A category is a first-class subject, so its own guidance establishes the grouping. `Ice cream`
+    // holds three authored rules and no foods at all; requiring a food to declare the state would
+    // reject the very content the grouping exists to show.
+    expect(() => withPreparations({ assessments: [...content.assessments, qualified] })).not.toThrow()
+  })
+
+  it('separates assessments by preparation in the uniqueness key', () => {
+    const base = content.assessments.find((assessment) => assessment.subject.kind === 'food')!
+    const qualify = (id: string, preparationId?: string): Assessment => ({ ...base, id, preparationId })
+    const foodId = (base.subject as { kind: 'food', foodId: string }).foodId
+
+    expect(() => withPreparations({
+      foods: declaring(foodId, ['raw']),
+      assessments: [...content.assessments, qualify('same-key')],
+    })).toThrow('duplicate subject/preparation/list/source assessment pair')
+    expect(() => withPreparations({
+      foods: declaring(foodId, ['raw']),
+      assessments: [...content.assessments, qualify('raw-key', 'raw')],
+    })).not.toThrow()
+  })
+
+  it('accepts the migrated content, where preparation states carry real authored guidance', () => {
+    expect(content.preparations.length).toBeGreaterThan(0)
+    expect(content.foods.some((food) => food.preparationIds.length > 0)).toBe(true)
+    expect(content.assessments.some((assessment) => assessment.preparationId !== undefined)).toBe(true)
+    // Every declared state and every qualifier names a state in the one global vocabulary.
+    const known = new Set(content.preparations.map((preparation) => preparation.id))
+    for (const food of content.foods) {
+      expect(food.preparationIds.every((id) => known.has(id)), food.id).toBe(true)
+    }
+    for (const assessment of content.assessments) {
+      expect(assessment.preparationId === undefined || known.has(assessment.preparationId), assessment.id).toBe(true)
     }
   })
 })

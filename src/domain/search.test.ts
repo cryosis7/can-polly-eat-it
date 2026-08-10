@@ -7,7 +7,7 @@ const root: Category = { id: 'root', slug: 'root', name: 'Root', parentId: null,
 const child: Category = { id: 'child', slug: 'child', name: 'Child', parentId: 'root', aliases: [], sortOrder: 1 }
 const tree = buildCategoryTree([root, child])
 
-const childFood: Food = { id: 'item', slug: 'item', name: 'Item', aliases: ['alt-name'], primaryCategoryId: 'child', tags: [], sortOrder: 1 }
+const childFood: Food = { id: 'item', slug: 'item', name: 'Item', aliases: ['alt-name'], primaryCategoryId: 'child', preparationIds: [], tags: [], sortOrder: 1 }
 
 describe('search', () => {
   it('normalises case, diacritics, punctuation, and whitespace', () => {

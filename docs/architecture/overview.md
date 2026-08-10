@@ -97,7 +97,7 @@ The first implementation should use these boundaries:
 ```text
 src/
   app/                 route composition, application shell, URL query parsing
-  data/                reviewed category, food, list, assessment, and source records
+  data/                reviewed category, food, preparation, list, assessment, and source records
   domain/              types, Zod schemas, validation, tree, search, and filter functions
   features/
     catalogue/         category-grouped list and result cards
@@ -135,6 +135,7 @@ type Food = {
   name: string;
   aliases: string[];
   primaryCategoryId: string;
+  preparationIds: string[];
   tags: string[];
   sortOrder: number;
 };
@@ -154,6 +155,36 @@ The initial static catalogue budget is 2,000 foods and 500 categories. The tree 
 flattened display rows with a full category breadcrumb so that rendering does not recurse through
 the authored depth, and visual indentation is capped without hiding the full path. A content change
 that exceeds either budget requires a measured performance review and a new ADR before publishing.
+
+### Preparation as a crossing dimension
+
+Preparation is a dimension that crosses the category tree, not a shape the tree takes. A food is
+filed once, under what it *is*, and declares the preparation states it is actually eaten in
+through `preparationIds`. The catalogue must not carry preparation-shaped categories such as
+"Raw eggs" or "Cooked eggs"; those became the `eggs` category assessed once per preparation.
+
+```ts
+type Preparation = {
+  id: string;
+  slug: string;
+  name: string;
+  sortOrder: number;
+};
+```
+
+A declaration answers one question and one only: **do people in New Zealand eat this food in this
+state, commercially or home-prepared?** Everyday community practice counts; a single fine-dining
+menu item does not. A declaration must never be inferred from a food's name, its siblings, or any
+theory about the food itself, and it never expresses risk — risk lives in the assessment.
+
+A preparation grouping is a rendering construct derived from the declarations and the
+preparation-qualified assessments a category holds. It is never a synthetic category: it does not
+appear in the category filter, has no route, and is absent from `categoryAndDescendantIds`.
+
+Where a food does not declare a state its group is assessed in, the food page still shows the
+group's authored rule under a heading naming the group, so a reader asking about that state gets
+the authored answer rather than silence, labelled as the group's rule rather than as advice about
+that food.
 
 ### Guidance lists and assessments
 
@@ -206,6 +237,7 @@ type Assessment = {
   id: string;
   subject: AssessmentSubject;
   guidanceListId: string;
+  preparationId?: string;
   sourceId?: string;
   relation?: "replaces" | "adds-to";
   statusId: string;
@@ -223,11 +255,25 @@ type AssessmentReasonLink = {
 };
 ```
 
-An assessment is unique for a `(subject, guidanceListId, sourceId)` triple, where the subject is
-exactly one food or one category. A food's status resolves nearest-subject-first: its own
+An assessment is unique for a `(subject, preparationId, guidanceListId, sourceId)` tuple, where the
+subject is exactly one food or one category. A food's status resolves nearest-subject-first: its own
 assessments; otherwise the nearest ancestor category assessed in the same guidance list, walking the
 category path from the nearest parent to the root; otherwise the list-owned grey
 `unassessedStatusId`. The fallback status must not be authored on an assessment.
+
+Resolution runs on exactly one axis at a time. The **food-wide axis** holds assessments carrying no
+`preparationId`; a **preparation axis** holds those carrying one. Each axis is walked
+nearest-subject-first independently, then the two are combined: food-wide layers first, the more
+cautious authored status governing, and each source's position merged. Nothing is ever merged
+textually. Resolving on a single axis matters because measuring nearness by depth alone would let a
+food's own food-wide rule suppress its group's rule for one preparation.
+
+Because food-wide guidance applies to the food however it is prepared, it is repeated inside every
+preparation section rather than stated once above them, so each section reads standalone.
+
+A category is a first-class assessment subject in its own right, including when every rule it holds
+is preparation-qualified. Resolving such a category without a preparation would otherwise return
+`not-assessed` over authored rules, which is forbidden: `not-assessed` never implies safety.
 
 A **source** is the authority that stands behind a statement, and is distinct from a citation, which
 is a link to a passage. Provenance is never inferred from a citation's URL, title, or array position.
@@ -355,6 +401,13 @@ one-to-one to arbitrary category depth.
 A **guide entry** is a food, or a category carrying its own authored assessment. Search, filters, and
 the result count operate over guide entries, and the count announces results rather than foods.
 
+Filtering, counting, and rendering operate on **rows**, not foods. A food that declares several
+preparation states contributes one row per state, and each row resolves and filters independently:
+an outcome filter can match a food's raw row without matching its cooked row. Rows are grouped under
+their preparation heading inside the category group; a category's preparation-qualified entry sits
+in the same grouping, so a retired preparation category stays browsable once its rule moves onto its
+parent.
+
 Search normalises case, diacritics, punctuation, and whitespace, then matches every query token
 against food names, aliases, and the labels/aliases on the food's category path. A category entry is
 matched against its own name, its aliases, and its ancestor path labels. It must not guess
@@ -379,9 +432,11 @@ selects generic outcomes; `q=<text>` and `category=<category-slug>` control sear
 For example,
 `/food/cheddar?v=1&scope=pregnancy-food-safety,vegetarian-suitability&outcome=okay,maybe`
 preserves the catalogue's selected dietary constraints when opening detail guidance, and
-`/category/<slug>` does the same for an assessed category. Unknown version,
-scope, category, or outcome values are removed while valid constraints remain, and the UI announces
-that unavailable shared filters were removed.
+`/category/<slug>` does the same for an assessed category. `prep=<preparation-slug>` carries the
+preparation a reader opened a detail page from; the page still shows every state the subject is
+assessed in and marks the one they were looking at. Unknown version,
+scope, category, outcome, or preparation values are removed while valid constraints remain, and the
+UI announces that unavailable shared filters were removed.
 
 ## Trust, accessibility, and privacy
 

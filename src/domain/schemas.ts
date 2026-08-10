@@ -11,12 +11,30 @@ export const categorySchema = z.object({
   sortOrder: z.number().int().nonnegative(),
 })
 
+/**
+ * One entry in the single global vocabulary of preparation states. Holding them in one vocabulary
+ * keeps `raw` meaning the same thing under fish, meat, and eggs, and gives every surface one
+ * deterministic display order.
+ */
+export const preparationSchema = z.object({
+  id: identifier,
+  slug: identifier,
+  name: z.string().trim().min(1),
+  sortOrder: z.number().int().nonnegative(),
+})
+
 export const foodSchema = z.object({
   id: identifier,
   slug: identifier,
   name: z.string().trim().min(1),
   aliases: z.array(z.string().trim().min(1)),
   primaryCategoryId: identifier,
+  /**
+   * The preparation states this food is actually eaten in. This is a catalogue-structure fact about
+   * the food rather than a guidance fact, so it is confirmed by a maintainer. Empty means the food
+   * has no preparation dimension and renders directly under its category.
+   */
+  preparationIds: z.array(identifier),
   tags: z.array(identifier),
   sortOrder: z.number().int().nonnegative(),
 })
@@ -107,6 +125,12 @@ export const assessmentSchema = z.object({
   guidanceListId: identifier,
   statusId: identifier,
   /**
+   * The preparation state this assessment is qualified by. Health guidance, so it is authored only
+   * where the source itself stated it. Absent means the assessment applies however the subject is
+   * prepared, and layers onto preparation-specific advice through `relation: 'adds-to'`.
+   */
+  preparationId: identifier.optional(),
+  /**
    * The authority that stated this assessment. Required in a list declaring two or more sources,
    * and absent in a single-source or no-source list, where the list itself supplies attribution.
    */
@@ -129,6 +153,7 @@ export const assessmentSchema = z.object({
 
 export type Category = z.infer<typeof categorySchema>
 export type Food = z.infer<typeof foodSchema>
+export type Preparation = z.infer<typeof preparationSchema>
 export type Source = z.infer<typeof sourceSchema>
 export type GuidanceList = z.infer<typeof guidanceListSchema>
 export type AssessmentSubject = z.infer<typeof assessmentSubjectSchema>

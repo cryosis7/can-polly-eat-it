@@ -3,10 +3,11 @@ import {
   buildCategoryTree,
   flattenCategoryRows,
   foodsByCategoryId,
+  preparationIdsByCategoryId,
   visibleCategoryRows,
   withAncestorIds,
 } from './categoryTree'
-import type { Category, Food } from './schemas'
+import type { Assessment, Category, Food, Preparation } from './schemas'
 
 const nestedCategories: Category[] = [
   { id: 'root', slug: 'root', name: 'Root', parentId: null, aliases: [], sortOrder: 1 },
@@ -82,8 +83,8 @@ describe('category tree', () => {
       { id: 'child', slug: 'child', name: 'Child', parentId: 'root', aliases: [], sortOrder: 1 },
     ]
     const foods: Food[] = [
-      { id: 'root-food', slug: 'root-food', name: 'Root food', aliases: [], primaryCategoryId: 'root', tags: [], sortOrder: 1 },
-      { id: 'child-food', slug: 'child-food', name: 'Child food', aliases: [], primaryCategoryId: 'child', tags: [], sortOrder: 1 },
+      { id: 'root-food', slug: 'root-food', name: 'Root food', aliases: [], primaryCategoryId: 'root', preparationIds: [], tags: [], sortOrder: 1 },
+      { id: 'child-food', slug: 'child-food', name: 'Child food', aliases: [], primaryCategoryId: 'child', preparationIds: [], tags: [], sortOrder: 1 },
     ]
 
     const tree = buildCategoryTree(categories)
@@ -100,8 +101,8 @@ describe('category tree', () => {
       { id: 'alpha', slug: 'alpha', name: 'Alpha', parentId: 'missing', aliases: [], sortOrder: 1 },
     ]
     const foods: Food[] = [
-      { id: 'beta-food', slug: 'beta-food', name: 'Beta food', aliases: [], primaryCategoryId: 'beta', tags: [], sortOrder: 1 },
-      { id: 'alpha-food', slug: 'alpha-food', name: 'Alpha food', aliases: [], primaryCategoryId: 'alpha', tags: [], sortOrder: 1 },
+      { id: 'beta-food', slug: 'beta-food', name: 'Beta food', aliases: [], primaryCategoryId: 'beta', preparationIds: [], tags: [], sortOrder: 1 },
+      { id: 'alpha-food', slug: 'alpha-food', name: 'Alpha food', aliases: [], primaryCategoryId: 'alpha', preparationIds: [], tags: [], sortOrder: 1 },
     ]
 
     const tree = buildCategoryTree(categories)
@@ -109,5 +110,76 @@ describe('category tree', () => {
     expect(tree.childIdsByParentId.get('missing')).toEqual(['alpha', 'beta'])
     expect(flattenCategoryRows(tree)).toEqual([])
     expect(foodsByCategoryId(foods).get('beta')?.map((food) => food.name)).toEqual(['Beta food'])
+  })
+})
+
+// ADR: Model preparation as a catalogue dimension.
+// See: docs/decisions/2026-08-10 ADR - model preparation as a catalogue dimension.md
+describe('derived category preparation groupings', () => {
+  const vocabulary: Preparation[] = [
+    { id: 'raw', slug: 'raw', name: 'Raw', sortOrder: 1 },
+    { id: 'smoked', slug: 'smoked', name: 'Smoked', sortOrder: 3 },
+    { id: 'cooked', slug: 'cooked', name: 'Cooked', sortOrder: 4 },
+  ]
+
+  const food = (id: string, primaryCategoryId: string, preparationIds: string[]): Food => ({
+    id,
+    slug: id,
+    name: id,
+    aliases: [],
+    primaryCategoryId,
+    preparationIds,
+    tags: [],
+    sortOrder: 1,
+  })
+
+  const categoryAssessment = (id: string, categoryId: string, preparationId?: string): Assessment => ({
+    id,
+    subject: { kind: 'category', categoryId },
+    guidanceListId: 'list',
+    statusId: 'ok',
+    preparationId,
+    scopeStatement: `Applies to all ${categoryId}.`,
+    guidanceScenarios: [],
+    reasonLinks: [],
+    citations: [],
+  })
+
+  it('unions the states its foods declare, in vocabulary order rather than authoring order', () => {
+    const grouped = preparationIdsByCategoryId(
+      [food('salmon', 'fish', ['cooked', 'raw']), food('snapper', 'fish', ['smoked'])],
+      [],
+      vocabulary,
+    )
+
+    expect(grouped.get('fish')).toEqual(['raw', 'smoked', 'cooked'])
+  })
+
+  it('includes a state carrying an authored category assessment even where no food declares it', () => {
+    const grouped = preparationIdsByCategoryId(
+      [food('salmon', 'fish', ['cooked'])],
+      [categoryAssessment('fish-raw', 'fish', 'raw'), categoryAssessment('fish-all', 'fish')],
+      vocabulary,
+    )
+
+    expect(grouped.get('fish')).toEqual(['raw', 'cooked'])
+  })
+
+  it('makes a grouping appear when a food declaring a new state is added, with no other edit', () => {
+    const existing = [food('salmon', 'fish', ['cooked'])]
+
+    expect(preparationIdsByCategoryId(existing, [], vocabulary).get('fish')).toEqual(['cooked'])
+    expect(preparationIdsByCategoryId([...existing, food('tuna', 'fish', ['raw'])], [], vocabulary).get('fish'))
+      .toEqual(['raw', 'cooked'])
+  })
+
+  it('gives a category whose foods declare nothing no preparation dimension at all', () => {
+    const grouped = preparationIdsByCategoryId(
+      [food('rice', 'cereals', [])],
+      [categoryAssessment('cereals-all', 'cereals'), { ...categoryAssessment('rice-all', 'cereals'), id: 'rice-food', subject: { kind: 'food', foodId: 'rice' }, scopeStatement: undefined }],
+      vocabulary,
+    )
+
+    expect(grouped.has('cereals')).toBe(false)
   })
 })

@@ -75,9 +75,16 @@ not-assessed fallback. A source is never stretched to cover a preparation it did
 preparation is never withheld from the catalogue merely because one source ignored it.
 
 An **assessment may be qualified by a preparation state**, at food or category level. An unqualified
-assessment applies however the food is prepared and layers onto preparation-specific advice through
-the existing `relation: 'adds-to'` accumulation. Assessment uniqueness extends from
+assessment applies however the food is prepared. Resolution therefore runs on two axes: the
+food-wide axis of unqualified assessments and the axis of the preparation being rendered, each walked
+nearest-subject-first and independently. The two are then combined — food-wide layers first, with the
+most cautious authored status governing — rather than through `relation: 'adds-to'` accumulation,
+which measures nearness by depth alone and would let a food's own unqualified rule suppress its
+group's rule for a single preparation. Assessment uniqueness extends from
 `(subject, guidanceList, source)` to `(subject, preparation, guidanceList, source)`.
+
+Because food-wide guidance applies to the food however it is prepared, it is repeated inside every
+preparation section rather than stated once above them, so each section reads standalone.
 
 Browse renders `Category → … → Preparation → Food`. The preparation level appears only where a
 grouping is derived, so groups with no preparation dimension render exactly as they do today.

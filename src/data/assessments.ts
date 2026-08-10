@@ -18,6 +18,12 @@ type AssessmentSpec = {
 type CategorySubject = {
   categoryId: string
   scopeStatement: string
+  /**
+   * The preparation state this rule is about, where the guide gave a food group different advice
+   * for different states. Set when a retired preparation-shaped category folded into its parent:
+   * `Raw eggs` became `eggs` qualified by `raw`. The wording is the source's, unchanged.
+   */
+  preparationId?: string
 }
 
 type CategoryAssessmentSpec = {
@@ -66,17 +72,23 @@ const createAssessments = (spec: AssessmentSpec): Assessment[] =>
   }))
 
 const createCategoryAssessments = (spec: CategoryAssessmentSpec): Assessment[] =>
-  spec.categories.map(({ categoryId, scopeStatement }) => ({
-    id: `${categoryId}-pregnancy`,
-    subject: { kind: 'category', categoryId },
-    guidanceListId: 'pregnancy-food-safety',
-    statusId: spec.statusId,
-    summary: spec.summary,
-    scopeStatement,
-    guidanceScenarios: guidanceScenariosFor(categoryId, spec),
-    reasonLinks: [],
-    citations: [{ ...mpiCitation, locator: spec.locator }],
-  }))
+  spec.categories.map(({ categoryId, scopeStatement, preparationId }) => {
+    // A subject holds one assessment per preparation per source, so the record id carries the
+    // preparation too. Without it, `eggs` raw and `eggs` cooked would collide.
+    const subjectId = preparationId === undefined ? categoryId : `${categoryId}-${preparationId}`
+    return {
+      id: `${subjectId}-pregnancy`,
+      subject: { kind: 'category', categoryId },
+      ...(preparationId === undefined ? {} : { preparationId }),
+      guidanceListId: 'pregnancy-food-safety',
+      statusId: spec.statusId,
+      summary: spec.summary,
+      scopeStatement,
+      guidanceScenarios: guidanceScenariosFor(subjectId, spec),
+      reasonLinks: [],
+      citations: [{ ...mpiCitation, locator: spec.locator }],
+    }
+  })
 
 const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
   {
@@ -133,7 +145,7 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
   {
     categories: [
       { categoryId: 'butter', scopeStatement: 'Applies to all butter.' },
-      { categoryId: 'packaged-ice-cream', scopeStatement: 'Applies to all packaged ice cream.' },
+      { categoryId: 'ice-cream', preparationId: 'store-bought', scopeStatement: 'Applies to all packaged ice cream.' },
     ],
     statusId: 'pregnancy-ok',
     summary: 'The guide lists this food as okay to eat.',
@@ -148,7 +160,7 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
     conditions: [{ kind: 'storage', instruction: 'Eat within two days of opening the pack.' }],
   },
   {
-    categories: [{ categoryId: 'ready-made-chilled-custard', scopeStatement: 'Applies to all ready-made chilled custard.' }],
+    categories: [{ categoryId: 'custard', preparationId: 'store-bought', scopeStatement: 'Applies to all ready-made chilled custard.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Keep packaged chilled custard refrigerated and eat it within two days of opening.',
     locator: 'Dairy: Custard — Ready-made chilled (packaged)',
@@ -156,7 +168,7 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
     conditions: [{ kind: 'storage', instruction: 'Eat within two days of opening.' }],
   },
   {
-    categories: [{ categoryId: 'home-made-custard', scopeStatement: 'Applies to all home-made custard.' }],
+    categories: [{ categoryId: 'custard', preparationId: 'home-made', scopeStatement: 'Applies to all home-made custard.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Eat home-made custard hot after cooking; reheat leftovers until piping hot.',
     locator: 'Dairy: Custard — Home-made',
@@ -165,8 +177,8 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
   },
   {
     categories: [
-      { categoryId: 'pasteurised-milk', scopeStatement: 'Applies to all pasteurised milk.' },
-      { categoryId: 'pasteurised-yoghurt', scopeStatement: 'Applies to all pasteurised yoghurt.' },
+      { categoryId: 'milk', preparationId: 'pasteurised', scopeStatement: 'Applies to all pasteurised milk.' },
+      { categoryId: 'yoghurt', preparationId: 'pasteurised', scopeStatement: 'Applies to all pasteurised yoghurt.' },
     ],
     statusId: 'pregnancy-conditions',
     summary: 'Use pasteurised dairy under the manufacturer’s storage guidance.',
@@ -176,25 +188,25 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
   },
   {
     categories: [
-      { categoryId: 'unpasteurised-milk-and-dairy-products', scopeStatement: 'Applies to all unpasteurised milk and dairy products.' },
-      { categoryId: 'soft-serve-ice-cream', scopeStatement: 'Applies to all soft-serve ice cream.' },
+      { categoryId: 'dairy', preparationId: 'unpasteurised', scopeStatement: 'Applies to all unpasteurised milk and dairy products.' },
+      { categoryId: 'ice-cream', preparationId: 'soft-serve', scopeStatement: 'Applies to all soft-serve ice cream.' },
     ],
     statusId: 'pregnancy-avoid',
     summary: 'The guide says not to eat this during pregnancy.',
     locator: 'Dairy: Unpasteurised milk and dairy products; Ice cream — Soft serve',
   },
   {
-    categories: [{ categoryId: 'raw-eggs', scopeStatement: 'Applies to raw eggs and to any food containing raw eggs.' }],
+    categories: [{ categoryId: 'eggs', preparationId: 'raw', scopeStatement: 'Applies to raw eggs and to any food containing raw eggs.' }],
     statusId: 'pregnancy-avoid',
     summary: 'The guide says not to eat raw eggs or foods made with them.',
     locator: 'Eggs: Raw eggs',
   },
   {
     categories: [
-      { categoryId: 'home-made-sauces', scopeStatement: 'Applies to all home-made sauces and dressings, because only some of them contain raw egg.' },
+      { categoryId: 'sauces-dressings-and-spreads', preparationId: 'home-made', scopeStatement: 'Applies to all home-made sauces and dressings, because only some of them contain raw egg.' },
       { categoryId: 'cold-desserts', scopeStatement: 'Applies to all cold desserts, because only some of them contain raw egg.' },
-      { categoryId: 'home-made-ice-cream', scopeStatement: 'Applies to all home-made ice cream, because only some of it contains raw egg.' },
-      { categoryId: 'home-made-drinks', scopeStatement: 'Applies to all home-made drinks, because only some of them contain raw egg.' },
+      { categoryId: 'ice-cream', preparationId: 'home-made', scopeStatement: 'Applies to all home-made ice cream, because only some of it contains raw egg.' },
+      { categoryId: 'drinks', preparationId: 'home-made', scopeStatement: 'Applies to all home-made drinks, because only some of them contain raw egg.' },
     ],
     statusId: 'pregnancy-conditions',
     summary: 'The guide says not to eat foods containing raw eggs, so check whether this one contains raw egg.',
@@ -206,7 +218,7 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
     ],
   },
   {
-    categories: [{ categoryId: 'cooked-eggs', scopeStatement: 'Applies to all cooked eggs.' }],
+    categories: [{ categoryId: 'eggs', preparationId: 'cooked', scopeStatement: 'Applies to all cooked eggs.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Cook eggs until the yolk and scrambled egg are firm.',
     locator: 'Eggs: Cooked eggs',
@@ -214,7 +226,7 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
     conditions: [{ kind: 'preparation', instruction: 'Ensure yolks and scrambled eggs are firm.' }],
   },
   {
-    categories: [{ categoryId: 'cooked-meats', scopeStatement: 'Applies to all cooked meat and poultry.' }],
+    categories: [{ categoryId: 'meat-and-poultry', preparationId: 'cooked', scopeStatement: 'Applies to all cooked meat and poultry.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Cook meat and poultry thoroughly, eat it hot, and reheat leftovers before serving.',
     locator: 'Meat and poultry: Cooked meats',
@@ -227,8 +239,8 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
   },
   {
     categories: [
-      { categoryId: 'processed-meats', scopeStatement: 'Applies to all processed meats.' },
-      { categoryId: 'cold-cooked-poultry', scopeStatement: 'Applies to all cold cooked poultry.' },
+      { categoryId: 'meat-and-poultry', preparationId: 'processed', scopeStatement: 'Applies to all processed meats.' },
+      { categoryId: 'meat-and-poultry', preparationId: 'cold-cooked', scopeStatement: 'Applies to all cold cooked poultry.' },
     ],
     statusId: 'pregnancy-conditions',
     summary: 'Eat only after heating until piping hot.',
@@ -237,22 +249,22 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
     conditions: [{ kind: 'serving', instruction: 'Heat above 75°C.' }],
   },
   {
-    categories: [{ categoryId: 'raw-meat', scopeStatement: 'Applies to all raw meat and poultry.' }],
+    categories: [{ categoryId: 'meat-and-poultry', preparationId: 'raw', scopeStatement: 'Applies to all raw meat and poultry.' }],
     statusId: 'pregnancy-avoid',
     summary: 'Do not eat or taste raw meat or poultry.',
     locator: 'Meat and poultry: Raw meat',
   },
   {
     categories: [
-      { categoryId: 'raw-fish', scopeStatement: 'Applies to all raw fish.' },
-      { categoryId: 'raw-shellfish', scopeStatement: 'Applies to all raw shellfish.' },
+      { categoryId: 'fish', preparationId: 'raw', scopeStatement: 'Applies to all raw fish.' },
+      { categoryId: 'shellfish', preparationId: 'raw', scopeStatement: 'Applies to all raw shellfish.' },
     ],
     statusId: 'pregnancy-avoid',
     summary: 'The guide says not to eat raw seafood.',
     locator: 'Seafood: Raw fish; Raw shellfish',
   },
   {
-    categories: [{ categoryId: 'freshly-cooked-seafood', scopeStatement: 'Applies to all freshly cooked fish, mussels, oysters, crayfish and scallops.' }],
+    categories: [{ categoryId: 'seafood', preparationId: 'cooked', scopeStatement: 'Applies to all freshly cooked fish, mussels, oysters, crayfish and scallops.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Cook seafood thoroughly and eat it while hot.',
     locator: 'Seafood: Freshly cooked fish, mussels, oysters, crayfish, scallops, etc',
@@ -260,7 +272,7 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
     conditions: [{ kind: 'preparation', instruction: 'Cook above 75°C throughout.' }],
   },
   {
-    categories: [{ categoryId: 'smoked-seafood', scopeStatement: 'Applies to all chilled smoked or pre-cooked fish, shellfish and crustacea.' }],
+    categories: [{ categoryId: 'seafood', preparationId: 'smoked', scopeStatement: 'Applies to all chilled smoked or pre-cooked fish, shellfish and crustacea.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Eat chilled smoked or pre-cooked seafood only after heating until piping hot.',
     locator: 'Seafood: Smoked fish, shellfish and crustacea',
@@ -269,9 +281,9 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
   },
   {
     categories: [
-      { categoryId: 'fresh-fruit', scopeStatement: 'Applies to all fresh fruit.' },
-      { categoryId: 'fresh-vegetables', scopeStatement: 'Applies to all fresh vegetables.' },
-      { categoryId: 'home-made-salads', scopeStatement: 'Applies to all home-made salads.' },
+      { categoryId: 'fruit', preparationId: 'fresh', scopeStatement: 'Applies to all fresh fruit.' },
+      { categoryId: 'vegetables', preparationId: 'fresh', scopeStatement: 'Applies to all fresh vegetables.' },
+      { categoryId: 'salads', preparationId: 'home-made', scopeStatement: 'Applies to all home-made salads.' },
     ],
     statusId: 'pregnancy-conditions',
     summary: 'Wash this food carefully before use.',
@@ -279,7 +291,7 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
     instruction: 'Wash well before eating raw or before cooking.',
   },
   {
-    categories: [{ categoryId: 'dried-herbs', scopeStatement: 'Applies to all dried herbs.' }],
+    categories: [{ categoryId: 'herbs', preparationId: 'dried', scopeStatement: 'Applies to all dried herbs.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Cook dried herbs thoroughly before eating.',
     locator: 'Vegetables, salads and fruits: Herbs — Dried herbs',
@@ -287,7 +299,7 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
     conditions: [{ kind: 'preparation', instruction: 'Do not use dried herbs uncooked.' }],
   },
   {
-    categories: [{ categoryId: 'fresh-herbs', scopeStatement: 'Applies to all fresh home-grown and store-bought herbs.' }],
+    categories: [{ categoryId: 'herbs', preparationId: 'fresh', scopeStatement: 'Applies to all fresh home-grown and store-bought herbs.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Wash fresh herbs well before using.',
     locator: 'Vegetables, salads and fruits: Herbs — Fresh home-grown and store-bought',
@@ -295,8 +307,8 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
   },
   {
     categories: [
-      { categoryId: 'imported-frozen-berries', scopeStatement: 'Applies to all imported frozen berries.' },
-      { categoryId: 'frozen-vegetables', scopeStatement: 'Applies to all frozen vegetables.' },
+      { categoryId: 'fruit', preparationId: 'frozen', scopeStatement: 'Applies to all imported frozen berries.' },
+      { categoryId: 'vegetables', preparationId: 'frozen', scopeStatement: 'Applies to all frozen vegetables.' },
     ],
     statusId: 'pregnancy-conditions',
     summary: 'Cook before eating.',
@@ -305,7 +317,7 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
     conditions: [{ kind: 'preparation', instruction: 'Do not eat uncooked frozen produce.' }],
   },
   {
-    categories: [{ categoryId: 'pre-packaged-and-ready-made-salads', scopeStatement: 'Applies to all pre-packaged and ready-made salads.' }],
+    categories: [{ categoryId: 'salads', preparationId: 'store-bought', scopeStatement: 'Applies to all pre-packaged and ready-made salads.' }],
     statusId: 'pregnancy-avoid',
     summary: 'The guide says not to eat pre-packaged or ready-made salads.',
     locator: 'Vegetables, salads and fruits: Salads — Pre-packaged and ready-made',
@@ -341,7 +353,7 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
     conditions: [{ kind: 'storage', instruction: 'Store covered leftovers in the fridge and eat them within two days.' }],
   },
   {
-    categories: [{ categoryId: 'commercial-sauces-dressings-and-spreads', scopeStatement: 'Applies to commercially manufactured sauces, dressings and spreads.' }],
+    categories: [{ categoryId: 'sauces-dressings-and-spreads', preparationId: 'store-bought', scopeStatement: 'Applies to commercially manufactured sauces, dressings and spreads.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Refrigerate opened products and follow their manufacturer storage and heating instructions.',
     locator: 'Miscellaneous: Sauces, dressings and spreads',
@@ -350,7 +362,7 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
   },
   {
     categories: [
-      { categoryId: 'store-bought-sushi', scopeStatement: 'Applies to all store-bought sushi.' },
+      { categoryId: 'sushi', preparationId: 'store-bought', scopeStatement: 'Applies to all store-bought sushi.' },
       { categoryId: 'hummus-and-tahini-dips', scopeStatement: 'Applies to hummus and other dips containing tahini.' },
     ],
     statusId: 'pregnancy-avoid',
@@ -358,7 +370,7 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
     locator: 'Miscellaneous: Sushi — Store-bought; Hummus and other dips containing tahini',
   },
   {
-    categories: [{ categoryId: 'home-made-sushi', scopeStatement: 'Applies to all home-made sushi.' }],
+    categories: [{ categoryId: 'sushi', preparationId: 'home-made', scopeStatement: 'Applies to all home-made sushi.' }],
     statusId: 'pregnancy-conditions',
     summary: 'Use freshly cooked rice, avoid raw or cold cooked meat or seafood, and eat immediately.',
     locator: 'Miscellaneous: Sushi — Home-made',
@@ -391,13 +403,13 @@ const categoryAssessmentSpecs: CategoryAssessmentSpec[] = [
     conditions: [{ kind: 'preparation', instruction: 'Do not eat raw.' }],
   },
   {
-    categories: [{ categoryId: 'pasteurised-fruit-juice-kombucha-and-cider', scopeStatement: 'Applies to all pasteurised fruit juice, kombucha and cider.' }],
+    categories: [{ categoryId: 'fruit-juice-kombucha-and-cider', preparationId: 'pasteurised', scopeStatement: 'Applies to all pasteurised fruit juice, kombucha and cider.' }],
     statusId: 'pregnancy-ok',
     summary: 'The guide lists pasteurised drinks in this group as okay to drink.',
     locator: 'Miscellaneous: Fruit juice, kombucha and cider (non-alcoholic) — Pasteurised',
   },
   {
-    categories: [{ categoryId: 'unpasteurised-fruit-juice-kombucha-and-cider', scopeStatement: 'Applies to all unpasteurised (raw) fruit juice, kombucha and cider.' }],
+    categories: [{ categoryId: 'fruit-juice-kombucha-and-cider', preparationId: 'unpasteurised', scopeStatement: 'Applies to all unpasteurised (raw) fruit juice, kombucha and cider.' }],
     statusId: 'pregnancy-avoid',
     summary: 'The guide says not to drink unpasteurised drinks in this group.',
     locator: 'Miscellaneous: Fruit juice, kombucha and cider (non-alcoholic) — Unpasteurised (raw)',
@@ -655,8 +667,9 @@ const vegetarianCategoryAssessments: Assessment[] = [
     citations: [],
   },
   {
-    id: 'pasteurised-yoghurt-vegetarian',
-    subject: { kind: 'category', categoryId: 'pasteurised-yoghurt' },
+    id: 'yoghurt-pasteurised-vegetarian',
+    subject: { kind: 'category', categoryId: 'yoghurt' },
+    preparationId: 'pasteurised',
     guidanceListId: 'vegetarian-suitability',
     statusId: 'vegetarian-check-ingredients',
     summary: 'Some yoghurts use gelatin as a gelling agent, so check the label.',

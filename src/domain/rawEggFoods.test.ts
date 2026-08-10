@@ -11,19 +11,19 @@ const vegetarian = content.guidanceLists[1]
 
 const foodById = (id: string) => content.foods.find((food) => food.id === id)!
 const categoryById = (id: string) => content.categories.find((category) => category.id === id)!
-const resolveFood = (id: string, list = pregnancy) => resolveAssessment({ kind: 'food', food: foodById(id) }, list, index)
+const resolveFood = (id: string, list = pregnancy, preparationId?: string) => resolveAssessment({ kind: 'food', food: foodById(id) }, list, index, preparationId)
 
-const entriesMatching = (query: string) => [
+const entriesMatching = (query: string) => [...new Set([
   ...filterFoods(content.foods, content.guidanceLists, index, { query, guidanceListIds: [], outcomeBands: [] })
-    .map((food) => `food:${food.id}`),
-  ...filterCategoryEntries(content.categories, content.guidanceLists, index, { query, guidanceListIds: [], outcomeBands: [] })
-    .map((category) => `category:${category.id}`),
-]
+    .map((row) => `food:${row.food.id}`),
+  ...filterCategoryEntries(content.categories, content.assessments, content.preparations, content.guidanceLists, index, { query, guidanceListIds: [], outcomeBands: [] })
+    .map((row) => `category:${row.category.id}`),
+])]
 
 describe('raw-egg foods surfaced where people browse for them', () => {
   it('files the new dessert and drinks subtrees where a browser would look for them', () => {
     expect(categoryById('cold-desserts').parentId).toBe('desserts')
-    expect(categoryById('home-made-drinks').parentId).toBe('drinks')
+    expect(categoryById('drinks').parentId).toBeNull()
     expect(categoryById('ice-cream').parentId).toBe('cold-desserts')
     expect(categoryById('fruit-juice-kombucha-and-cider').parentId).toBe('drinks')
   })
@@ -40,10 +40,10 @@ describe('raw-egg foods surfaced where people browse for them', () => {
   })
 
   it('inherits the amber home-made drinks rule for an unassessed drink, with its origin disclosed', () => {
-    const smoothies = resolveFood('smoothies')
+    const smoothies = resolveFood('smoothies', pregnancy, 'home-made')
 
     expect(smoothies.status.id).toBe('pregnancy-conditions')
-    expect(smoothies.origin).toEqual({ kind: 'inherited', category: categoryById('home-made-drinks') })
+    expect(smoothies.origin).toEqual({ kind: 'inherited', category: categoryById('drinks') })
     expect(smoothies.assessment?.scopeStatement).toBe(
       'Applies to all home-made drinks, because only some of them contain raw egg.',
     )
@@ -73,15 +73,20 @@ describe('raw-egg foods surfaced where people browse for them', () => {
   })
 
   it('keeps the packaged ice-cream rule and its locator beneath the amber cold-desserts ancestor', () => {
-    const packaged = resolveAssessment({ kind: 'category', category: categoryById('packaged-ice-cream') }, pregnancy, index)
+    const packaged = resolveAssessment({ kind: 'category', category: categoryById('ice-cream') }, pregnancy, index, 'store-bought')
 
-    expect(packaged.status.id).toBe('pregnancy-ok')
-    expect(packaged.origin).toEqual({ kind: 'own' })
-    expect(packaged.assessment?.citations[0].locator).toBe('Dairy: Butter; Ice cream — Packaged')
+    // The store-bought rule says okay, and the cold-desserts raw-egg check still applies however the
+    // ice cream was bought. Neither is merged, and the more cautious of the two authored statuses
+    // governs the row, so the reader is not told "okay" while an amber check is outstanding.
+    expect(packaged.status.id).toBe('pregnancy-conditions')
+    expect(packaged.layers.map((layer) => layer.assessment.citations[0].locator))
+      .toContain('Dairy: Butter; Ice cream — Packaged')
+    expect(packaged.layers.map((layer) => layer.assessment.citations[0].locator))
+      .toContain('Eggs: Raw eggs')
   })
 
   it('leaves the raw-eggs entry unchanged and moves its migrated aliases onto one entry each', () => {
-    const rawEggs = resolveAssessment({ kind: 'category', category: categoryById('raw-eggs') }, pregnancy, index)
+    const rawEggs = resolveAssessment({ kind: 'category', category: categoryById('eggs') }, pregnancy, index, 'raw')
     expect(rawEggs.origin).toEqual({ kind: 'own' })
     expect(rawEggs.status.id).toBe('pregnancy-avoid')
     expect(rawEggs.assessment?.summary).toBe('The guide says not to eat raw eggs or foods made with them.')

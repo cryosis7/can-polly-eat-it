@@ -3,11 +3,13 @@ import {
   categorySchema,
   foodSchema,
   guidanceListSchema,
+  preparationSchema,
   sourceSchema,
   type Assessment,
   type Category,
   type Food,
   type GuidanceList,
+  type Preparation,
   type Source,
   type StatusDefinition,
 } from './schemas'
@@ -16,6 +18,7 @@ import { createContentIndex, findAssessments, subjectKey, type ContentIndex } fr
 export type ContentData = {
   categories: Category[]
   foods: Food[]
+  preparations: Preparation[]
   sources: Source[]
   guidanceLists: GuidanceList[]
   assessments: Assessment[]
@@ -101,6 +104,14 @@ const restrictiveness: Record<string, number> = { okay: 0, maybe: 1, 'not-okay':
  * caution invalidate another authority's authored record, which is a veto rather than a coherence
  * check. Neutral bands never appear here, because a fallback status on an assessment is already
  * rejected.
+ *
+ * The search runs on the assessment's own preparation axis first, so a qualified assessment adds to
+ * guidance that applies in that preparation. An unqualified assessment on a subject that declares
+ * preparations may also add to guidance on those axes: a food-wide rule is restated on every
+ * preparation row, so it demonstrably has something to add to even when no ancestor rule applies
+ * however the subject is prepared. That is the shape the Bluff oyster serving limit takes once the
+ * group's cooking rule becomes preparation-qualified — the limit still holds however they are eaten,
+ * and it must not suppress the cooking rule on the row where that rule applies.
  */
 const validateAdditiveAssessment = (
   assessment: Assessment,
@@ -113,10 +124,18 @@ const validateAdditiveAssessment = (
   const path = subject.kind === 'food'
     ? index.tree.pathByCategoryId.get(foodsById.get(subject.foodId)!.primaryCategoryId)!
     : index.tree.pathByCategoryId.get(subject.categoryId)!.slice(0, -1)
+  const declaredAxes = subject.kind === 'food' && assessment.preparationId === undefined
+    ? foodsById.get(subject.foodId)!.preparationIds
+    : []
 
   let hasAncestorGuidance = false
   for (let position = path.length - 1; position >= 0; position -= 1) {
-    const ancestors = findAssessments(index, guidanceList.id, { kind: 'category', categoryId: path[position].id })
+    const ancestors = findAssessments(
+      index,
+      guidanceList.id,
+      { kind: 'category', categoryId: path[position].id },
+      assessment.preparationId,
+    )
     if (ancestors.length === 0) {
       continue
     }
@@ -132,6 +151,16 @@ const validateAdditiveAssessment = (
     }
     return
   }
+  // Nothing to add to on its own axis. A food-wide rule on a food that declares preparations is
+  // restated on every preparation row, so ancestor guidance on any declared axis is something it
+  // demonstrably adds to. The restrictiveness comparison deliberately stays on the assessment's own
+  // axis: across axes it compares rules about different things, and `combineAxes` already governs
+  // each row with the more cautious of the two authored statuses.
+  if (!hasAncestorGuidance) {
+    hasAncestorGuidance = declaredAxes.some((preparationId) => path.some((ancestor) =>
+      findAssessments(index, guidanceList.id, { kind: 'category', categoryId: ancestor.id }, preparationId).length > 0,
+    ))
+  }
   if (!hasAncestorGuidance) {
     fail(`assessment "${assessment.id}" adds to inherited guidance, but no ancestor is assessed in its guidance list.`)
   }
@@ -140,6 +169,41 @@ const validateAdditiveAssessment = (
 const validateSources = (sources: Source[]) => {
   assertUnique(sources.map((source) => source.id), 'source ID')
   assertUnique(sources.map((source) => source.slug), 'source slug')
+}
+
+const validatePreparations = (preparations: Preparation[]) => {
+  assertUnique(preparations.map((preparation) => preparation.id), 'preparation ID')
+  assertUnique(preparations.map((preparation) => preparation.slug), 'preparation slug')
+}
+
+/**
+ * A preparation qualifier must name a state its subject is actually eaten in, so a source is never
+ * recorded as having addressed a preparation the catalogue does not hold. For a category subject the
+ * state must be declared by at least one food in that category or below it, since a category's
+ * preparation dimension comes from its foods rather than from an authored list.
+ */
+const validatePreparationQualifier = (
+  assessment: Assessment,
+  foods: Food[],
+  preparationIds: Set<string>,
+) => {
+  const { preparationId, subject } = assessment
+  if (preparationId === undefined) {
+    return
+  }
+  if (!preparationIds.has(preparationId)) {
+    fail(`assessment "${assessment.id}" is qualified by an unknown preparation state.`)
+  }
+  if (subject.kind === 'food') {
+    // The food reference is already validated above, so the lookup always resolves.
+    if (!foods.find((food) => food.id === subject.foodId)!.preparationIds.includes(preparationId)) {
+      fail(`assessment "${assessment.id}" is qualified by a preparation its food does not declare.`)
+    }
+  }
+  // A category assessment needs no such check. A category is a first-class subject, so its own
+  // guidance establishes a preparation grouping whether or not any food sits beneath it: `Ice cream`
+  // holds three authored rules and no foods, and requiring a food to declare `soft-serve` would
+  // reject the very content the grouping exists to show.
 }
 
 /**
@@ -163,17 +227,24 @@ const validateAssessments = (
   foods: Food[],
   categories: Category[],
   guidanceLists: GuidanceList[],
+  preparations: Preparation[],
   index: ContentIndex,
 ) => {
   assertUnique(assessments.map((assessment) => assessment.id), 'assessment ID')
   assertUnique(
-    assessments.map((assessment) => `${subjectKey(assessment.subject)}:${assessment.guidanceListId}:${assessment.sourceId ?? ''}`),
-    'subject/list/source assessment pair',
+    assessments.map((assessment) => [
+      subjectKey(assessment.subject),
+      assessment.preparationId ?? '',
+      assessment.guidanceListId,
+      assessment.sourceId ?? '',
+    ].join(':')),
+    'subject/preparation/list/source assessment pair',
   )
   const foodIds = new Set(foods.map((food) => food.id))
   const categoryIds = new Set(categories.map((category) => category.id))
   const foodsById = new Map(foods.map((food) => [food.id, food]))
   const listsById = new Map(guidanceLists.map((list) => [list.id, list]))
+  const preparationIds = new Set(preparations.map((preparation) => preparation.id))
 
   for (const assessment of assessments) {
     const { subject } = assessment
@@ -189,6 +260,7 @@ const validateAssessments = (
     if (subject.kind === 'food' && assessment.scopeStatement) {
       fail(`assessment "${assessment.id}" is for a food subject and must not declare a scopeStatement.`)
     }
+    validatePreparationQualifier(assessment, foods, preparationIds)
     const guidanceList = listsById.get(assessment.guidanceListId)
     if (!guidanceList) {
       fail(`assessment "${assessment.id}" references an unknown guidance list.`)
@@ -218,6 +290,7 @@ const validateAssessments = (
 export const validateContent = (rawContent: ContentData): ContentData => {
   const categories = rawContent.categories.map((record) => categorySchema.parse(record))
   const foods = rawContent.foods.map((record) => foodSchema.parse(record))
+  const preparations = rawContent.preparations.map((record) => preparationSchema.parse(record))
   const sources = rawContent.sources.map((record) => sourceSchema.parse(record))
   const guidanceLists = rawContent.guidanceLists.map((record) => guidanceListSchema.parse(record))
   const assessments = rawContent.assessments.map((record) => assessmentSchema.parse(record))
@@ -229,11 +302,19 @@ export const validateContent = (rawContent: ContentData): ContentData => {
   if (foods.some((food) => !categoryIds.has(food.primaryCategoryId))) {
     fail('a food references an unknown primary category.')
   }
+  validatePreparations(preparations)
+  const preparationIds = new Set(preparations.map((preparation) => preparation.id))
+  for (const food of foods) {
+    assertUnique(food.preparationIds, `preparation state on food "${food.id}"`)
+    if (food.preparationIds.some((preparationId) => !preparationIds.has(preparationId))) {
+      fail(`food "${food.id}" declares an unknown preparation state.`)
+    }
+  }
   validateSources(sources)
   validateGuidanceLists(guidanceLists, sources)
   const index = createContentIndex(categories, assessments)
-  validateAssessments(assessments, foods, categories, guidanceLists, index)
-  return { categories, foods, sources, guidanceLists, assessments }
+  validateAssessments(assessments, foods, categories, guidanceLists, preparations, index)
+  return { categories, foods, preparations, sources, guidanceLists, assessments }
 }
 
 export const getStatusById = (guidanceList: GuidanceList, statusId: string): StatusDefinition =>

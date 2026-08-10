@@ -35,11 +35,18 @@ export const createContentIndex = (categories: Category[], assessments: Assessme
 })
 
 /**
- * Every authored assessment for a subject in a list — one per source that assessed it, in authored
- * order. Empty when no source has assessed the subject.
+ * Every authored assessment for a subject in a list on one axis, in authored order.
+ *
+ * Without a preparation, this is the unqualified guidance that holds however the subject is
+ * prepared. With one, it is the guidance qualified by that preparation. The two are deliberately
+ * separate axes: a food's own food-wide rule must not suppress its group's rule for a particular
+ * preparation, and a preparation rule must not suppress a food-wide rule, because neither is more
+ * specific than the other. Callers resolve each axis and show both whole.
  */
 export const findAssessments = (
   index: ContentIndex,
   guidanceListId: string,
   subject: AssessmentSubject,
-): Assessment[] => index.assessmentsBySubjectKey.get(`${guidanceListId}:${subjectKey(subject)}`) ?? []
+  preparationId?: string,
+): Assessment[] => (index.assessmentsBySubjectKey.get(`${guidanceListId}:${subjectKey(subject)}`) ?? [])
+  .filter((assessment) => assessment.preparationId === preparationId)

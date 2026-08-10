@@ -193,23 +193,29 @@ describe('guidance migration invariant', () => {
   })
 
   it('changes the two F-14 foods only by inheriting their new group rule, leaving vegetarian guidance intact', () => {
-    const inheritedPregnancyRule: Record<string, { statusId: string, locator: string }> = {
+    // Worcestershire sauce now declares `store-bought`, so its inherited rule lives on that row
+    // rather than on a preparation-free resolution. F-18's wordingPreservation.test.ts proves the
+    // rule itself is unchanged; this asserts it is still reached.
+    const inheritedPregnancyRule: Record<string, { statusId: string, locator: string, preparationId?: string }> = {
       tortillas: { statusId: 'pregnancy-ok', locator: 'Breads and cereals: Breads' },
       'worcestershire-sauce': {
         statusId: 'pregnancy-conditions',
         locator: 'Miscellaneous: Sauces, dressings and spreads',
+        preparationId: 'store-bought',
       },
     }
 
     for (const [foodId, expected] of Object.entries(inheritedPregnancyRule)) {
       const before = baseline[foodId]
-      const after = resolveForFood(foodId)
+      const food = content.foods.find((candidate) => candidate.id === foodId)!
+      const list = content.guidanceLists.find((candidate) => candidate.id === 'pregnancy-food-safety')!
+      const after = resolveAssessment({ kind: 'food', food }, list, index, expected.preparationId)
 
       expect(before['pregnancy-food-safety'].statusId, foodId).toBe('pregnancy-not-assessed')
-      expect(after['pregnancy-food-safety'].statusId, foodId).toBe(expected.statusId)
-      expect(after['pregnancy-food-safety'].citations.map((citation) => citation.locator), foodId)
-        .toEqual([expected.locator])
-      expect(after['vegetarian-suitability'], foodId).toEqual(before['vegetarian-suitability'])
+      expect(after.status.id, foodId).toBe(expected.statusId)
+      expect(after.layers.flatMap((layer) => layer.citations.map((citation) => citation.locator)), foodId)
+        .toContain(expected.locator)
+      expect(resolveForFood(foodId)['vegetarian-suitability'], foodId).toEqual(before['vegetarian-suitability'])
     }
   })
 

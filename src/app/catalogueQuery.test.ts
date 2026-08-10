@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { categories } from '../data/categories'
 import { guidanceLists } from '../data/guidanceLists'
-import { buildCatalogueQuery, parseCatalogueQuery } from './catalogueQuery'
+import { preparations } from '../data/preparations'
+import {
+  buildCatalogueQuery,
+  parseCatalogueQuery,
+  parsePreparationSlug,
+  withPreparationSlug,
+} from './catalogueQuery'
 
 describe('catalogue query', () => {
   it('defaults an absent scope to pregnancy food safety', () => {
@@ -123,5 +129,26 @@ describe('catalogue query', () => {
       alternativeOnly,
       new Set(categories.map((category) => category.slug)),
     ).state.scopeSlugs).toEqual(['alternative-food-safety'])
+  })
+})
+
+// ADR: Model preparation as a catalogue dimension.
+// See: docs/decisions/2026-08-10 ADR - model preparation as a catalogue dimension.md
+describe('the preparation a food page was opened in', () => {
+  it('accepts a known preparation slug and strips an unknown one', () => {
+    expect(parsePreparationSlug(new URLSearchParams('v=1&prep=raw'), preparations)).toBe('raw')
+    expect(parsePreparationSlug(new URLSearchParams('v=1&prep=poached'), preparations)).toBeUndefined()
+    expect(parsePreparationSlug(new URLSearchParams('v=1'), preparations)).toBeUndefined()
+  })
+
+  it('keeps the catalogue own canonical URL free of a preparation', () => {
+    const search = buildCatalogueQuery(
+      { scopeSlugs: ['pregnancy-food-safety'], outcomeBands: [], query: '' },
+      guidanceLists,
+    ).toString()
+
+    expect(search).not.toContain('prep')
+    expect(withPreparationSlug(search, 'raw')).toContain('prep=raw')
+    expect(withPreparationSlug(search)).toBe(search)
   })
 })

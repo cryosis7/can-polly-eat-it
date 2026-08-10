@@ -17,12 +17,12 @@ const categoryById = (id: string) => content.categories.find((category) => categ
 const resolveFood = (id: string, list = pregnancy) =>
   resolveAssessment({ kind: 'food', food: foodById(id) }, list, index)
 
-const entriesMatching = (query: string) => [
+const entriesMatching = (query: string) => [...new Set([
   ...filterFoods(content.foods, content.guidanceLists, index, { query, guidanceListIds: [], outcomeBands: [] })
-    .map((food) => `food:${food.id}`),
-  ...filterCategoryEntries(content.categories, content.guidanceLists, index, { query, guidanceListIds: [], outcomeBands: [] })
-    .map((category) => `category:${category.id}`),
-]
+    .map((row) => `food:${row.food.id}`),
+  ...filterCategoryEntries(content.categories, content.assessments, content.preparations, content.guidanceLists, index, { query, guidanceListIds: [], outcomeBands: [] })
+    .map((row) => `category:${row.category.id}`),
+])]
 
 /**
  * Every food the retired root held, with the food group it now belongs to. The retired root was the
@@ -42,7 +42,7 @@ const migratedFoods: [string, string][] = [
   ['vegetable-soup', 'soups'],
   ['white-sugar', 'ingredients-and-additives'],
   ['wine-and-beer', 'alcoholic-drinks'],
-  ['worcestershire-sauce', 'commercial-sauces-dressings-and-spreads'],
+  ['worcestershire-sauce', 'sauces-dressings-and-spreads'],
 ]
 
 describe('retired animal-derived ingredients category', () => {

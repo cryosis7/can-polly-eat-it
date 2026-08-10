@@ -3,6 +3,7 @@ import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { content } from '../../data'
 import type { ContentData } from '../../domain/contentValidation'
+import { categoryAssessment, dualSourceContent } from '../../test/multiSourceFixture'
 import { CataloguePage } from './CataloguePage'
 
 const renderCatalogue = (initialEntry = '/', catalogueContent = content) => render(
@@ -66,7 +67,7 @@ describe('CataloguePage', () => {
     const disclosure = container.querySelector('details')
     expect(disclosure).not.toHaveAttribute('open')
     expect(screen.getByRole('searchbox', { name: 'Search foods' })).toBeInTheDocument()
-    expect(screen.getByText('159 results in the guide')).toBeInTheDocument()
+    expect(screen.getByText('204 results in the guide')).toBeInTheDocument()
 
     disclosure!.open = true
     fireEvent(disclosure!, new Event('toggle', { bubbles: true }))
@@ -115,7 +116,7 @@ describe('CataloguePage', () => {
     renderCatalogue('/?v=2&scope=retired-list&outcome=unknown&category=retired-category&q=yogurt')
 
     expect(screen.getByRole('status')).toHaveTextContent('Unavailable shared filters were removed.')
-    expect(screen.getByRole('link', { name: 'Pasteurised yoghurt guidance' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Yoghurt guidance' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Cheddar' })).not.toBeInTheDocument()
     expect(screen.getByText('1 result in the guide')).toBeInTheDocument()
   })
@@ -130,10 +131,10 @@ describe('CataloguePage', () => {
   })
 
   it('shows neutral fallback outcomes from a copied URL without treating them as primary controls', () => {
-    renderCatalogue('/?scope=pregnancy-food-safety&outcome=not-assessed&category=fish-mercury-guidance')
+    renderCatalogue('/?scope=pregnancy-food-safety&outcome=not-assessed&category=confectionery')
 
     expect(screen.getByRole('button', { name: 'Outcome: Not assessed' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Yellowfin tuna' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Gummy bears' })).toBeInTheDocument()
     expect(screen.queryByRole('checkbox', { name: 'Not assessed' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Outcome: Not assessed' }))
     expect(screen.queryByRole('button', { name: 'Outcome: Not assessed' })).not.toBeInTheDocument()
@@ -204,19 +205,61 @@ describe('CataloguePage', () => {
     expect(within(entry).getByText('Check ingredients')).toBeInTheDocument()
   })
 
-  it('splits sauces into commercial and home-made groups without either showing the other rule', () => {
+  // The migration retires 32 categories that hold guidance and no foods. Their guidance must stay
+  // browsable inside a preparation grouping, or retiring them silently deletes it from the catalogue.
+  it('renders a preparation grouping for a category holding qualified guidance and no foods', () => {
+    const qualifiedOnly = dualSourceContent([
+      categoryAssessment('shellfish-raw', 'shellfish', 'dual-avoid', {
+        preparationId: 'raw',
+        summary: 'Do not eat raw shellfish.',
+      }),
+      categoryAssessment('shellfish-cooked', 'shellfish', 'dual-conditions', {
+        preparationId: 'cooked',
+        summary: 'Cook shellfish thoroughly and eat it while hot.',
+      }),
+    ], [])
+
+    renderCatalogue('/?v=1&scope=dual', qualifiedOnly)
+    expandGroup('Seafood')
+
+    const shellfish = screen.getByRole('button', { name: /^Shellfish, level \d+$/ })
+      .closest('.category-group') as HTMLElement
+    const raw = within(shellfish).getByRole('heading', { name: 'Raw' })
+      .closest('.preparation-group') as HTMLElement
+
+    expect(within(raw).getByText('Avoid')).toBeInTheDocument()
+    expect(within(raw).getAllByText('Do not eat raw shellfish.').length).toBeGreaterThan(0)
+    expect(within(raw).queryByText(/Cook shellfish thoroughly/)).not.toBeInTheDocument()
+    expect(within(raw).getByRole('link', { name: 'Shellfish guidance' })).toHaveAttribute(
+      'href',
+      '/category/shellfish?v=1&scope=dual&prep=raw',
+    )
+  })
+
+  it('counts each preparation entry of a food-less category once', () => {
+    const qualifiedOnly = dualSourceContent([
+      categoryAssessment('shellfish-raw', 'shellfish', 'dual-avoid', { preparationId: 'raw' }),
+      categoryAssessment('shellfish-cooked', 'shellfish', 'dual-conditions', { preparationId: 'cooked' }),
+    ], [])
+
+    renderCatalogue('/?v=1&scope=dual', qualifiedOnly)
+
+    expect(screen.getByText('2 results in the guide')).toBeInTheDocument()
+  })
+
+  it('splits sauces into store-bought and home-made groups without either showing the other rule', () => {
     renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=sauces-dressings-and-spreads')
 
-    const commercial = screen.getByRole('heading', { name: 'Commercial sauces, dressings and spreads' })
-      .closest('.category-group') as HTMLElement
-    expect(within(commercial).getAllByText(/follow their manufacturer storage and heating instructions/).length)
+    const storeBought = screen.getByRole('heading', { name: 'Store-bought' })
+      .closest('.preparation-group') as HTMLElement
+    expect(within(storeBought).getAllByText(/follow their manufacturer storage and heating instructions/).length)
       .toBeGreaterThan(0)
-    expect(within(commercial).queryByText(/contains raw egg/)).not.toBeInTheDocument()
-    expect(within(commercial).getByRole('link', { name: 'Worcestershire sauce' })).toBeInTheDocument()
+    expect(within(storeBought).queryByText(/contains raw egg/)).not.toBeInTheDocument()
+    expect(within(storeBought).getByRole('link', { name: 'Worcestershire sauce' })).toBeInTheDocument()
 
-    const homeMade = screen.getByRole('button', { name: /^Home-made sauces, level \d+$/ })
-      .closest('.category-group') as HTMLElement
-    expect(within(homeMade).getByText(/check whether this one contains raw egg/)).toBeInTheDocument()
+    const homeMade = screen.getByRole('heading', { name: 'Home-made' })
+      .closest('.preparation-group') as HTMLElement
+    expect(within(homeMade).getAllByText(/check whether this one contains raw egg/).length).toBeGreaterThan(0)
     expect(within(homeMade).queryByText(/manufacturer storage/)).not.toBeInTheDocument()
     expect(within(homeMade).getByRole('link', { name: 'Mayonnaise' })).toBeInTheDocument()
   })
@@ -244,12 +287,11 @@ describe('CataloguePage', () => {
   })
 
   it('shows an accumulated food card stating the inherited group guidance', () => {
-    renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=freshly-cooked-seafood')
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=shellfish')
 
-    const oysterCard = screen.getByRole('link', { name: 'Bluff and Pacific oysters' }).closest('.food-card') as HTMLElement
-    expect(within(oysterCard).getByText(/Limit these shellfish to one serving each month\./)).toBeInTheDocument()
-    expect(within(oysterCard).getByText(/Cook seafood thoroughly and eat it while hot\./)).toBeInTheDocument()
-    expect(within(oysterCard).getByRole('link', { name: 'See Freshly cooked fish, mussels, oysters, crayfish, scallops, etc guidance' })).toBeInTheDocument()
+    // The serving-limit footnote is food-wide, so it is restated on every preparation row.
+    expect(screen.getAllByRole('link', { name: 'Bluff and Pacific oysters' }).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Cook seafood thoroughly and eat it while hot/).length).toBeGreaterThan(0)
 
     const cheddarCard = renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=hard-cheese')
       .container.querySelector('.food-card') as HTMLElement
@@ -350,7 +392,8 @@ describe('CataloguePage', () => {
 
     fireEvent.change(searchField, { target: { value: '' } })
     expect(screen.queryByRole('link', { name: 'Gouda' })).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Cooked eggs' })).toBeInTheDocument()
+    // Eggs stays manually expanded, showing the preparation groupings its rules now live on.
+    expect(screen.getByRole('heading', { name: 'Raw' })).toBeInTheDocument()
   })
 
   it('collapses an expanded nested group without affecting its siblings', () => {
@@ -411,5 +454,88 @@ describe('CataloguePage', () => {
     const entry = toggle.closest('.category-group')!.querySelector('.category-entry') as HTMLElement
     expect(within(entry).getByText('Only with conditions')).toBeInTheDocument()
     expect(within(entry).getByText(/Use pasteurised cheese from sealed packs within two days of opening/)).toBeInTheDocument()
+  })
+})
+
+// ADR: Model preparation as a catalogue dimension.
+// See: docs/decisions/2026-08-10 ADR - model preparation as a catalogue dimension.md
+describe('browsing a category with a preparation dimension', () => {
+  const citation = content.assessments.find((assessment) => assessment.citations.length > 0)!.citations[0]
+  const salmon = content.foods.find((food) => food.id === 'farmed-salmon')!
+
+  const preparedContent: ContentData = {
+    ...content,
+    foods: content.foods.map((food) => (
+      food.id === salmon.id ? { ...food, preparationIds: ['raw', 'cooked'] } : food
+    )),
+    assessments: [
+      ...content.assessments,
+      {
+        id: 'salmon-raw-pregnancy',
+        subject: { kind: 'food', foodId: salmon.id },
+        guidanceListId: 'pregnancy-food-safety',
+        statusId: 'pregnancy-avoid',
+        preparationId: 'raw',
+        summary: 'Do not eat raw salmon.',
+        guidanceScenarios: [],
+        reasonLinks: [],
+        citations: [citation],
+      },
+      {
+        id: 'salmon-cooked-pregnancy',
+        subject: { kind: 'food', foodId: salmon.id },
+        guidanceListId: 'pregnancy-food-safety',
+        statusId: 'pregnancy-ok',
+        preparationId: 'cooked',
+        summary: 'Cooked salmon is fine.',
+        guidanceScenarios: [],
+        reasonLinks: [],
+        citations: [citation],
+      },
+    ],
+  }
+
+  const scope = 'v=1&scope=pregnancy-food-safety'
+
+  const cardFor = (preparationName: string) => {
+    const group = screen.getByRole('heading', { name: preparationName }).closest('.preparation-group') as HTMLElement
+    return within(group).getByRole('link', { name: salmon.name }).closest('.food-card') as HTMLElement
+  }
+
+  it('groups the food under each preparation, each row showing one status', () => {
+    renderCatalogue(`/?${scope}&q=${salmon.slug}`, preparedContent)
+
+    // Raw takes the avoid rule; cooked keeps the group's food-wide rule, which is more cautious
+    // than the cooked-only rule and applies however the fish is prepared.
+    expect(within(cardFor('Raw')).getByText('Avoid')).toBeInTheDocument()
+    expect(within(cardFor('Cooked')).getByText('Only with conditions')).toBeInTheDocument()
+    expect(screen.getByText('2 results in the guide')).toBeInTheDocument()
+  })
+
+  it('links each row to the food in the preparation the reader was looking at', () => {
+    renderCatalogue(`/?${scope}&q=${salmon.slug}`, preparedContent)
+
+    expect(within(cardFor('Raw')).getByRole('link', { name: salmon.name }))
+      .toHaveAttribute('href', expect.stringContaining('prep=raw'))
+    expect(within(cardFor('Cooked')).getByRole('link', { name: salmon.name }))
+      .toHaveAttribute('href', expect.stringContaining('prep=cooked'))
+  })
+
+  it('returns one preparation row of a food under an outcome filter and not the other', () => {
+    renderCatalogue(`/?${scope}&q=${salmon.slug}&outcome=not-okay`, preparedContent)
+
+    expect(screen.getByRole('heading', { name: 'Raw' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Cooked' })).not.toBeInTheDocument()
+    expect(screen.getByText('1 result in the guide')).toBeInTheDocument()
+  })
+
+  it('renders a category with no preparation dimension exactly as before', () => {
+    renderCatalogue(`/?${scope}&q=cheddar`, preparedContent)
+
+    expect(document.querySelectorAll('.preparation-group')).toHaveLength(0)
+    expect(screen.getByRole('link', { name: 'Cheddar' })).toHaveAttribute(
+      'href',
+      expect.not.stringContaining('prep='),
+    )
   })
 })

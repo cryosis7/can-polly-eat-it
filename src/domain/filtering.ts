@@ -1,7 +1,8 @@
 import { resolveAssessment, type AssessmentSubjectRef } from './assessment'
+import { catalogueRows, categoryEntryRows, type CatalogueRow, type CategoryRow } from './categoryTree'
 import type { ContentIndex } from './contentIndex'
 import { matchesCategoryQuery, matchesSearchQuery } from './search'
-import type { Category, Food, GuidanceList, OutcomeBand } from './schemas'
+import type { Assessment, Category, Food, GuidanceList, OutcomeBand, Preparation } from './schemas'
 
 export type FoodFilterState = {
   query: string
@@ -28,6 +29,7 @@ const matchesGuidanceFilters = (
   guidanceLists: GuidanceList[],
   index: ContentIndex,
   filters: FoodFilterState,
+  preparationId?: string,
 ) => {
   const guidanceListsById = new Map(guidanceLists.map((list) => [list.id, list]))
 
@@ -39,21 +41,27 @@ const matchesGuidanceFilters = (
     if (filters.outcomeBands.length === 0) {
       return true
     }
-    return filters.outcomeBands.includes(resolveAssessment(subjectRef, guidanceList, index).status.outcomeBand)
+    return filters.outcomeBands.includes(
+      resolveAssessment(subjectRef, guidanceList, index, preparationId).status.outcomeBand,
+    )
   })
 }
 
+/**
+ * Filtering is per row, so an outcome filter returns the cooked row of a food without its raw row,
+ * and each returned row is counted once.
+ */
 export const filterFoods = (
   foods: Food[],
   guidanceLists: GuidanceList[],
   index: ContentIndex,
   filters: FoodFilterState,
-) => {
+): CatalogueRow[] => {
   const selectedCategoryIds = filters.categoryId
     ? categoryAndDescendantIds(index, filters.categoryId)
     : undefined
 
-  return foods.filter((food) => {
+  return catalogueRows(foods).filter(({ food, preparationId }) => {
     if (!matchesSearchQuery(food, index.tree, filters.query)) {
       return false
     }
@@ -61,24 +69,27 @@ export const filterFoods = (
       return false
     }
 
-    return matchesGuidanceFilters({ kind: 'food', food }, guidanceLists, index, filters)
+    return matchesGuidanceFilters({ kind: 'food', food }, guidanceLists, index, filters, preparationId)
   })
 }
 
+/**
+ * Filtering is per row here too, so an outcome filter returns a category's raw entry without its
+ * cooked entry, and each returned row is counted once.
+ */
 export const filterCategoryEntries = (
   categories: Category[],
+  assessments: Assessment[],
+  preparations: Preparation[],
   guidanceLists: GuidanceList[],
   index: ContentIndex,
   filters: FoodFilterState,
-) => {
+): CategoryRow[] => {
   const selectedCategoryIds = filters.categoryId
     ? categoryAndDescendantIds(index, filters.categoryId)
     : undefined
 
-  return categories.filter((category) => {
-    if (!index.assessedCategoryIds.has(category.id)) {
-      return false
-    }
+  return categoryEntryRows(categories, assessments, preparations).filter(({ category, preparationId }) => {
     if (selectedCategoryIds && !selectedCategoryIds.has(category.id)) {
       return false
     }
@@ -86,6 +97,12 @@ export const filterCategoryEntries = (
       return false
     }
 
-    return matchesGuidanceFilters({ kind: 'category', category }, guidanceLists, index, filters)
+    return matchesGuidanceFilters(
+      { kind: 'category', category },
+      guidanceLists,
+      index,
+      filters,
+      preparationId,
+    )
   })
 }

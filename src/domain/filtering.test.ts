@@ -3,6 +3,7 @@ import { assessments } from '../data/assessments'
 import { categories } from '../data/categories'
 import { foods } from '../data/foods'
 import { guidanceLists } from '../data/guidanceLists'
+import { preparations } from '../data/preparations'
 import { createContentIndex } from './contentIndex'
 import { filterCategoryEntries, filterFoods } from './filtering'
 
@@ -10,17 +11,17 @@ const index = createContentIndex(categories, assessments)
 
 describe('filterFoods', () => {
   it('matches aliases and normalised category-path text', () => {
-    expect(filterCategoryEntries(categories, guidanceLists, index, {
+    expect(filterCategoryEntries(categories, assessments, preparations, guidanceLists, index, {
       query: 'yógurt',
       guidanceListIds: [],
       outcomeBands: [],
-    }).map((category) => category.slug)).toEqual(['pasteurised-yoghurt'])
+    }).map((row) => row.category.slug)).toEqual(['yoghurt'])
 
     expect(filterFoods(foods, guidanceLists, index, {
       query: 'milk-products cheddar',
       guidanceListIds: [],
       outcomeBands: [],
-    }).map((food) => food.slug)).toEqual(['cheddar'])
+    }).map((row) => row.food.slug)).toEqual(['cheddar'])
   })
 
   it('includes foods in descendant categories and resolved fallback statuses', () => {
@@ -29,17 +30,17 @@ describe('filterFoods', () => {
       categoryId: 'dairy',
       guidanceListIds: [],
       outcomeBands: [],
-    }).map((food) => food.slug)).toContain('cheddar')
+    }).map((row) => row.food.slug)).toContain('cheddar')
 
     const notAssessed = filterFoods(foods, guidanceLists, index, {
       query: '',
       guidanceListIds: ['pregnancy-food-safety'],
       outcomeBands: ['not-assessed'],
-    }).map((food) => food.slug)
+    }).map((row) => row.food.slug)
 
     // Every food with no pregnancy rule now shares the single fallback band, whether or not an
     // ancestor was once named in a coverage declaration.
-    expect(notAssessed).toContain('yellowfin-tuna')
+    expect(notAssessed).toContain('gummy-bears')
     expect(notAssessed).toContain('apple-pie')
   })
 
@@ -49,7 +50,7 @@ describe('filterFoods', () => {
       categoryId: 'low-acid-soft-pasteurised-cheese',
       guidanceListIds: [],
       outcomeBands: [],
-    }).map((food) => food.slug)).toEqual([
+    }).map((row) => row.food.slug)).toEqual([
       'brie',
       'camembert',
       'blue-cheese',
@@ -64,7 +65,7 @@ describe('filterFoods', () => {
       query: 'dairy cheese low acid pasteurised brie',
       guidanceListIds: [],
       outcomeBands: [],
-    }).map((food) => food.slug)).toEqual(['brie'])
+    }).map((row) => row.food.slug)).toEqual(['brie'])
   })
 
   it('resolves cheddar, parmesan, and gouda through the hard-cheese category rule', () => {
@@ -73,14 +74,14 @@ describe('filterFoods', () => {
       categoryId: 'hard-cheese',
       guidanceListIds: [],
       outcomeBands: [],
-    }).map((food) => food.slug)).toEqual(['cheddar', 'parmesan', 'gouda'])
+    }).map((row) => row.food.slug)).toEqual(['cheddar', 'parmesan', 'gouda'])
 
     expect(filterFoods(foods, guidanceLists, index, {
       query: '',
       categoryId: 'hard-cheese',
       guidanceListIds: ['vegetarian-suitability'],
       outcomeBands: ['maybe'],
-    }).map((food) => food.slug)).toEqual(['cheddar', 'gouda'])
+    }).map((row) => row.food.slug)).toEqual(['cheddar', 'gouda'])
   })
 
   it('ORs selected outcome bands within a scope while combining category and outcome predicates', () => {
@@ -89,14 +90,14 @@ describe('filterFoods', () => {
       categoryId: 'cereals',
       guidanceListIds: ['pregnancy-food-safety'],
       outcomeBands: ['okay'],
-    }).map((food) => food.slug)).toEqual(['breakfast-cereals', 'rice', 'pasta'])
+    }).map((row) => row.food.slug)).toEqual(['breakfast-cereals', 'rice', 'pasta'])
 
     expect(filterFoods(foods, guidanceLists, index, {
       query: '',
       categoryId: 'cereals',
       guidanceListIds: ['pregnancy-food-safety'],
       outcomeBands: ['okay', 'maybe'],
-    }).map((food) => food.slug)).toEqual(['breakfast-cereals', 'rice', 'pasta', 'fresh-filled-pasta'])
+    }).map((row) => row.food.slug)).toEqual(['breakfast-cereals', 'rice', 'pasta', 'fresh-filled-pasta'])
   })
 
   it('ANDs outcome constraints across selected scopes', () => {
@@ -115,7 +116,7 @@ describe('filterFoods', () => {
       categoryId: 'cereals',
       guidanceListIds: [primaryList.id, alternativeList.id],
       outcomeBands: ['maybe'],
-    }).map((food) => food.slug)).toEqual(['fresh-filled-pasta'])
+    }).map((row) => row.food.slug)).toEqual(['fresh-filled-pasta'])
   })
 
   it('rejects an unknown selected guidance scope', () => {
@@ -129,56 +130,57 @@ describe('filterFoods', () => {
 
 describe('filterCategoryEntries', () => {
   it('includes only categories carrying their own authored assessment', () => {
-    const entryIds = filterCategoryEntries(categories, guidanceLists, index, {
+    const entryIds = filterCategoryEntries(categories, assessments, preparations, guidanceLists, index, {
       query: '',
       guidanceListIds: ['pregnancy-food-safety'],
       outcomeBands: [],
-    }).map((category) => category.id)
+    }).map((row) => row.category.id)
 
     expect(entryIds).toContain('hard-cheese')
     expect(entryIds).not.toContain('cheese')
-    expect(entryIds).not.toContain('dairy')
+    // dairy now carries the unpasteurised rule itself, so it is an entry in its own right.
+    expect(entryIds).toContain('dairy')
   })
 
   it('matches a category entry by its own name and by an ancestor path label', () => {
-    expect(filterCategoryEntries(categories, guidanceLists, index, {
+    expect(filterCategoryEntries(categories, assessments, preparations, guidanceLists, index, {
       query: 'hard cheese',
       guidanceListIds: [],
       outcomeBands: [],
-    }).map((category) => category.id)).toEqual(['hard-cheese'])
+    }).map((row) => row.category.id)).toEqual(['hard-cheese'])
 
-    expect(filterCategoryEntries(categories, guidanceLists, index, {
+    expect(filterCategoryEntries(categories, assessments, preparations, guidanceLists, index, {
       query: 'milk-products',
       guidanceListIds: [],
       outcomeBands: [],
-    }).map((category) => category.id)).toContain('hard-cheese')
+    }).map((row) => row.category.id)).toContain('hard-cheese')
   })
 
   it('restricts category entries to the selected category filter', () => {
-    expect(filterCategoryEntries(categories, guidanceLists, index, {
+    expect(filterCategoryEntries(categories, assessments, preparations, guidanceLists, index, {
       query: '',
       categoryId: 'seafood',
       guidanceListIds: [],
       outcomeBands: [],
-    }).map((category) => category.id)).toEqual(['raw-fish', 'raw-shellfish', 'smoked-seafood', 'freshly-cooked-seafood'])
+    }).map((row) => `${row.category.id}:${row.preparationId}`)).toEqual(['seafood:smoked', 'seafood:cooked', 'fish:raw', 'shellfish:raw'])
 
-    expect(filterCategoryEntries(categories, guidanceLists, index, {
+    expect(filterCategoryEntries(categories, assessments, preparations, guidanceLists, index, {
       query: '',
-      categoryId: 'fish-mercury-guidance',
+      categoryId: 'crustacea',
       guidanceListIds: [],
       outcomeBands: [],
     })).toEqual([])
   })
 
   it('filters category entries by outcome band within the selected scope', () => {
-    expect(filterCategoryEntries(categories, guidanceLists, index, {
+    expect(filterCategoryEntries(categories, assessments, preparations, guidanceLists, index, {
       query: '',
       categoryId: 'hard-cheese',
       guidanceListIds: ['vegetarian-suitability'],
       outcomeBands: ['maybe'],
-    }).map((category) => category.id)).toEqual(['hard-cheese'])
+    }).map((row) => row.category.id)).toEqual(['hard-cheese'])
 
-    expect(filterCategoryEntries(categories, guidanceLists, index, {
+    expect(filterCategoryEntries(categories, assessments, preparations, guidanceLists, index, {
       query: '',
       categoryId: 'hard-cheese',
       guidanceListIds: ['pregnancy-food-safety'],

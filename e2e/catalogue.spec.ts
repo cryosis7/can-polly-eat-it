@@ -34,7 +34,7 @@ test.describe('Food catalogue', () => {
 
     await expect(page.getByRole('button', { name: 'Dairy, level 1' })).toHaveAttribute('aria-expanded', 'false')
     await expect(page.getByRole('button', { name: 'Cheese, level 2' })).toHaveCount(0)
-    await expect(page.getByText('159 results in the guide')).toBeVisible()
+    await expect(page.getByText('204 results in the guide')).toBeVisible()
 
     const collapsedHeight = await page.evaluate(() => document.body.scrollHeight)
     expect(collapsedHeight).toBeLessThan(6000)
@@ -67,7 +67,8 @@ test.describe('Food catalogue', () => {
 
     await page.getByRole('searchbox', { name: 'Search foods' }).fill('yogurt')
 
-    await expect(page.getByRole('link', { name: 'Pasteurised yoghurt guidance', exact: true })).toBeVisible()
+    const pasteurisedGroup = page.locator('.preparation-group', { hasText: 'Pasteurised' })
+    await expect(pasteurisedGroup.getByRole('link', { name: 'Yoghurt guidance', exact: true })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Cheddar' })).not.toBeVisible()
     await expect(page.getByText('1 result in the guide')).toBeVisible()
     await expect(page).toHaveURL(/q=yogurt/)
@@ -76,9 +77,10 @@ test.describe('Food catalogue', () => {
   test('reaches a migrated alias of a retired food on its merged category entry', async ({ page }) => {
     await page.goto('/?v=1&scope=pregnancy-food-safety&q=poached%20eggs')
 
-    await expect(page.getByText('1 result in the guide')).toBeVisible()
-    const cookedEggsGroup = page.locator('.category-group', { hasText: 'Cooked eggs' })
-    await expect(cookedEggsGroup.getByRole('link', { name: 'Cooked eggs guidance', exact: true })).toBeVisible()
+    await expect(page.getByText('2 results in the guide')).toBeVisible()
+    const cookedEggsGroup = page.locator('.category-group', { hasText: 'Eggs' })
+      .locator('.preparation-group', { hasText: 'Cooked' })
+    await expect(cookedEggsGroup.getByRole('link', { name: 'Eggs guidance', exact: true })).toBeVisible()
     await expect(cookedEggsGroup.getByText('Only with conditions').first()).toBeVisible()
   })
 
@@ -87,10 +89,10 @@ test.describe('Food catalogue', () => {
 
     await page.getByRole('searchbox', { name: 'Search foods' }).fill('dressings containing mayonnaise')
 
-    await expect(page.getByText('1 result in the guide')).toBeVisible()
-    const mayonnaiseCard = foodCard(page, 'Mayonnaise')
-    await expect(mayonnaiseCard).toBeVisible()
-    await expect(mayonnaiseCard.getByText('Avoid')).toBeVisible()
+    const homeMadeMayonnaise = page.locator('.preparation-group', { hasText: 'Home-made' })
+      .locator('.food-card', { has: page.getByRole('link', { name: 'Mayonnaise', exact: true }) })
+    await expect(homeMadeMayonnaise).toBeVisible()
+    await expect(homeMadeMayonnaise.getByText('Avoid')).toBeVisible()
     await expect(page.getByRole('link', { name: 'Raw eggs guidance', exact: true })).toHaveCount(0)
   })
 
@@ -119,7 +121,7 @@ test.describe('Food catalogue', () => {
     await expect(page.getByRole('button', { name: 'Category: Dairy' })).toBeVisible()
     await expect(page.locator('.breadcrumb', { hasText: 'Dairy > Cheese > Hard cheese' })).toBeVisible()
     await expect(foodCard(page, 'Cheddar')).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Pasteurised yoghurt guidance', exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Yoghurt guidance', exact: true }).first()).toBeVisible()
     await expect(page.getByRole('link', { name: 'Cooked eggs guidance', exact: true })).toHaveCount(0)
   })
 
@@ -145,7 +147,7 @@ test.describe('Food catalogue', () => {
     await expect(page.getByText('1 result in the guide')).toBeVisible()
 
     const yoghurtEntry = page.locator('.category-group', {
-      has: page.getByRole('link', { name: 'Pasteurised yoghurt guidance', exact: true }),
+      has: page.getByRole('link', { name: 'Yoghurt guidance', exact: true }),
     }).locator('.category-entry')
     await expect(yoghurtEntry).toBeVisible()
     await expect(yoghurtEntry.getByRole('heading', { name: 'Pregnancy food safety' })).toBeVisible()
@@ -197,7 +199,7 @@ test.describe('Food catalogue', () => {
     await page.keyboard.press('Tab')
     await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused()
     await expect(page.getByRole('searchbox', { name: 'Search foods' })).toBeVisible()
-    await expect(page.getByText('159 results in the guide')).toBeVisible()
+    await expect(page.getByText('204 results in the guide')).toBeVisible()
     await expect(page.locator('details')).not.toHaveAttribute('open', '')
 
     await page.getByText('Filters', { exact: true }).click()
@@ -208,17 +210,18 @@ test.describe('Food catalogue', () => {
   })
 
   test('shows source-backed conditions on a retired record’s new category-detail route', async ({ page }) => {
-    await page.goto('/category/cooked-eggs?v=1&scope=pregnancy-food-safety&q=eggs&category=eggs')
+    await page.goto('/category/eggs?v=1&scope=pregnancy-food-safety&prep=cooked&q=eggs&category=eggs')
 
-    await expect(page.getByRole('heading', { name: 'Cooked eggs' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Pregnancy food safety' })).toBeVisible()
-    await expect(page.getByText('Only with conditions')).toBeVisible()
-    await expect(page.getByText('Ensure yolks and scrambled eggs are firm.')).toBeVisible()
-    await expect(page.getByRole('link', { name: 'New Zealand Food Safety: Pullout guide to food safety in pregnancy' })).toHaveAttribute(
+    await expect(page.getByRole('heading', { name: 'Eggs' })).toBeVisible()
+    const cooked = page.locator('.preparation-section', { hasText: 'Cooked' })
+    await expect(cooked.getByRole('heading', { name: 'Pregnancy food safety' })).toBeVisible()
+    await expect(cooked.getByText('Only with conditions')).toBeVisible()
+    await expect(cooked.getByText('Ensure yolks and scrambled eggs are firm.')).toBeVisible()
+    await expect(cooked.getByRole('link', { name: 'New Zealand Food Safety: Pullout guide to food safety in pregnancy' })).toHaveAttribute(
       'href',
       mpiSourceUrl,
     )
-    await expect(page.getByText('Eggs: Cooked eggs')).toBeVisible()
+    await expect(cooked.getByText('Eggs: Cooked eggs')).toBeVisible()
     await expect(page.getByRole('link', { name: 'Back to the food guide' })).toHaveAttribute(
       'href',
       '/?v=1&scope=pregnancy-food-safety&q=eggs&category=eggs',
@@ -227,9 +230,9 @@ test.describe('Food catalogue', () => {
   })
 
   test('shows independently resolved selected scopes on a direct category-detail route', async ({ page }) => {
-    await page.goto('/category/pasteurised-yoghurt?v=1&scope=pregnancy-food-safety,vegetarian-suitability&outcome=maybe&q=yogurt&category=dairy')
+    await page.goto('/category/yoghurt?v=1&scope=pregnancy-food-safety,vegetarian-suitability&outcome=maybe&prep=pasteurised&q=yogurt&category=dairy')
 
-    await expect(page.getByRole('heading', { name: 'Pasteurised yoghurt' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Yoghurt' })).toBeVisible()
 
     const pregnancyGuidance = page.locator('.guidance-summary', {
       has: page.getByRole('heading', { name: 'Pregnancy food safety' }),
@@ -314,7 +317,7 @@ test.describe('Food catalogue', () => {
     await page.goto('/?v=2&scope=unknown&outcome=unknown&q=yogurt')
 
     await expect(page.getByRole('status')).toContainText('Unavailable shared filters were removed.')
-    await expect(page.getByRole('link', { name: 'Pasteurised yoghurt guidance', exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Yoghurt guidance', exact: true })).toBeVisible()
     await expect(page).toHaveURL(/scope=pregnancy-food-safety/)
   })
 
@@ -339,12 +342,43 @@ test.describe('Food catalogue', () => {
     await page.goto('/food/bluff-and-pacific-oysters?v=1&scope=pregnancy-food-safety')
 
     await expect(page.getByRole('heading', { name: 'Bluff and Pacific oysters' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'All of the following apply' })).toBeVisible()
-    await expect(page.getByText('Cook above 75°C throughout.')).toBeVisible()
-    await expect(page.getByText('Have no more than one serving per month.')).toBeVisible()
-    await expect(page.getByText('Seafood: Freshly cooked fish, mussels, oysters, crayfish, scallops, etc')).toBeVisible()
-    await expect(page.getByText('Seafood footnote: Bluff and Pacific oysters and queen scallops')).toBeVisible()
-    await expect(page.getByText('Only with conditions').first()).toBeVisible()
+    const cooked = page.getByLabel('Cooked', { exact: true })
+    await expect(cooked.getByRole('heading', { name: 'All of the following apply' })).toBeVisible()
+    await expect(cooked.getByText('Cook above 75°C throughout.')).toBeVisible()
+    await expect(cooked.getByText('Have no more than one serving per month.')).toBeVisible()
+    await expect(cooked.getByText('Seafood: Freshly cooked fish, mussels, oysters, crayfish, scallops, etc')).toBeVisible()
+    await expect(cooked.getByText('Seafood footnote: Bluff and Pacific oysters and queen scallops')).toBeVisible()
+    await expect(cooked.getByText('Only with conditions').first()).toBeVisible()
+  })
+
+  test('browses into a preparation grouping and opens a food from it', async ({ page }) => {
+    await page.goto('/?v=1&scope=pregnancy-food-safety&q=farmed%20salmon')
+
+    const smokedGroup = page.locator('.preparation-group', { hasText: 'Smoked' })
+    await smokedGroup.getByRole('link', { name: 'Farmed salmon', exact: true }).click()
+
+    await expect(page).toHaveURL(/prep=smoked/)
+    await expect(page.getByRole('heading', { name: 'Farmed salmon' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /^Smoked/ })).toContainText('the preparation you were looking at')
+  })
+
+  test('loads a preparation-scoped food URL directly and keeps every declared state readable', async ({ page }) => {
+    await page.goto('/food/farmed-salmon?v=1&scope=pregnancy-food-safety&prep=raw')
+
+    await expect(page.getByRole('heading', { name: /^Raw/ })).toContainText('the preparation you were looking at')
+    await expect(page.getByRole('heading', { name: 'Smoked', exact: true })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Cooked', exact: true })).toBeVisible()
+    await expect(page.getByRole('region', { name: /^Raw/ }).getByText('Avoid')).toBeVisible()
+    await expect(page.getByLabel('Cooked', { exact: true }).getByText('Only with conditions').first()).toBeVisible()
+  })
+
+  test('shows only the matching preparation rows for a preparation-varying food on a filtered URL', async ({ page }) => {
+    await page.goto('/?v=1&scope=pregnancy-food-safety&q=farmed%20salmon&outcome=not-okay')
+
+    await expect(page.locator('.preparation-group', { hasText: 'Raw' })
+      .getByRole('link', { name: 'Farmed salmon', exact: true })).toBeVisible()
+    await expect(page.locator('.preparation-group', { hasText: 'Cooked' })
+      .getByRole('link', { name: 'Farmed salmon', exact: true })).toHaveCount(0)
   })
 
   test('shows a safe food-not-found route', async ({ page }) => {
