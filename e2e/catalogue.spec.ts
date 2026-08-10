@@ -381,8 +381,50 @@ test.describe('Food catalogue', () => {
       .getByRole('link', { name: 'Farmed salmon', exact: true })).toHaveCount(0)
   })
 
-  test('shows a safe food-not-found route', async ({ page }) => {
-    await page.goto('/food/removed-food?v=1&scope=pregnancy-food-safety')
+  // The heading level of a food name changes with how deeply its row is nested, so it must be styled
+  // by its role rather than its tag. Nothing else in the suite would notice it shrinking.
+  test('keeps one readable type ladder whether or not a row sits in a preparation band', async ({ page }) => {
+    const sizeOf = (locator: ReturnType<Page['locator']>) =>
+      locator.first().evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize))
+
+    await page.goto('/?v=1&scope=pregnancy-food-safety&q=skipjack')
+    const banded = await sizeOf(page.locator('.preparation-group .food-card-header > :is(h4, h5)'))
+    const categoryHeading = await sizeOf(page.locator('.category-group > h3'))
+    const band = await sizeOf(page.locator('.preparation-group > h4'))
+
+    await page.goto('/?v=1&scope=pregnancy-food-safety&q=cheddar')
+    const unbanded = await sizeOf(page.locator('.food-card-header > :is(h4, h5)'))
+
+    expect(banded).toBe(unbanded)
+    expect(banded).toBeGreaterThan(16)
+    expect(categoryHeading).toBeGreaterThan(banded)
+    expect(band).toBeLessThan(banded)
+  })
+
+  test('shrinks each nested guidance heading rather than growing it', async ({ page }) => {
+    await page.goto('/food/farmed-salmon?v=1&scope=pregnancy-food-safety&prep=smoked')
+
+    const sizes = await page.locator('.preparation-section .guidance-summary').first().evaluate((section) =>
+      [...section.querySelectorAll('h3, h4, h5, h6')].map((heading) => ({
+        depth: (() => {
+          let depth = 0
+          for (let node = heading.parentElement; node && node !== section; node = node.parentElement) depth += 1
+          return depth
+        })(),
+        size: Number.parseFloat(getComputedStyle(heading).fontSize),
+      })),
+    )
+
+    for (const outer of sizes) {
+      for (const inner of sizes) {
+        if (inner.depth > outer.depth) {
+          expect(inner.size, `a heading nested deeper must not be larger`).toBeLessThanOrEqual(outer.size)
+        }
+      }
+    }
+  })
+
+  test('shows a safe food-not-found route', async ({ page }) => {    await page.goto('/food/removed-food?v=1&scope=pregnancy-food-safety')
 
     await expect(page.getByRole('heading', { name: 'Food not found' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Return to the food guide' })).toBeVisible()
