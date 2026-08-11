@@ -372,10 +372,6 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                       resolved: resolveAssessment({ kind: 'category', category }, guidanceList, index, preparationId),
                     }))
                     const statesGuidance = governing.some(({ resolved }) => resolved.assessment !== undefined)
-                    const statedByBand = new Map(governing.map(({ guidanceList, resolved }) => [
-                      guidanceList.id,
-                      new Set(resolved.layers.map((layer) => layer.assessment.id)),
-                    ]))
                     const entryContent = (hasEntry || (rows.length > 0 && statesGuidance)) && (
                       <div className="category-entry">
                         {hasEntry && (
@@ -414,7 +410,6 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                                 resolved={resolveAssessment({ kind: 'food', food }, guidanceList, index, preparationId)}
                                 returnSearch={returnSearch}
                                 sources={content.sources}
-                                statedByBand={entryContent ? statedByBand.get(guidanceList.id) : undefined}
                               />
                             ))}
                           </li>

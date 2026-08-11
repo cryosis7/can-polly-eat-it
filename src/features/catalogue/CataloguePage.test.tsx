@@ -54,10 +54,22 @@ describe('CataloguePage', () => {
     expect(band).toHaveTextContent('Eat chilled smoked or pre-cooked seafood only after heating until piping hot.')
     expect(within(band as HTMLElement).getByRole('link', { name: 'See Seafood guidance' })).toBeInTheDocument()
 
-    // The row keeps its own status because filtering is per row, but does not repeat the prose.
+    // Every card states the restriction in words, so a row is readable on its own wherever a
+    // reader lands on it.
     const card = within(smoked).getByRole('link', { name: 'Barracouta' }).closest('.food-card')!
     expect(card).toHaveTextContent('Only with conditions')
-    expect(card).not.toHaveTextContent('after heating until piping hot')
+    expect(card).toHaveTextContent('Eat chilled smoked or pre-cooked seafood only after heating until piping hot.')
+  })
+
+  it('states the restriction in words on every card, not just as a status chip', () => {
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety&q=farmed%20salmon')
+
+    for (const card of document.querySelectorAll('.food-card')) {
+      const status = card.querySelector('.status')!.textContent!
+      const guidance = card.querySelector('.food-guidance')!.textContent!
+      expect(guidance.replace(status, '').trim().length, `a card showing "${status}" states no restriction`)
+        .toBeGreaterThan(0)
+    }
   })
 
   it('drops a parent band whose rule its descendants already state beside their foods', () => {

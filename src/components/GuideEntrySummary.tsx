@@ -12,13 +12,6 @@ export type GuideEntrySummaryProps = {
   resolved: ResolvedAssessment
   sources: Source[]
   returnSearch: string
-  /**
-   * Assessments the preparation band enclosing this row has already stated in full. A row keeps its
-   * own status, because filtering is per row, but it does not repeat prose the reader has just read
-   * immediately above it. Nothing is merged or dropped: the layer is stated once, whole, by the band
-   * that governs every row beneath it.
-   */
-  statedByBand?: Set<string>
 }
 
 const statusIcon = {
@@ -28,13 +21,10 @@ const statusIcon = {
   grey: '?',
 } as const
 
-export const GuideEntrySummary = ({ guidanceList, resolved, sources, returnSearch, statedByBand }: GuideEntrySummaryProps) => {
+export const GuideEntrySummary = ({ guidanceList, resolved, sources, returnSearch }: GuideEntrySummaryProps) => {
   // Every layer before the last is an ancestor category, because the nearest assessment is ordered
   // last. Each accumulated layer states its own authored summary; layers are never merged.
-  const accumulatedLayers = resolved.layers.slice(0, -1)
-    .filter(isInheritedLayer)
-    .filter(({ assessment }) => !statedByBand?.has(assessment.id))
-  const repeatsBand = resolved.assessment !== undefined && Boolean(statedByBand?.has(resolved.assessment.id))
+  const accumulatedLayers = resolved.layers.slice(0, -1).filter(isInheritedLayer)
 
   return (
     <section className="food-guidance">
@@ -43,15 +33,13 @@ export const GuideEntrySummary = ({ guidanceList, resolved, sources, returnSearc
         <span aria-hidden="true" className="status-icon">{statusIcon[resolved.status.tone]}</span>
         <span>{resolved.status.label}</span>
       </p>
-      {!repeatsBand && (
-        <p>
-          {resolved.assessment
-            ? assessmentSummary(resolved.assessment, guidanceList)
-            : guidanceList.unassessedNotice.description}
-        </p>
-      )}
+      <p>
+        {resolved.assessment
+          ? assessmentSummary(resolved.assessment, guidanceList)
+          : guidanceList.unassessedNotice.description}
+      </p>
       <DissentNotice resolved={resolved} sources={sources} />
-      {resolved.origin.kind === 'inherited' && !repeatsBand && (
+      {resolved.origin.kind === 'inherited' && (
         <p className="inherited-note">
           {resolved.assessment!.scopeStatement}{' '}
           <Link to={`/category/${resolved.origin.category.slug}?${returnSearch}`}>

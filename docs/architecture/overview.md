@@ -409,11 +409,11 @@ their preparation heading inside the category group.
 A rule may be authored higher in the tree than the foods it governs, because a source can state one
 rule for all seafood while the species stay filed under what they are. Each preparation band
 therefore states the rule governing it — resolved, so an inherited rule is named and attributed to
-its origin category — at the head of the band holding its rows. A row beneath keeps its own status,
-because filtering is per row, but does not repeat prose the band has just stated; nothing is merged
-or dropped, the layer is simply stated once, whole, where it applies. Where a descendant band states
-a rule beside its foods, the ancestor's own food-less band is dropped from the catalogue and from
-the count together, rather than showing a rule with no foods directly above foods with no rule.
+its origin category — at the head of the band holding its rows. Every row beneath still states its
+own status and its own restriction in words, so a card is readable on its own wherever a reader
+lands on it. Where a descendant band states a rule beside its foods, the ancestor's own food-less
+band is dropped from the catalogue and from the count together, rather than showing a rule with no
+foods directly above foods with no rule.
 
 Search normalises case, diacritics, punctuation, and whitespace, then matches every query token
 against food names, aliases, and the labels/aliases on the food's category path. A category entry is
