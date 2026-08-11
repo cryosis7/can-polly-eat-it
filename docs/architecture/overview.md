@@ -404,9 +404,16 @@ the result count operate over guide entries, and the count announces results rat
 Filtering, counting, and rendering operate on **rows**, not foods. A food that declares several
 preparation states contributes one row per state, and each row resolves and filters independently:
 an outcome filter can match a food's raw row without matching its cooked row. Rows are grouped under
-their preparation heading inside the category group; a category's preparation-qualified entry sits
-in the same grouping, so a retired preparation category stays browsable once its rule moves onto its
-parent.
+their preparation heading inside the category group.
+
+A rule may be authored higher in the tree than the foods it governs, because a source can state one
+rule for all seafood while the species stay filed under what they are. Each preparation band
+therefore states the rule governing it — resolved, so an inherited rule is named and attributed to
+its origin category — at the head of the band holding its rows. A row beneath keeps its own status,
+because filtering is per row, but does not repeat prose the band has just stated; nothing is merged
+or dropped, the layer is simply stated once, whole, where it applies. Where a descendant band states
+a rule beside its foods, the ancestor's own food-less band is dropped from the catalogue and from
+the count together, rather than showing a rule with no foods directly above foods with no rule.
 
 Search normalises case, diacritics, punctuation, and whitespace, then matches every query token
 against food names, aliases, and the labels/aliases on the food's category path. A category entry is

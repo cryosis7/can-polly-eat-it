@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   buildCategoryTree,
+  entriesSurfacedByDescendants,
   flattenCategoryRows,
   foodsByCategoryId,
   preparationIdsByCategoryId,
@@ -17,6 +18,47 @@ const nestedCategories: Category[] = [
 ]
 
 describe('category tree', () => {
+  describe('entries surfaced by descendants', () => {
+    const tree = buildCategoryTree(nestedCategories)
+    const foodIn = (categoryId: string, preparationId?: string) => ({
+      food: { id: 'f', slug: 'f', name: 'F', aliases: [], primaryCategoryId: categoryId, preparationIds: [], tags: [], sortOrder: 1 } as Food,
+      preparationId,
+    })
+
+    it('drops a parent band whose rule a descendant band already states beside its foods', () => {
+      const entry = { category: nestedCategories[0], preparationId: 'smoked' }
+
+      const surfaced = entriesSurfacedByDescendants([entry], [foodIn('leaf', 'smoked')], tree)
+
+      expect(surfaced.has(entry)).toBe(true)
+    })
+
+    it('keeps a band that lists its own foods, so the rule stays beside them', () => {
+      const entry = { category: nestedCategories[0], preparationId: 'smoked' }
+
+      const surfaced = entriesSurfacedByDescendants(
+        [entry],
+        [foodIn('root', 'smoked'), foodIn('leaf', 'smoked')],
+        tree,
+      )
+
+      expect(surfaced.has(entry)).toBe(false)
+    })
+
+    it('keeps a band no descendant lists foods for, and never drops an unqualified entry', () => {
+      const banded = { category: nestedCategories[0], preparationId: 'smoked' }
+      const unqualified = { category: nestedCategories[0] }
+
+      const surfaced = entriesSurfacedByDescendants(
+        [banded, unqualified],
+        [foodIn('leaf', 'cooked'), foodIn('other-root')],
+        tree,
+      )
+
+      expect(surfaced.size).toBe(0)
+    })
+  })
+
   it('derives a 1,000-level path without recursion', () => {
     const categories: Category[] = Array.from({ length: 1000 }, (_, index) => ({
       id: `level-${index}`,

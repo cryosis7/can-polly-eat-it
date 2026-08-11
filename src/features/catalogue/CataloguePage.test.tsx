@@ -44,6 +44,30 @@ const contentWithUncitedVegetarianAssessment: ContentData = {
 const expandGroup = (name: string) => fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${name}, level \\d+$`) }))
 
 describe('CataloguePage', () => {
+  // A rule may be authored above the foods it governs: one "smoked seafood" rule covers fish,
+  // shellfish and crustacea while the species stay filed under what they are.
+  it('states an inherited rule at the head of the band holding its foods, and once only', () => {
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety&q=barracouta')
+
+    const smoked = screen.getByRole('region', { name: 'Smoked' })
+    const band = smoked.querySelector('.category-entry')!
+    expect(band).toHaveTextContent('Eat chilled smoked or pre-cooked seafood only after heating until piping hot.')
+    expect(within(band as HTMLElement).getByRole('link', { name: 'See Seafood guidance' })).toBeInTheDocument()
+
+    // The row keeps its own status because filtering is per row, but does not repeat the prose.
+    const card = within(smoked).getByRole('link', { name: 'Barracouta' }).closest('.food-card')!
+    expect(card).toHaveTextContent('Only with conditions')
+    expect(card).not.toHaveTextContent('after heating until piping hot')
+  })
+
+  it('drops a parent band whose rule its descendants already state beside their foods', () => {
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=seafood')
+
+    const seafood = screen.getByRole('button', { name: 'Seafood, level 1' }).closest('.category-group')!
+    expect(within(seafood as HTMLElement).queryByRole('link', { name: 'Seafood guidance' })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('region', { name: 'Smoked' }).length).toBeGreaterThan(0)
+  })
+
   it('defaults to pregnancy scope and renders its list-specific card guidance', () => {
     renderCatalogue()
     expandGroup('Dairy')
@@ -67,7 +91,7 @@ describe('CataloguePage', () => {
     const disclosure = container.querySelector('details')
     expect(disclosure).not.toHaveAttribute('open')
     expect(screen.getByRole('searchbox', { name: 'Search foods' })).toBeInTheDocument()
-    expect(screen.getByText('204 results in the guide')).toBeInTheDocument()
+    expect(screen.getByText('202 results in the guide')).toBeInTheDocument()
 
     disclosure!.open = true
     fireEvent(disclosure!, new Event('toggle', { bubbles: true }))
@@ -539,3 +563,4 @@ describe('browsing a category with a preparation dimension', () => {
     )
   })
 })
+

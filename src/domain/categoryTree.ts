@@ -184,6 +184,54 @@ export const categoryEntryRows = (
 /** Category guidance entries grouped by category then preparation, in vocabulary order. */
 export type CategoryEntryGroups = Map<string | undefined, CategoryRow[]>
 
+/**
+ * The entry rows whose guidance is already stated where its foods are.
+ *
+ * A rule may be authored higher in the tree than the foods it governs: one "smoked seafood" rule
+ * covers fish, shellfish and crustacea, while the species are filed under what they are. Rendering
+ * that rule on the parent leaves a band holding a rule and no foods, directly above the bands
+ * holding the foods and no rule. Where a descendant band states the rule alongside the foods, the
+ * parent's own band is redundant, so it is dropped from the catalogue and from the count together.
+ *
+ * Only a parent with no rows of its own in that preparation is dropped: a category that lists foods
+ * beside its rule is stating it exactly where it applies.
+ */
+export const entriesSurfacedByDescendants = (
+  entryRows: CategoryRow[],
+  foodRows: CatalogueRow[],
+  tree: CategoryTree,
+): Set<CategoryRow> => {
+  const preparationsWithRows = new Map<string, Set<string>>()
+  for (const { food, preparationId } of foodRows) {
+    if (preparationId === undefined) {
+      continue
+    }
+    const preparations = preparationsWithRows.get(food.primaryCategoryId) ?? new Set<string>()
+    preparations.add(preparationId)
+    preparationsWithRows.set(food.primaryCategoryId, preparations)
+  }
+
+  const surfaced = new Set<CategoryRow>()
+  for (const entryRow of entryRows) {
+    const { category, preparationId } = entryRow
+    if (preparationId === undefined || preparationsWithRows.get(category.id)?.has(preparationId)) {
+      continue
+    }
+    const descendantIds = [...(tree.childIdsByParentId.get(category.id) ?? [])]
+    let statedBelow = false
+    while (descendantIds.length > 0 && !statedBelow) {
+      const descendantId = descendantIds.pop()!
+      statedBelow = preparationsWithRows.get(descendantId)?.has(preparationId) ?? false
+      descendantIds.push(...(tree.childIdsByParentId.get(descendantId) ?? []))
+    }
+    if (statedBelow) {
+      surfaced.add(entryRow)
+    }
+  }
+
+  return surfaced
+}
+
 export const entryRowsByCategoryId = (
   rows: CategoryRow[],
   preparationOrder: Map<string, string[]>,

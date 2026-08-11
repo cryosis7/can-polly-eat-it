@@ -34,7 +34,7 @@ test.describe('Food catalogue', () => {
 
     await expect(page.getByRole('button', { name: 'Dairy, level 1' })).toHaveAttribute('aria-expanded', 'false')
     await expect(page.getByRole('button', { name: 'Cheese, level 2' })).toHaveCount(0)
-    await expect(page.getByText('204 results in the guide')).toBeVisible()
+    await expect(page.getByText('202 results in the guide')).toBeVisible()
 
     const collapsedHeight = await page.evaluate(() => document.body.scrollHeight)
     expect(collapsedHeight).toBeLessThan(6000)
@@ -199,7 +199,7 @@ test.describe('Food catalogue', () => {
     await page.keyboard.press('Tab')
     await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused()
     await expect(page.getByRole('searchbox', { name: 'Search foods' })).toBeVisible()
-    await expect(page.getByText('204 results in the guide')).toBeVisible()
+    await expect(page.getByText('202 results in the guide')).toBeVisible()
     await expect(page.locator('details')).not.toHaveAttribute('open', '')
 
     await page.getByText('Filters', { exact: true }).click()
@@ -462,3 +462,4 @@ test.describe('Food catalogue', () => {
     await expect(page.getByRole('link', { name: 'Back to the food guide' })).toBeVisible()
   })
 })
+

@@ -5,6 +5,7 @@ import { GuideEntrySummary } from '../../components/GuideEntrySummary'
 import { resolveAssessment } from '../../domain/assessment'
 import {
   entryRowsByCategoryId,
+  entriesSurfacedByDescendants,
   flattenCategoryRows,
   preparationIdsByCategoryId,
   rowsByCategoryId,
@@ -59,7 +60,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
     outcomeBands: queryState.outcomeBands,
   }
   const selectedFoodRows = filterFoods(content.foods, content.guidanceLists, index, filterState)
-  const selectedCategoryRows = filterCategoryEntries(
+  const matchedCategoryRows = filterCategoryEntries(
     content.categories,
     content.assessments,
     content.preparations,
@@ -67,6 +68,10 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
     index,
     filterState,
   )
+  // A rule authored above the foods it governs is stated at the head of each band that holds them,
+  // so the parent's own food-less band would repeat it directly above them.
+  const surfacedBelow = entriesSurfacedByDescendants(matchedCategoryRows, selectedFoodRows, index.tree)
+  const selectedCategoryRows = matchedCategoryRows.filter((row) => !surfacedBelow.has(row))
   const matchedCategoryEntryIds = new Set(selectedCategoryRows.map((row) => row.category.id))
   const resultCount = selectedFoodRows.length + selectedCategoryRows.length
   const preparationById = new Map(content.preparations.map((preparation) => [preparation.id, preparation]))
@@ -358,18 +363,33 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                     // The preparation heading takes the level beneath the category, so the foods
                     // inside it sit one level deeper and the outline stays unbroken either way.
                     const FoodHeading = preparation === undefined ? 'h4' : 'h5'
-                    const entryContent = hasEntry && (
+                    // The rule governing a band may be authored on an ancestor, because a source can
+                    // state one rule for all seafood while the species are filed under what they
+                    // are. It is stated at the head of every band it governs, so a reader never has
+                    // to find the foods in one place and the rule that covers them in another.
+                    const governing = preparation === undefined ? [] : selectedGuidanceLists.map((guidanceList) => ({
+                      guidanceList,
+                      resolved: resolveAssessment({ kind: 'category', category }, guidanceList, index, preparationId),
+                    }))
+                    const statesGuidance = governing.some(({ resolved }) => resolved.assessment !== undefined)
+                    const statedByBand = new Map(governing.map(({ guidanceList, resolved }) => [
+                      guidanceList.id,
+                      new Set(resolved.layers.map((layer) => layer.assessment.id)),
+                    ]))
+                    const entryContent = (hasEntry || (rows.length > 0 && statesGuidance)) && (
                       <div className="category-entry">
-                        <p className="category-entry-link">
-                          <Link to={`/category/${category.slug}?${withPreparationSlug(returnSearch, preparation.slug)}`}>
-                            {category.name} guidance
-                          </Link>
-                        </p>
-                        {selectedGuidanceLists.map((guidanceList) => (
+                        {hasEntry && (
+                          <p className="category-entry-link">
+                            <Link to={`/category/${category.slug}?${withPreparationSlug(returnSearch, preparation!.slug)}`}>
+                              {category.name} guidance
+                            </Link>
+                          </p>
+                        )}
+                        {governing.map(({ guidanceList, resolved }) => (
                           <GuideEntrySummary
                             guidanceList={guidanceList}
                             key={guidanceList.id}
-                            resolved={resolveAssessment({ kind: 'category', category }, guidanceList, index, preparationId)}
+                            resolved={resolved}
                             returnSearch={returnSearch}
                             sources={content.sources}
                           />
@@ -394,6 +414,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                                 resolved={resolveAssessment({ kind: 'food', food }, guidanceList, index, preparationId)}
                                 returnSearch={returnSearch}
                                 sources={content.sources}
+                                statedByBand={entryContent ? statedByBand.get(guidanceList.id) : undefined}
                               />
                             ))}
                           </li>
