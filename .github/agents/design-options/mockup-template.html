@@ -1,0 +1,89 @@
+<!doctype html>
+<!--
+  Throwaway design-options mockup. Copy this file to mockups/<question-slug>.html, replace the
+  placeholders, and delete it once the decision is recorded. Nothing here ships.
+
+  Serve it with the dev server that already exists:  npm run dev
+  Then open:  http://localhost:5173/mockups/<question-slug>.html
+-->
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Design options - REPLACE WITH THE QUESTION</title>
+
+<!--
+  The real application stylesheet, so the mockup shows the type scale, spacing, and status tones
+  that would actually ship. Never restyle an application class in this file; if an option needs a
+  style that does not exist yet, add it under the "proposed" comment below so the new CSS is
+  visible as part of the option rather than hidden inside it.
+-->
+<link rel="stylesheet" href="/src/index.css" />
+
+<style>
+  /* ---- Harness only. Scaffolding for comparing options, never application styling. ---- */
+  body { background: #e9e4dc; }
+  .harness { width: min(100% - 2rem, 100rem); margin-inline: auto; padding: 1.5rem 0 4rem; }
+  .harness-intro { background: #fff; border: 1px solid #c9c2b6; border-radius: .5rem; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+  .harness-intro h1 { font-size: 1.6rem; margin-bottom: .5rem; }
+  .harness-intro p { margin-bottom: .5rem; max-width: 70ch; }
+  .options { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(23rem, 1fr)); align-items: start; }
+  .option { background: #fff; border: 1px solid #c9c2b6; border-radius: .5rem; overflow: hidden; }
+  .option > header { background: #2e3027; color: #fffaf1; padding: .75rem 1rem; }
+  .option > header h2 { color: #fffaf1; font-size: 1.15rem; margin: 0 0 .15rem; }
+  .option > header p { color: #d8d2c4; font-size: .85rem; margin: 0; }
+  .viewport { background: var(--paper); padding: 1rem; }
+  .viewport[data-width="mobile"] > * { width: 360px; margin-inline: auto; }
+  .notes { border-top: 1px solid #c9c2b6; font-size: .88rem; padding: .85rem 1rem; }
+  .notes dt { font-weight: 800; margin-top: .5rem; }
+  .notes dt:first-child { margin-top: 0; }
+  .notes dd { margin: .15rem 0 0; color: #4a443c; }
+  .notes .cost { color: #8a2f1c; }
+
+  /* ---- Proposed application CSS, if an option needs styling that does not exist yet. ---- */
+</style>
+</head>
+<body>
+<div class="harness">
+
+  <div class="harness-intro">
+    <h1>REPLACE WITH THE QUESTION, PHRASED AS A QUESTION</h1>
+    <p>
+      REPLACE: one or two sentences of concrete situation, using real foods and real guidance from
+      <code>src/data/</code>. Never lorem ipsum, and never invented health advice.
+    </p>
+    <p><strong>Question to answer:</strong> which of A, B, or C do you want, and why?</p>
+  </div>
+
+  <div class="options">
+
+    <!-- Repeat this block per option. Two to four options; never a single proposal. -->
+    <section class="option">
+      <header>
+        <h2>A - REPLACE WITH WHAT MAKES THIS OPTION DIFFERENT</h2>
+        <p>REPLACE: the one-line principle this option follows.</p>
+      </header>
+
+      <div class="viewport" data-width="mobile">
+        <!--
+          REPLACE with markup using the real class names from src/index.css, matching what the
+          components in src/components/ and src/features/ actually emit.
+        -->
+      </div>
+
+      <dl class="notes">
+        <dt>Reads as</dt>
+        <dd>REPLACE: the sentence a user walks away with.</dd>
+        <dt>Card tone</dt>
+        <dd>REPLACE: what this visual treatment forces.</dd>
+        <dt class="cost">Cost</dt>
+        <dd>REPLACE: the thing that gets worse. Every option has one; if you cannot name it, look harder.</dd>
+        <dt class="cost">Commits you to</dt>
+        <dd>REPLACE: the architectural or content consequence, naming the ADR it touches.</dd>
+      </dl>
+    </section>
+
+  </div>
+</div>
+</body>
+</html>
