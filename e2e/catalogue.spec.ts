@@ -146,14 +146,15 @@ test.describe('Food catalogue', () => {
     await expect(page.getByRole('button', { name: 'Dietary scope: Vegetarian suitability' })).toBeVisible()
     await expect(page.getByText('1 result in the guide')).toBeVisible()
 
-    const yoghurtEntry = page.locator('.category-group', {
-      has: page.getByRole('link', { name: 'Yoghurt guidance', exact: true }),
-    }).locator('.category-entry')
-    await expect(yoghurtEntry).toBeVisible()
-    await expect(yoghurtEntry.getByRole('heading', { name: 'Pregnancy food safety' })).toBeVisible()
-    await expect(yoghurtEntry.getByText('Only with conditions')).toBeVisible()
-    await expect(yoghurtEntry.getByRole('heading', { name: 'Vegetarian suitability' })).toBeVisible()
-    await expect(yoghurtEntry.getByText('Check ingredients')).toBeVisible()
+    // Each selected scope gets its own callout on the band, so the two lists are never blended.
+    const yoghurtBand = page.locator('.preparation-group', { hasText: 'Pasteurised' })
+    const pregnancy = yoghurtBand.getByRole('complementary', { name: 'Pasteurised guidance for Yoghurt' }).first()
+    const vegetarian = yoghurtBand.getByRole('complementary', { name: 'Pasteurised guidance for Yoghurt' }).nth(1)
+    await expect(pregnancy).toContainText('Pregnancy food safety')
+    await expect(pregnancy).toContainText('Only with conditions')
+    await expect(vegetarian).toContainText('Vegetarian suitability')
+    await expect(vegetarian).toContainText('Check ingredients')
+    await expect(yoghurtBand.getByRole('link', { name: 'Yoghurt guidance', exact: true }).first()).toBeVisible()
     await expect(page.getByRole('link', { name: 'Cheddar', exact: true })).toHaveCount(0)
     await expect(page.getByRole('link', { name: 'Parmesan', exact: true })).toHaveCount(0)
   })
@@ -422,6 +423,20 @@ test.describe('Food catalogue', () => {
         }
       }
     }
+  })
+
+  test('shows a species mercury limit alongside its group rule on a catalogue card', async ({ page }) => {
+    await page.goto('/?v=1&scope=pregnancy-food-safety&q=striped%20marlin')
+
+    const cooked = page.locator('.preparation-group', { hasText: 'Cooked' })
+    const callout = cooked.getByRole('complementary', { name: 'Cooked guidance for Fish' })
+    await expect(callout).toContainText('Cook seafood thoroughly and eat it while hot.')
+    await expect(callout).toContainText('Applies to all freshly cooked fish, mussels, oysters, crayfish and scallops.')
+
+    const card = cooked.locator('.food-card', { has: page.getByRole('link', { name: 'Striped marlin', exact: true }) })
+    await expect(card).toContainText('Limit this species to one serving every one or two weeks.')
+    await expect(card).toContainText('Specific to this food')
+    await expect(card).toContainText('Cook seafood thoroughly and eat it while hot.')
   })
 
   test('shows a safe food-not-found route', async ({ page }) => {    await page.goto('/food/removed-food?v=1&scope=pregnancy-food-safety')

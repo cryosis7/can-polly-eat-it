@@ -45,28 +45,47 @@ const expandGroup = (name: string) => fireEvent.click(screen.getByRole('button',
 
 describe('CataloguePage', () => {
   // A rule may be authored above the foods it governs: one "smoked seafood" rule covers fish,
-  // shellfish and crustacea while the species stay filed under what they are.
-  it('states an inherited rule at the head of the band holding its foods, and once only', () => {
+  // shellfish and crustacea while the species stay filed under what they are. The band calls it out
+  // and names the scope it was authored at, so it reads as the group's rule, not as a category.
+  it('calls out the governing rule on the band and names the scope it was authored at', () => {
     renderCatalogue('/?v=1&scope=pregnancy-food-safety&q=barracouta')
 
     const smoked = screen.getByRole('region', { name: 'Smoked' })
-    const band = smoked.querySelector('.category-entry')!
-    expect(band).toHaveTextContent('Eat chilled smoked or pre-cooked seafood only after heating until piping hot.')
-    expect(within(band as HTMLElement).getByRole('link', { name: 'See Seafood guidance' })).toBeInTheDocument()
+    const callout = within(smoked).getByRole('complementary', { name: 'Smoked guidance for Fish' })
+    expect(callout).toHaveClass('preparation-callout', 'tone-amber')
+    expect(callout).toHaveTextContent('Only with conditions')
+    expect(callout).toHaveTextContent('Eat chilled smoked or pre-cooked seafood only after heating until piping hot.')
+    expect(callout).toHaveTextContent('Applies to all chilled smoked or pre-cooked fish, shellfish and crustacea.')
+    expect(within(callout).getByRole('link', { name: 'See Seafood guidance' })).toBeInTheDocument()
+  })
 
-    // Every card states the restriction in words, so a row is readable on its own wherever a
-    // reader lands on it.
-    const card = within(smoked).getByRole('link', { name: 'Barracouta' }).closest('.food-card')!
-    expect(card).toHaveTextContent('Only with conditions')
-    expect(card).toHaveTextContent('Eat chilled smoked or pre-cooked seafood only after heating until piping hot.')
+  it('names each dietary scope on a band callout when more than one is selected', () => {
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety,vegetarian-suitability&q=yogurt')
+
+    const pasteurised = screen.getByRole('region', { name: 'Pasteurised' })
+    const callouts = within(pasteurised).getAllByRole('complementary', { name: 'Pasteurised guidance for Yoghurt' })
+
+    expect(callouts).toHaveLength(2)
+    expect(callouts[0]).toHaveTextContent('Pregnancy food safety')
+    expect(callouts[1]).toHaveTextContent('Vegetarian suitability')
   })
 
   it('states the restriction in words on every card, not just as a status chip', () => {
     renderCatalogue('/?v=1&scope=pregnancy-food-safety&q=farmed%20salmon')
 
-    for (const card of document.querySelectorAll('.food-card')) {
-      const status = card.querySelector('.status')!.textContent!
-      const guidance = card.querySelector('.food-guidance')!.textContent!
+    // The species mercury limit and the group's preparation rule are separate authored layers, and
+    // a card that showed only one of them would understate the guidance.
+    const smoked = screen.getByRole('region', { name: 'Smoked' })
+    const card = within(smoked).getByRole('link', { name: 'Farmed salmon' }).closest('.food-card')!
+    expect(card).toHaveTextContent('Only with conditions')
+    expect(card).toHaveTextContent('Limit this species to three or four servings each week.')
+    expect(card).toHaveTextContent('Specific to this food')
+    expect(card).toHaveTextContent('Eat chilled smoked or pre-cooked seafood only after heating until piping hot.')
+    expect(card).toHaveTextContent('Applies to all chilled smoked or pre-cooked fish, shellfish and crustacea.')
+
+    for (const anyCard of document.querySelectorAll('.food-card')) {
+      const status = anyCard.querySelector('.status')!.textContent!
+      const guidance = anyCard.querySelector('.food-guidance')!.textContent!
       expect(guidance.replace(status, '').trim().length, `a card showing "${status}" states no restriction`)
         .toBeGreaterThan(0)
     }

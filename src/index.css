@@ -99,6 +99,16 @@ h3 { font-size: 1.35rem; }
 .category-toggle-icon { align-items: center; aspect-ratio: 1; background: var(--line); border-radius: .3rem; display: inline-flex; flex: 0 0 1.25rem; font-size: .85rem; font-weight: 900; height: 1.25rem; justify-content: center; line-height: 1; width: 1.25rem; }
 .category-entry { display: grid; gap: .3rem; margin-bottom: var(--space-3); }
 .category-entry-link { margin-bottom: .2rem; }
+/* The group's rule for this band, called out so it reads as advice that covers the rows beneath it
+   rather than as a category of its own. Compact by design: the whole stack is on each row. */
+.preparation-callout { background: var(--surface); border: 1px solid var(--line); border-inline-start-width: .35rem; border-radius: var(--radius); margin-bottom: var(--space-2); padding: var(--space-2) var(--space-3); }
+.preparation-callout p { margin-bottom: .25rem; }
+.preparation-callout > :last-child, .preparation-callout .guidance-entry-layer:last-child > :last-child { margin-bottom: 0; }
+.callout-list { font-size: .85rem; font-weight: 800; }
+.callout-link { font-size: .92rem; }
+.guidance-entry-layer { margin-bottom: var(--space-2); }
+.guidance-entry-layer:last-child { margin-bottom: 0; }
+.layer-scope { color: var(--muted-ink); font-size: .92rem; font-style: italic; }
 /* A preparation band labels the rows beneath it. It borrows the eyebrow treatment so it reads as a
    divider between the category heading and the food names, rather than competing with either. The
    same treatment is used on detail pages, so a preparation always looks like a preparation. */
@@ -126,10 +136,10 @@ h3 { font-size: 1.35rem; }
 .tone-amber .status-icon, .status-icon.tone-amber { background: var(--status-amber); }
 .tone-red .status-icon, .status-icon.tone-red { background: var(--status-red); }
 .tone-grey .status-icon, .status-icon.tone-grey { background: var(--status-grey); }
-.status-key-item.tone-green, .food-card.tone-green { background: var(--status-green-soft); border-color: color-mix(in srgb, var(--status-green) 65%, var(--line)); }
-.status-key-item.tone-amber, .food-card.tone-amber { background: var(--status-amber-soft); border-color: color-mix(in srgb, var(--status-amber) 65%, var(--line)); }
-.status-key-item.tone-red, .food-card.tone-red { background: var(--status-red-soft); border-color: color-mix(in srgb, var(--status-red) 65%, var(--line)); }
-.status-key-item.tone-grey, .food-card.tone-grey { background: var(--status-grey-soft); border-color: color-mix(in srgb, var(--status-grey) 65%, var(--line)); }
+.status-key-item.tone-green, .food-card.tone-green, .preparation-callout.tone-green { background: var(--status-green-soft); border-color: color-mix(in srgb, var(--status-green) 65%, var(--line)); }
+.status-key-item.tone-amber, .food-card.tone-amber, .preparation-callout.tone-amber { background: var(--status-amber-soft); border-color: color-mix(in srgb, var(--status-amber) 65%, var(--line)); }
+.status-key-item.tone-red, .food-card.tone-red, .preparation-callout.tone-red { background: var(--status-red-soft); border-color: color-mix(in srgb, var(--status-red) 65%, var(--line)); }
+.status-key-item.tone-grey, .food-card.tone-grey, .preparation-callout.tone-grey { background: var(--status-grey-soft); border-color: color-mix(in srgb, var(--status-grey) 65%, var(--line)); }
 
 .back-link { display: inline-block; margin-bottom: var(--space-4); }
 .guidance-summary, .guidance-scenario, .detail-disclaimer { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--space-3); }

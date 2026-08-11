@@ -129,6 +129,8 @@ layer holding more than one scenario introduces them as **"Follow whichever appl
   author and agent.
 - Bad, because the browse view shows only one summary, so an accumulated food's card must also state
   each inherited layer's summary or its catalogue entry understates its guidance.
+  **Amended 2026-08-11: the card states *every* layer, not only the inherited ones. Any view that
+  selects a subset of `resolved.layers` understates authored guidance.**
 - Bad, because `GuidanceSection` gains a nesting level, taking scenario applicability headings to `h6`.
 
 ## Decision Drivers
@@ -214,6 +216,19 @@ layer holding more than one scenario introduces them as **"Follow whichever appl
   with "Follow whichever applies" when it has more than one. The `Sources` list aggregates every
   layer's citations, de-duplicated by URL and locator. `GuideEntrySummary` shows each inherited layer's
   own authored summary, with a link to its origin category, when `layers.length > 1`.
+
+  > **Amended 2026-08-11 (F-18).** "Each **inherited** layer" was accurate while every layer before
+  > the nearest one came from an ancestor. Once preparation became a crossing dimension, resolution
+  > combines a food-wide axis with a preparation axis, so a food's **own** food-wide layer can precede
+  > the preparation layer. Selecting layers by origin therefore dropped 109 authored own-guidance
+  > layers across 116 catalogue rows — every species mercury limit among them — while the resolver
+  > held them correctly.
+  >
+  > The rule is now unconditional and origin-blind: **every view renders every layer in
+  > `resolved.layers`**. `GuidanceLayers` is the single component both the catalogue entry and the
+  > band callout use, `layerLabel` is shared with `GuidanceSection`, and
+  > `src/components/renderedWordingPreservation.test.tsx` asserts that every authored summary in
+  > every resolvable row reaches the screen in both views.
 
 - **Content**: lift the freshly-cooked-seafood group rule onto the `freshly-cooked-seafood` category
   with an authored `scopeStatement`, retire its mirror food record, and set `relation: 'adds-to'` on

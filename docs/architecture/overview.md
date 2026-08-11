@@ -408,12 +408,16 @@ their preparation heading inside the category group.
 
 A rule may be authored higher in the tree than the foods it governs, because a source can state one
 rule for all seafood while the species stay filed under what they are. Each preparation band
-therefore states the rule governing it — resolved, so an inherited rule is named and attributed to
-its origin category — at the head of the band holding its rows. Every row beneath still states its
-own status and its own restriction in words, so a card is readable on its own wherever a reader
-lands on it. Where a descendant band states a rule beside its foods, the ancestor's own food-less
-band is dropped from the catalogue and from the count together, rather than showing a rule with no
-foods directly above foods with no rule.
+therefore carries a **callout** stating the rule that governs it — resolved, toned by its status,
+and naming the scope it was authored at with a link to its origin category — so it reads as the
+group's advice about that preparation rather than as a category of its own. Where a descendant band
+carries a rule beside its foods, the ancestor's own food-less band is dropped from the catalogue and
+from the count together, rather than showing a rule with no foods directly above foods with no rule.
+
+**Every view renders every layer in `resolved.layers`.** A card, a callout, and a detail section may
+differ in how much of each layer they show, but never in *which* layers they show: selecting a
+subset by origin, depth, or novelty understates authored guidance. A status label is a summary of
+the guidance and never a substitute for it, so no view shows a status without the words behind it.
 
 Search normalises case, diacritics, punctuation, and whitespace, then matches every query token
 against food names, aliases, and the labels/aliases on the food's category path. A category entry is

@@ -3,6 +3,7 @@ import { assessmentSummary, type GuidanceLayer, type ResolvedAssessment } from '
 import type { ContentData } from '../domain/contentValidation'
 import type { GuidanceList, Preparation, Source, SourceCitation } from '../domain/schemas'
 import { DissentNotice } from './DissentNotice'
+import { layerLabel } from './layerLabel'
 
 export type GuidanceSectionProps = {
   guidanceList: GuidanceList
@@ -184,7 +185,7 @@ export const GuidanceSection = ({
           {resolved.layers.map((layer) => (
             <section aria-labelledby={`layer-${sectionId}-${layer.assessment.id}`} className="guidance-layer" key={layer.assessment.id}>
               <h5 id={`layer-${sectionId}-${layer.assessment.id}`}>
-                {layer.assessment.scopeStatement ?? 'Specific to this food'}
+                {layerLabel(layer)}
               </h5>
               {layer.sourceIds.length > 0 && (
                 <p className="layer-source">Stated by {sourceNames(layer.sourceIds, content.sources)}</p>

@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { buildCatalogueQuery, parseCatalogueQuery, withPreparationSlug, type CatalogueQueryState } from '../../app/catalogueQuery'
+import { GuidanceLayers } from '../../components/GuidanceLayers'
 import { GuideEntrySummary } from '../../components/GuideEntrySummary'
+import { StatusChip } from '../../components/StatusChip'
 import { resolveAssessment } from '../../domain/assessment'
 import {
   entryRowsByCategoryId,
@@ -365,32 +367,41 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                     const FoodHeading = preparation === undefined ? 'h4' : 'h5'
                     // The rule governing a band may be authored on an ancestor, because a source can
                     // state one rule for all seafood while the species are filed under what they
-                    // are. It is stated at the head of every band it governs, so a reader never has
-                    // to find the foods in one place and the rule that covers them in another.
-                    const governing = preparation === undefined ? [] : selectedGuidanceLists.map((guidanceList) => ({
-                      guidanceList,
-                      resolved: resolveAssessment({ kind: 'category', category }, guidanceList, index, preparationId),
-                    }))
-                    const statesGuidance = governing.some(({ resolved }) => resolved.assessment !== undefined)
-                    const entryContent = (hasEntry || (rows.length > 0 && statesGuidance)) && (
-                      <div className="category-entry">
-                        {hasEntry && (
-                          <p className="category-entry-link">
-                            <Link to={`/category/${category.slug}?${withPreparationSlug(returnSearch, preparation!.slug)}`}>
-                              {category.name} guidance
-                            </Link>
-                          </p>
-                        )}
+                    // are. It is called out at the head of every band it governs, naming the scope
+                    // it was authored at, so it reads as the group's rule rather than as a category.
+                    const governing = preparation === undefined ? [] : selectedGuidanceLists
+                      .map((guidanceList) => ({
+                        guidanceList,
+                        resolved: resolveAssessment({ kind: 'category', category }, guidanceList, index, preparationId),
+                      }))
+                      .filter(({ resolved }) => resolved.assessment !== undefined)
+                    const entryContent = (hasEntry || rows.length > 0) && governing.length > 0 && (
+                      <>
                         {governing.map(({ guidanceList, resolved }) => (
-                          <GuideEntrySummary
-                            guidanceList={guidanceList}
+                          <aside
+                            aria-label={`${preparation!.name} guidance for ${category.name}`}
+                            className={`preparation-callout tone-${resolved.status.tone}`}
                             key={guidanceList.id}
-                            resolved={resolved}
-                            returnSearch={returnSearch}
-                            sources={content.sources}
-                          />
+                          >
+                            {selectedGuidanceLists.length > 1 && (
+                              <p className="callout-list">{guidanceList.title}</p>
+                            )}
+                            <StatusChip status={resolved.status} />
+                            <GuidanceLayers
+                              guidanceList={guidanceList}
+                              resolved={resolved}
+                              returnSearch={returnSearch}
+                            />
+                            {hasEntry && (
+                              <p className="callout-link">
+                                <Link to={`/category/${category.slug}?${withPreparationSlug(returnSearch, preparation!.slug)}`}>
+                                  {category.name} guidance
+                                </Link>
+                              </p>
+                            )}
+                          </aside>
                         ))}
-                      </div>
+                      </>
                     )
                     const listContent = rows.length > 0 && (
                       <ul className="food-list">
