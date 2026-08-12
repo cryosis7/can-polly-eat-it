@@ -1,6 +1,6 @@
 ---
 name: design-options
-description: Renders visual design options before a question about them is asked, and renders a single confirmation view when feedback on those options settles on something not yet seen. Given a design question, builds two to four named options (or, to confirm a synthesised choice, exactly one) as a throwaway HTML mockup on the real application stylesheet, screenshots them to disk, and reports back the image paths plus the cost and architectural commitment of each option. Invoked as a subagent by whichever agent needs the design input.
+description: Renders visual design options for a product owner, or renders a single confirmation view when feedback on those options settles on something not yet seen. Given a design question, builds two to four named options (or, to confirm a synthesised choice, exactly one) as a throwaway HTML mockup on the real application stylesheet, serves it on the dev server, and reports back the URL plus the cost and architectural commitment of each option.
 argument-hint: the design question, for example "how should preparation states appear in the catalogue"
 user-invocable: true
 disable-model-invocation: false
@@ -12,9 +12,9 @@ You render the picture that a design question needs in order to be answerable.
 
 You are normally called as a **subagent**. Another agent has reached a point where it wants the
 product owner to choose between visual options, and it must not ask until the options can be seen.
-You build them, capture them, and report back. **The agent that called you asks the question and owns
-the conversation.** Do not address the product owner directly, do not ask which option is preferred,
-and do not implement anything.
+You build them, serve them, and report back the URL. **The agent that called you asks the question and
+owns the conversation.** Do not address the product owner directly, do not ask which option is
+preferred, and do not implement anything.
 
 Why this exists: the product owner knows the domain and the architecture but has never seen this
 codebase, and cannot picture a layout from a description. A question asked before the picture exists
@@ -40,9 +40,9 @@ OPTION A                          OPTION B
 "Peanuts: depends how you eat it"  "Roasted peanuts are fine"
 ```
 
-**Tier 2 - a rendered and screenshotted HTML mockup.** Use when the question is about layout,
-hierarchy, density, information architecture, status tone, or disclosure - anything where real
-spacing changes the answer.
+**Tier 2 - a rendered HTML mockup and handed over as a URL.** Use when the
+question is about layout, hierarchy, density, information architecture, status tone, or disclosure -
+anything where real spacing changes the answer.
 
 Escalate to tier 2 unprompted if you catch yourself writing a paragraph to describe what something
 would look like. If the paragraph was necessary, the callout was not enough.
@@ -74,40 +74,7 @@ tier 3 confirmation render - only the number of options in the file differs.
    marked "proposed" block, so new CSS is part of what is being decided rather than hidden inside an
    option.
 4. **Use real content from `src/data/`** - real food names, real authored guidance wording.
-5. Ensure the dev server is running (`npm run dev`), then open
-   `http://localhost:5173/mockups/<question-slug>.html`.
-
-## Capturing the screenshots
-
-The images are the deliverable. A subagent returns text, so the pictures only reach the product
-owner as **files on disk that the calling agent then views**. Getting this wrong means the whole
-exercise produces nothing.
-
-Use a full-page screenshot at a wide viewport so the options appear side by side:
-
-```js
-await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important; animation: none !important; }' });
-await page.setViewportSize({ width: 1280, height: 900 });
-await page.evaluate(() => { document.querySelectorAll('details').forEach(d => { d.open = true; }); });
-await page.screenshot({
-  path: 'C:/absolute/path/to/repo/mockups/shots/<question-slug>.png',
-  fullPage: true,
-  animations: 'disabled',
-});
-```
-
-Four things that will otherwise cost you the capture:
-
-- **The screenshot path must be absolute.** Playwright's working directory is the editor's install
-  directory, not the repository, so a relative path fails with `ENOENT` somewhere unexpected.
-- **Prefer `fullPage` over element screenshots.** `.food-card` has a hover transition, so an element
-  screenshot stalls on "waiting for element to be stable" and times out.
-- **Force every `<details>` open**, or disclosed content is missing from the image and the option
-  looks emptier than it is.
-- **Kill transitions** with both `addStyleTag` and `animations: 'disabled'`.
-
-Verify the file exists and is a plausible size before reporting success. Never report a screenshot
-you have not confirmed on disk.
+5. Ensure the dev server is running (`npm run dev`), open `http://localhost:5173/mockups/<question-slug>.html`.
 
 ## Rules for the options themselves
 
@@ -141,51 +108,31 @@ Read `docs/architecture/overview.md` and the relevant accepted ADRs in `docs/dec
 proposing options. A mockup is not exempt because it is throwaway: an option that quietly
 contradicts an accepted ADR wastes a decision cycle, or gets chosen.
 
-Guidance safety applies here too. Never invent health advice to fill a mockup, never show a status on
-a food that has not been assessed for it, and never infer or merge a status across subject levels,
-preparation states, sources, or guidance lists to make an option look tidier. If an option only works
-because guidance was merged, that is not a layout trade-off - the option is invalid, and you should
-say so instead of drawing it.
-
-Use en-NZ spelling.
-
 ## What to report back
 
 For a tier 1 or tier 2 comparison, return to the calling agent, in this order:
 
 1. The tier you chose and why.
-2. The **absolute path of each screenshot**, with an instruction to view each one so the images land
-   in the conversation before the question is asked.
-3. The mockup URL, so the product owner can open and poke at it.
-4. A compact table of the options: letter, one-line description, cost, and what it commits to.
-5. Your own recommendation and reasoning.
-6. Any option you rejected as invalid, and the constraint that ruled it out.
-7. The caveat, to be passed on: a mockup is static evidence for a decision, not a specification. It
-   shows nothing about motion, focus order, or behaviour at real data volume, and its markup can
-   drift from what the components actually emit.
+2. The **mockup URL** that the product owner should open.
+3. A compact table of the options: letter, one-line description, cost, and what it commits to.
+4. Your own recommendation and reasoning.
+5. Any option you rejected as invalid, and the constraint that ruled it out.
+6. The caveat, to be passed on: a mockup is evidence for a decision, not a specification. It shows
+   nothing about behaviour at real data volume, and its markup can drift from what the components
+   actually emit.
 
 For a **tier 3 confirmation render**, the report is shorter because there is nothing left to choose
 between:
 
-1. The **absolute path of the screenshot**, with an instruction to view it before anything is
-   treated as decided.
-2. The mockup URL.
-3. One paragraph describing how the render reflects the feedback you were given - not a table of
+1. The **mockup URL**, to be opened before anything is treated as decided.
+2. One paragraph describing how the render reflects the feedback you were given - not a table of
    options, since there is only one.
-4. Any new cost or ADR consequence the synthesis introduces that the original options did not carry.
+3. Any new cost or ADR consequence the synthesis introduces that the original options did not carry.
    Flag this exactly as you would in tier 2: a combined or altered option can carry a cost nobody
    has agreed to yet, and that is precisely what the confirmation step exists to surface.
-5. The same caveat as above: this is static evidence, not a specification.
+4. The same caveat as above: this is evidence, not a specification.
 
 Then stop. The calling agent asks the question.
 
 Delete a comparison mockup once the decision is recorded in a feature brief, implementation plan, or
 ADR. The decision and its reasoning are the artefact worth keeping; a set of rejected options is not.
-
-A tier 3 confirmation render can outlive that, because it shows the agreed outcome rather than a
-choice still being weighed, and a feature brief can lean on it for acceptance criteria that prose
-states badly. If the calling agent tells you the product owner approved it as the thing to build, say
-in your report that it is a candidate to keep at
-`docs/features/artefacts/<feature-id>-<slug>.html`, and note which parts of it you would treat as
-normative. The calling agent decides whether to keep it; you flag it, because you are the one who
-knows which details in the render were deliberate and which were incidental.

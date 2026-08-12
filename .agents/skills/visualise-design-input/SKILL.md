@@ -1,6 +1,6 @@
 ---
 name: visualise-design-input
-description: Render design options as pictures before asking the product owner to choose between them, and render a confirmation picture when their feedback settles on something the options didn't show. Use whenever you are about to ask how something should look, be laid out, be grouped, be ordered on screen, which of several presentations to build, or to confirm a visual or wording approach - and whenever the product owner asks for a design, layout, or UI decision, or gives feedback on rendered options that changes the layout rather than picking one outright. Trigger this before asking the question, not after, and again before treating a synthesised answer as decided.
+description: Render design options before asking the product owner to choose between them, and render a confirmation view when their feedback settles on something the options didn't show. Use whenever you are about to ask how something should look, be laid out, grouped, ordered on screen, or when you need to describe a visual to the user for feedback. Also use this when the user has corrected a design plan you made or has requested a change in UI design. Trigger this before asking the question, and after implementing feedback that differs from the options you presented.
 ---
 
 # Visualise before asking for design input
@@ -15,7 +15,7 @@ So: **never ask a question about how something should look before the options ca
 
 ## Recognising the moment
 
-Trigger this skill when you are about to ask anything of this shape:
+Trigger the design agent when you are about to ask anything of this shape:
 
 - "Should X be nested inside Y, or listed separately?"
 - "Which of these should lead the card?"
@@ -34,44 +34,44 @@ and delegate instead.** The sentence is the symptom.
 1. **Delegate to the `design-options` subagent before you ask anything.** Give it the design
    question, the constraint that makes it hard, the feature or file it relates to, and any option you
    already have in mind. It decides whether an ASCII callout or a rendered mockup is proportionate,
-   so do not pre-empt that - and do not build the mockup yourself, because the point is that the work
-   happens off your context.
-2. **View every screenshot it reports back**, by path. The subagent returns text, so the images only
-   reach the product owner if you view each file and put it in the conversation. Skipping this
-   reduces the whole exercise to the prose question you were trying to avoid.
+   so do not pre-empt that - and never build the mockup yourself.
+
+2. **Surface the mockup URL the subagent reports back**, The URL is the deliverable: the product
+   owner opens the live page and pokes at it.
 3. **Then ask the question**, referring to the options by letter so the answer can be a letter. Pass
-   on the mockup URL, each option's cost and what it commits to, and your own recommendation. Ask one
-   question at a time.
+   on the URL, each option's cost and what it commits to, and your own
+   recommendation. Ask one question at a time.
 4. **If the answer is a clean pick, record it and stop here.** "Go with B" needs nothing further -
-   the picture that justified it already exists. But if the answer changes anything the mockup did
-   not already show - keeps an option but swaps a detail, combines two options, or describes a
+   the page that justified it already exists.
+5. **If the answer is a minor change from the proposed mockups**
+   i.e. keeps an option but swaps a detail, combines two options, or describes a
    variant in words rather than choosing a letter - that is a new, unrendered design. Sealing a
    decision on a picture that does not exist yet is the exact mistake this skill exists to prevent, so
    the rule applies here too: delegate to the `design-options` subagent once more for a confirmation
    render - one option, at final scale, reflecting exactly what was said, with no siblings to choose
-   between. View the screenshot, then ask a short confirm-or-adjust question before treating the
+   between. Surface its URL, then ask a short confirm-or-adjust question before treating the
    decision as settled.
-   Apply the same proportionality this whole skill runs on: a reply that only swaps wording
-   ("call it 'Prep type' instead") needs no new render, because a sentence can verify a sentence. A
-   reply that changes grouping, hierarchy, combined layout, or anything else a picture would need to
-   confirm does.
-5. **Record the decision** in the feature brief, implementation plan, or ADR, along with the reason
+6. **If the answer is a rejection of all options**
+   Take the feedback into consideration and restart the process.
+7. **Record the final decision** in the feature brief, implementation plan, or ADR, along with the reason
    it was chosen and the cost that was accepted. Then delete the comparison mockup: once the decision
    and its reasoning are written down, a folder of rejected options only invites someone to
    relitigate a settled choice.
-   **One exception.** A confirmation render the product owner has explicitly approved as showing what
-   should be built is doing a different job - it is not evidence weighed to reach a decision, it is a
-   statement of the agreed outcome, and it can carry acceptance criteria that prose states badly
-   ("this treatment, not that one"). Where that is wanted, copy it out of the throwaway `mockups/`
-   directory to `docs/features/artefacts/<feature-id>-<slug>.html`, link it from the brief, and say
-   in the brief **which parts of it are normative** - an unqualified picture silently promotes every
-   incidental detail in it to an acceptance criterion.
+   **One exception.** Once - and only once - the product owner has explicitly confirmed a render shows
+   what should be built, capture it as a **static HTML artefact**. It is then not evidence weighed to
+   reach a decision but a statement of the agreed outcome, and it can carry acceptance criteria that
+   prose states badly ("this treatment, not that one"). Copy it out of the throwaway
+   `mockups/` directory to `docs/features/artefacts/<feature-id>-<slug>.html`, standing on its own so
+   it renders without the dev server, link it from the brief, and say in the brief **which parts of it
+   are normative** - an unqualified picture silently promotes every incidental detail in it to an
+   acceptance criterion. Capturing before confirmation is the failure mode to avoid: it preserves a
+   still-open option as though it were settled.
 
 ## When not to use it
 
 Do not delegate a question that a sentence answers, such as choosing between the button labels
 "Clear" and "Reset". Rendering a page for that is slower than asking, and habitually over-applying
-this will train the product owner to skim the pictures.
+this will train the product owner to skim the designs.
 
 Do not use it to decide domain or content questions. Whether a food is eaten raw in New Zealand,
 what a source actually says, and which guidance applies are matters of evidence and product
