@@ -113,16 +113,16 @@ h3 { font-size: 1.35rem; }
    divider between the category heading and the food names, rather than competing with either. The
    same treatment is used on detail pages, so a preparation always looks like a preparation. */
 .preparation-group { margin-bottom: var(--space-3); }
-.preparation-header { align-items: baseline; border-bottom: 1px solid var(--line); display: flex; gap: var(--space-2); justify-content: space-between; margin-bottom: var(--space-2); padding-bottom: .3rem; }
+.preparation-header { align-items: center; border-bottom: 1px solid var(--line); display: flex; gap: var(--space-2); margin-bottom: var(--space-2); padding-bottom: .3rem; }
 .preparation-band,
 .preparation-group > h4,
 .preparation-header > h4,
 .preparation-section > h3 { border-bottom: 1px solid var(--line); color: var(--accent-dark); font-family: var(--font-body); font-size: .78rem; font-weight: 800; letter-spacing: .11em; margin-bottom: var(--space-2); padding-bottom: .3rem; text-transform: uppercase; }
-.preparation-header > h4 { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
+.preparation-header > h4 { border-bottom: 0; flex: 1 1 auto; margin-bottom: 0; padding-bottom: 0; }
 .preparation-toggle { align-items: center; background: none; border: 0; color: var(--muted-ink); cursor: pointer; display: inline-flex; flex: 0 0 auto; font: inherit; font-size: .82rem; font-weight: 800; gap: .45rem; padding: 0; }
 .preparation-toggle:hover { color: var(--accent-ink, inherit); }
 .preparation-toggle:focus-visible { border-radius: var(--radius); outline: 3px solid var(--status-amber); outline-offset: 3px; }
-.preparation-count { white-space: nowrap; }
+.preparation-count { color: var(--muted-ink); font-size: .82rem; font-weight: 800; margin-inline-start: auto; white-space: nowrap; }
 .preparation-section { margin-bottom: var(--space-4); }
 .preparation-opened { letter-spacing: .04em; text-transform: none; }
 .group-guidance > h2 { font-size: 1.35rem; }

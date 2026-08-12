@@ -20,6 +20,14 @@ Validation so far:
 - `prepare` subagent review — 0 blockers, no dependency-version, documentation-drift, or missing
   documentation findings.
 
+Follow-up correction after review against the approved artefact:
+
+- Moved the preparation-band disclosure control to the left of the band label.
+- Changed catalogue band labels to preparation plus real category, for example `Raw Fish`.
+- Revalidated with `npm test -- src/features/catalogue/CataloguePage.test.tsx`,
+  `npx playwright test e2e/catalogue.spec.ts`, `npm run typecheck`, `npm run lint`, and
+  `npm run test:coverage`; all passed, with 100% statements, branches, functions, and lines.
+
 **Governing decisions:** [model preparation as a catalogue dimension](<../decisions/2026-08-10 ADR - model preparation as a catalogue dimension.md>), [model food groups as an unbounded category tree](<../decisions/2026-08-04 ADR - model food groups as an unbounded category tree.md>), and [enforce WCAG 2.2 AA with axe-core in Playwright](<../decisions/2026-08-07 ADR - enforce WCAG 2.2 AA with axe-core in Playwright.md>)
 
 ## Planning baseline
@@ -31,9 +39,9 @@ preparation band remains a rendering construct derived from category rows; it is
 
 The approved design artefact in
 [19-collapsible-preparation-bands-demo.html](<artefacts/19-collapsible-preparation-bands-demo.html>)
-is normative for the lightweight category-like divider treatment, preparation name, entry count,
-absence of model-explaining labels, unchanged breadcrumbs, and unchanged food-card content inside an
-expanded band.
+is normative for the lightweight category-like divider treatment, preparation plus category name,
+entry count, absence of model-explaining labels, unchanged breadcrumbs, and unchanged food-card
+content inside an expanded band.
 
 The product decision for default state is: in the unfiltered catalogue, preparation bands render
 collapsed by default. Search and filter views must still make matching rows discoverable; stale
@@ -62,8 +70,8 @@ collapsed presentation state must not silently hide results the current query or
 2. **Introduce accessible preparation-band disclosure state**
    - Render each preparation band with a keyboard-operable disclosure control using the approved
      lightweight divider treatment.
-   - The control label must expose the preparation name and plural-aware entry count, and its expanded
-     state must be available to assistive technology.
+   - The control label must expose the preparation plus category name and plural-aware entry count,
+     and its expanded state must be available to assistive technology.
    - Key disclosure state by category and preparation so collapsing one band does not collapse sibling
      bands or ancestor/descendant categories.
    - Do not write collapse state to the URL or persistent storage.

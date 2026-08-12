@@ -422,6 +422,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                       || isFiltering
                       || expandedPreparationBands.has(preparationBandKey)
                     const entryCountText = `${entryCount} ${entryCount === 1 ? 'entry' : 'entries'}`
+                    const preparationBandLabel = preparation === undefined ? undefined : `${preparation.name} ${category.name}`
                     const listContent = rows.length > 0 && (
                       <ul className="food-list">
                         {rows.map(({ food }) => (
@@ -456,17 +457,17 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                         key={preparation.id}
                       >
                         <div className="preparation-header">
-                          <h4 id={`preparation-${category.id}-${preparation.id}`}>{preparation.name}</h4>
                           <button
                             aria-expanded={isPreparationExpanded}
-                            aria-label={`${preparation.name}, ${entryCountText}`}
+                            aria-label={`${preparationBandLabel}, ${entryCountText}`}
                             className="preparation-toggle"
                             onClick={() => togglePreparationBand(category.id, preparation.id)}
                             type="button"
                           >
                             <span aria-hidden="true" className="category-toggle-icon">{isPreparationExpanded ? '-' : '+'}</span>
-                            <span aria-hidden="true" className="preparation-count">{entryCountText}</span>
                           </button>
+                          <h4 id={`preparation-${category.id}-${preparation.id}`}>{preparationBandLabel}</h4>
+                          <span aria-hidden="true" className="preparation-count">{entryCountText}</span>
                         </div>
                         {isPreparationExpanded && (
                           <>

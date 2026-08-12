@@ -368,7 +368,7 @@ test.describe('Food catalogue', () => {
 
     await page.getByRole('button', { name: 'Seafood, level 1' }).click()
     const fishGroup = page.locator('section[aria-labelledby="category-fish"]')
-    const smokedToggle = fishGroup.getByRole('button', { name: /^Smoked, \d+ entries$/ })
+    const smokedToggle = fishGroup.getByRole('button', { name: /^Smoked Fish, \d+ entries$/ })
 
     await expect(smokedToggle).toHaveAttribute('aria-expanded', 'false')
     await expect(fishGroup.getByRole('link', { name: 'Farmed salmon', exact: true })).toHaveCount(0)

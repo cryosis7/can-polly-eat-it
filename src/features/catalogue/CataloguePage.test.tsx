@@ -50,7 +50,7 @@ describe('CataloguePage', () => {
   it('calls out the governing rule on the band and names the scope it was authored at', () => {
     renderCatalogue('/?v=1&scope=pregnancy-food-safety&q=barracouta')
 
-    const smoked = screen.getByRole('region', { name: 'Smoked' })
+    const smoked = screen.getByRole('region', { name: 'Smoked Fish' })
     const callout = within(smoked).getByRole('complementary', { name: 'Smoked guidance for Fish' })
     expect(callout).toHaveClass('preparation-callout', 'tone-amber')
     expect(callout).toHaveTextContent('Only with conditions')
@@ -62,7 +62,7 @@ describe('CataloguePage', () => {
   it('names each dietary scope on a band callout when more than one is selected', () => {
     renderCatalogue('/?v=1&scope=pregnancy-food-safety,vegetarian-suitability&q=yogurt')
 
-    const pasteurised = screen.getByRole('region', { name: 'Pasteurised' })
+    const pasteurised = screen.getByRole('region', { name: 'Pasteurised Yoghurt' })
     const callouts = within(pasteurised).getAllByRole('complementary', { name: 'Pasteurised guidance for Yoghurt' })
 
     expect(callouts).toHaveLength(2)
@@ -75,7 +75,7 @@ describe('CataloguePage', () => {
 
     // The species mercury limit and the group's preparation rule are separate authored layers, and
     // a card that showed only one of them would understate the guidance.
-    const smoked = screen.getByRole('region', { name: 'Smoked' })
+    const smoked = screen.getByRole('region', { name: 'Smoked Fish' })
     const card = within(smoked).getByRole('link', { name: 'Farmed salmon' }).closest('.food-card')!
     expect(card).toHaveTextContent('Only with conditions')
     expect(card).toHaveTextContent('Limit this species to three or four servings each week.')
@@ -96,7 +96,7 @@ describe('CataloguePage', () => {
 
     const seafood = screen.getByRole('button', { name: 'Seafood, level 1' }).closest('.category-group')!
     expect(within(seafood as HTMLElement).queryByRole('link', { name: 'Seafood guidance' })).not.toBeInTheDocument()
-    expect(screen.getAllByRole('region', { name: 'Smoked' }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('region', { name: /^Smoked / }).length).toBeGreaterThan(0)
   })
 
   it('defaults to pregnancy scope and renders its list-specific card guidance', () => {
@@ -279,7 +279,7 @@ describe('CataloguePage', () => {
 
     const shellfish = screen.getByRole('button', { name: /^Shellfish, level \d+$/ })
       .closest('.category-group') as HTMLElement
-    const raw = within(shellfish).getByRole('heading', { name: 'Raw' })
+    const raw = within(shellfish).getByRole('heading', { name: 'Raw Shellfish' })
       .closest('.preparation-group') as HTMLElement
 
     expect(within(raw).getByText('Avoid')).toBeInTheDocument()
@@ -305,14 +305,14 @@ describe('CataloguePage', () => {
   it('splits sauces into store-bought and home-made groups without either showing the other rule', () => {
     renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=sauces-dressings-and-spreads')
 
-    const storeBought = screen.getByRole('heading', { name: 'Store-bought' })
+    const storeBought = screen.getByRole('heading', { name: 'Store-bought Sauces, dressings and spreads' })
       .closest('.preparation-group') as HTMLElement
     expect(within(storeBought).getAllByText(/follow their manufacturer storage and heating instructions/).length)
       .toBeGreaterThan(0)
     expect(within(storeBought).queryByText(/contains raw egg/)).not.toBeInTheDocument()
     expect(within(storeBought).getByRole('link', { name: 'Worcestershire sauce' })).toBeInTheDocument()
 
-    const homeMade = screen.getByRole('heading', { name: 'Home-made' })
+    const homeMade = screen.getByRole('heading', { name: 'Home-made Sauces, dressings and spreads' })
       .closest('.preparation-group') as HTMLElement
     expect(within(homeMade).getAllByText(/check whether this one contains raw egg/).length).toBeGreaterThan(0)
     expect(within(homeMade).queryByText(/manufacturer storage/)).not.toBeInTheDocument()
@@ -448,7 +448,7 @@ describe('CataloguePage', () => {
     fireEvent.change(searchField, { target: { value: '' } })
     expect(screen.queryByRole('link', { name: 'Gouda' })).not.toBeInTheDocument()
     // Eggs stays manually expanded, showing the preparation groupings its rules now live on.
-    expect(screen.getByRole('heading', { name: 'Raw' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Raw Eggs' })).toBeInTheDocument()
   })
 
   it('collapses an expanded nested group without affecting its siblings', () => {
@@ -553,7 +553,7 @@ describe('browsing a category with a preparation dimension', () => {
   const scope = 'v=1&scope=pregnancy-food-safety'
 
   const cardFor = (preparationName: string) => {
-    const group = screen.getByRole('heading', { name: preparationName }).closest('.preparation-group') as HTMLElement
+    const group = screen.getByRole('heading', { name: `${preparationName} Fish` }).closest('.preparation-group') as HTMLElement
     return within(group).getByRole('link', { name: salmon.name }).closest('.food-card') as HTMLElement
   }
 
@@ -562,8 +562,8 @@ describe('browsing a category with a preparation dimension', () => {
     const countBefore = screen.getByText(/results in the guide/).textContent
     expandGroup('Seafood')
     const fish = screen.getByRole('button', { name: /^Fish, level \d+$/ }).closest('.category-group') as HTMLElement
-    const rawToggle = within(fish).getByRole('button', { name: /^Raw, \d+ entries$/ })
-    const cookedToggle = within(fish).getByRole('button', { name: /^Cooked, \d+ entries$/ })
+    const rawToggle = within(fish).getByRole('button', { name: /^Raw Fish, \d+ entries$/ })
+    const cookedToggle = within(fish).getByRole('button', { name: /^Cooked Fish, \d+ entries$/ })
 
     expect(rawToggle).toHaveAttribute('aria-expanded', 'false')
     expect(cookedToggle).toHaveAttribute('aria-expanded', 'false')
@@ -598,8 +598,8 @@ describe('browsing a category with a preparation dimension', () => {
   it('keeps matching preparation rows discoverable in filtered result views', () => {
     renderCatalogue(`/?${scope}&q=${salmon.slug}`, preparedContent)
 
-    expect(screen.getByRole('button', { name: 'Raw, 1 entry' })).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByRole('button', { name: 'Cooked, 1 entry' })).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('button', { name: 'Raw Fish, 1 entry' })).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('button', { name: 'Cooked Fish, 1 entry' })).toHaveAttribute('aria-expanded', 'true')
     expect(within(cardFor('Raw')).getByText('Avoid')).toBeInTheDocument()
     expect(within(cardFor('Cooked')).getByText('Only with conditions')).toBeInTheDocument()
   })
@@ -616,8 +616,8 @@ describe('browsing a category with a preparation dimension', () => {
   it('returns one preparation row of a food under an outcome filter and not the other', () => {
     renderCatalogue(`/?${scope}&q=${salmon.slug}&outcome=not-okay`, preparedContent)
 
-    expect(screen.getByRole('heading', { name: 'Raw' })).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Cooked' })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Raw Fish' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Cooked Fish' })).not.toBeInTheDocument()
     expect(screen.getByText('1 result in the guide')).toBeInTheDocument()
   })
 
