@@ -1,6 +1,6 @@
 ---
 name: visualise-design-input
-description: Render design options as pictures before asking the product owner to choose between them. Use whenever you are about to ask how something should look, be laid out, be grouped, be ordered on screen, which of several presentations to build, or to confirm a visual or wording approach - and whenever the product owner asks for a design, layout, or UI decision. Trigger this before asking the question, not after.
+description: Render design options as pictures before asking the product owner to choose between them, and render a confirmation picture when their feedback settles on something the options didn't show. Use whenever you are about to ask how something should look, be laid out, be grouped, be ordered on screen, which of several presentations to build, or to confirm a visual or wording approach - and whenever the product owner asks for a design, layout, or UI decision, or gives feedback on rendered options that changes the layout rather than picking one outright. Trigger this before asking the question, not after, and again before treating a synthesised answer as decided.
 ---
 
 # Visualise before asking for design input
@@ -42,9 +42,30 @@ and delegate instead.** The sentence is the symptom.
 3. **Then ask the question**, referring to the options by letter so the answer can be a letter. Pass
    on the mockup URL, each option's cost and what it commits to, and your own recommendation. Ask one
    question at a time.
-4. **Record the decision** in the feature brief, implementation plan, or ADR, along with the reason
-   it was chosen and the cost that was accepted. Delete the mockup afterwards. The reasoning is the
-   artefact worth keeping; the HTML is not.
+4. **If the answer is a clean pick, record it and stop here.** "Go with B" needs nothing further -
+   the picture that justified it already exists. But if the answer changes anything the mockup did
+   not already show - keeps an option but swaps a detail, combines two options, or describes a
+   variant in words rather than choosing a letter - that is a new, unrendered design. Sealing a
+   decision on a picture that does not exist yet is the exact mistake this skill exists to prevent, so
+   the rule applies here too: delegate to the `design-options` subagent once more for a confirmation
+   render - one option, at final scale, reflecting exactly what was said, with no siblings to choose
+   between. View the screenshot, then ask a short confirm-or-adjust question before treating the
+   decision as settled.
+   Apply the same proportionality this whole skill runs on: a reply that only swaps wording
+   ("call it 'Prep type' instead") needs no new render, because a sentence can verify a sentence. A
+   reply that changes grouping, hierarchy, combined layout, or anything else a picture would need to
+   confirm does.
+5. **Record the decision** in the feature brief, implementation plan, or ADR, along with the reason
+   it was chosen and the cost that was accepted. Then delete the comparison mockup: once the decision
+   and its reasoning are written down, a folder of rejected options only invites someone to
+   relitigate a settled choice.
+   **One exception.** A confirmation render the product owner has explicitly approved as showing what
+   should be built is doing a different job - it is not evidence weighed to reach a decision, it is a
+   statement of the agreed outcome, and it can carry acceptance criteria that prose states badly
+   ("this treatment, not that one"). Where that is wanted, copy it out of the throwaway `mockups/`
+   directory to `docs/features/artefacts/<feature-id>-<slug>.html`, link it from the brief, and say
+   in the brief **which parts of it are normative** - an unqualified picture silently promotes every
+   incidental detail in it to an acceptance criterion.
 
 ## When not to use it
 

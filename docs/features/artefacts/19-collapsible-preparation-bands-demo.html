@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en-NZ">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Collapsible preparation demo</title>
+  <style>
+    :root {
+      --accent-dark: #5f3b1b;
+      --ink: #25170d;
+      --muted-ink: #6d6259;
+      --surface: #fffaf3;
+      --page: #f8efe4;
+      --line: #dfcdb8;
+      --red: #b9473f;
+      --red-soft: #fae5e3;
+      --green: #2f7d54;
+      --green-soft: #e7f3eb;
+      --amber: #a66d1f;
+      --amber-soft: #fff0d2;
+      --radius: .7rem;
+      --shadow: 0 .4rem 1.2rem rgb(65 45 29 / 12%);
+      color: var(--ink);
+      background: var(--page);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: var(--accent-dark); font-weight: 800; }
+    p { line-height: 1.5; }
+    .skip { position: absolute; transform: translateY(-120%); }
+    .app-header {
+      background: #fff7ec;
+      border-bottom: 1px solid var(--line);
+      padding: 1rem clamp(1rem, 4vw, 3rem);
+    }
+    .app-header strong { color: var(--accent-dark); font-size: 1.2rem; }
+    main { margin: 0 auto; max-width: 72rem; padding: clamp(1rem, 4vw, 3rem); }
+    .guide-intro { margin-bottom: 2rem; }
+    .eyebrow, .breadcrumb { color: var(--muted-ink); font-size: .78rem; letter-spacing: .01em; margin: 0 0 .15rem; }
+    h1 { color: var(--accent-dark); font-size: clamp(2rem, 5vw, 3rem); margin: .2rem 0 .5rem; }
+    h2 { margin-top: 0; }
+    .catalogue-tools {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: grid;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding: 1rem;
+    }
+    .search-row { display: grid; gap: .35rem; max-width: 34rem; }
+    label { font-weight: 800; }
+    input {
+      background: var(--surface);
+      border: 1px solid var(--muted-ink);
+      border-radius: .35rem;
+      min-height: 2.75rem;
+      padding: .45rem .6rem;
+      width: 100%;
+    }
+    .result-count { color: var(--muted-ink); font-weight: 800; }
+    .catalogue { display: grid; gap: 1.6rem; }
+    .category-group {
+      border-inline-start: .35rem solid var(--line);
+      margin-inline-start: var(--category-indent, 0);
+      padding-inline-start: 1rem;
+    }
+    .category-title { font-size: 1.55rem; margin: 0 0 1rem; }
+    .category-toggle,
+    .prep-toggle {
+      align-items: center;
+      background: none;
+      border: 0;
+      color: inherit;
+      cursor: pointer;
+      display: flex;
+      font: inherit;
+      gap: .5rem;
+      padding: 0;
+      text-align: start;
+      width: 100%;
+    }
+    .category-toggle:hover,
+    .prep-toggle:hover { color: var(--accent-dark); }
+    .toggle-icon {
+      align-items: center;
+      aspect-ratio: 1;
+      background: var(--line);
+      border-radius: .3rem;
+      display: inline-flex;
+      flex: 0 0 1.25rem;
+      font-size: .85rem;
+      font-weight: 900;
+      height: 1.25rem;
+      justify-content: center;
+      line-height: 1;
+      width: 1.25rem;
+    }
+    .prep-group {
+      border-inline-start: .25rem solid var(--line);
+      margin-bottom: 1rem;
+      padding-inline-start: .75rem;
+    }
+    .prep-toggle {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: .35rem;
+    }
+    .prep-label {
+      color: var(--accent-dark);
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+    .prep-count {
+      color: var(--muted-ink);
+      font-size: .84rem;
+      font-weight: 700;
+      letter-spacing: normal;
+      margin-inline-start: auto;
+      text-transform: none;
+      white-space: nowrap;
+    }
+    .prep-panel { display: grid; gap: .75rem; margin-top: .75rem; }
+    .callout,
+    .food-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-inline-start-width: .35rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1rem;
+    }
+    .callout { box-shadow: none; }
+    .tone-red { background: var(--red-soft); border-color: color-mix(in srgb, var(--red) 65%, var(--line)); }
+    .tone-green { background: var(--green-soft); border-color: color-mix(in srgb, var(--green) 65%, var(--line)); }
+    .tone-amber { background: var(--amber-soft); border-color: color-mix(in srgb, var(--amber) 65%, var(--line)); }
+    .status {
+      border-radius: 999px;
+      color: white;
+      display: inline-block;
+      font-size: .85rem;
+      font-weight: 800;
+      margin-bottom: .35rem;
+      padding: .2rem .55rem;
+    }
+    .status-red { background: var(--red); }
+    .status-green { background: var(--green); }
+    .status-amber { background: var(--amber); }
+    .callout p,
+    .food-card p { margin: .25rem 0; }
+    .food-list { display: grid; gap: .75rem; list-style: none; margin: 0; padding: 0; }
+    .food-card h5 { font-family: inherit; font-size: 1.2rem; margin: 0 0 .5rem; }
+    .collapsed-note {
+      color: var(--muted-ink);
+      font-size: .9rem;
+      margin: .5rem 0 0 1.75rem;
+    }
+    @media (max-width: 42rem) {
+      main { padding-inline: 1rem; }
+      .category-group { margin-inline-start: min(var(--category-indent, 0), 1.5rem); padding-inline-start: .75rem; }
+      .prep-count { margin-inline-start: 0; }
+      .prep-toggle { align-items: flex-start; flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main-content">Skip to content</a>
+  <header class="app-header"><strong>Polly's Food Guide</strong></header>
+  <main id="main-content">
+    <section class="guide-intro" aria-labelledby="guide-title">
+      <p class="eyebrow">Food guide</p>
+      <h1 id="guide-title">Browse foods</h1>
+      <p>This mock shows the chosen direction: preparation bands behave like collapsible sub-sections inside the real category, but they do not become categories, routes, or filter values.</p>
+    </section>
+
+    <section aria-labelledby="catalogue-heading">
+      <h2 id="catalogue-heading">Browse foods</h2>
+      <div class="catalogue-tools">
+        <div class="search-row">
+          <label for="food-search">Search foods</label>
+          <input id="food-search" type="search" value="" aria-label="Search foods">
+        </div>
+      </div>
+      <p class="result-count">10 results in the guide</p>
+
+      <div class="catalogue">
+        <section class="category-group" style="--category-indent: 0rem" aria-labelledby="cat-seafood">
+          <h3 class="category-title" id="cat-seafood">
+            <button class="category-toggle" aria-expanded="true">
+              <span class="toggle-icon">-</span>
+              <span>Seafood</span>
+            </button>
+          </h3>
+
+          <section class="category-group" style="--category-indent: 1rem" aria-labelledby="cat-fish">
+            <p class="breadcrumb">Seafood &gt; Fish</p>
+            <h3 class="category-title" id="cat-fish">
+              <button class="category-toggle" aria-expanded="true">
+                <span class="toggle-icon">-</span>
+                <span>Fish</span>
+              </button>
+            </h3>
+
+            <section class="prep-group" aria-labelledby="prep-raw-fish">
+              <h4 id="prep-raw-fish">
+                <button class="prep-toggle" aria-expanded="true">
+                  <span class="toggle-icon">-</span>
+                  <span class="prep-label">Raw fish</span>
+                  <span class="prep-count">2 entries</span>
+                </button>
+              </h4>
+              <div class="prep-panel">
+                <aside class="callout tone-red" aria-label="Raw fish guidance for Fish">
+                  <span class="status status-red">Not okay</span>
+                  <p>Avoid raw fish during pregnancy.</p>
+                  <p><a href="#">See Fish guidance</a></p>
+                </aside>
+                <ul class="food-list">
+                  <li class="food-card">
+                    <h5><a href="#">Salmon</a></h5>
+                    <p><span class="status status-red">Not okay</span> Raw salmon follows the raw fish rule.</p>
+                  </li>
+                  <li class="food-card">
+                    <h5><a href="#">Tuna</a></h5>
+                    <p><span class="status status-red">Not okay</span> Raw tuna follows the raw fish rule.</p>
+                  </li>
+                </ul>
+              </div>
+            </section>
+
+            <section class="prep-group" aria-labelledby="prep-smoked-fish">
+              <h4 id="prep-smoked-fish">
+                <button class="prep-toggle" aria-expanded="false">
+                  <span class="toggle-icon">+</span>
+                  <span class="prep-label">Smoked fish</span>
+                  <span class="prep-count">4 entries</span>
+                </button>
+              </h4>
+              <p class="collapsed-note">Collapsed - expand to read the smoked fish guidance and entries.</p>
+            </section>
+
+            <section class="prep-group" aria-labelledby="prep-cooked-fish">
+              <h4 id="prep-cooked-fish">
+                <button class="prep-toggle" aria-expanded="true">
+                  <span class="toggle-icon">-</span>
+                  <span class="prep-label">Freshly cooked fish</span>
+                  <span class="prep-count">4 entries</span>
+                </button>
+              </h4>
+              <div class="prep-panel">
+                <aside class="callout tone-green" aria-label="Freshly cooked fish guidance for Fish">
+                  <span class="status status-green">Okay</span>
+                  <p>Freshly cooked fish can be eaten when cooked thoroughly.</p>
+                  <p><a href="#">See Fish guidance</a></p>
+                </aside>
+                <ul class="food-list">
+                  <li class="food-card">
+                    <h5><a href="#">Salmon</a></h5>
+                    <p><span class="status status-green">Okay</span> Cook salmon thoroughly and eat it fresh.</p>
+                  </li>
+                  <li class="food-card">
+                    <h5><a href="#">Tuna</a></h5>
+                    <p><span class="status status-amber">Maybe - see notes</span> Follow serving-limit advice for tuna.</p>
+                  </li>
+                </ul>
+              </div>
+            </section>
+          </section>
+        </section>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

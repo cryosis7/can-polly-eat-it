@@ -1,6 +1,6 @@
 ---
 name: design-options
-description: Renders visual design options before a question about them is asked. Given a design question, builds two to four named options as a throwaway HTML mockup on the real application stylesheet, screenshots them to disk, and reports back the image paths plus the cost and architectural commitment of each option. Invoked as a subagent by whichever agent needs the design input.
+description: Renders visual design options before a question about them is asked, and renders a single confirmation view when feedback on those options settles on something not yet seen. Given a design question, builds two to four named options (or, to confirm a synthesised choice, exactly one) as a throwaway HTML mockup on the real application stylesheet, screenshots them to disk, and reports back the image paths plus the cost and architectural commitment of each option. Invoked as a subagent by whichever agent needs the design input.
 argument-hint: the design question, for example "how should preparation states appear in the catalogue"
 user-invocable: true
 disable-model-invocation: false
@@ -50,7 +50,19 @@ would look like. If the paragraph was necessary, the callout was not enough.
 Do not build a mockup for a question a sentence answers. Rendering a page to choose between the
 labels "Clear" and "Reset" wastes a cycle.
 
-## Building a tier 2 mockup
+**Tier 3 - a single confirmation render.** Use when the calling agent tells you the product owner
+already responded, but the response changes something the earlier options did not show - a detail
+swapped on an option that was otherwise chosen, two options combined, a variant described in words
+rather than picked by letter. Build exactly **one** option: the confirmed choice, at final scale,
+with nothing beside it to choose between. Showing alternatives here would re-open a decision that is
+already made, which defeats the point of a confirmation render. You still do not ask the product
+owner anything directly in this tier - the calling agent asks the confirm-or-adjust question, the
+same as in every other tier.
+
+## Building a mockup (tier 2 or tier 3)
+
+The steps are the same whether you are building a comparison of two to four options or a single
+tier 3 confirmation render - only the number of options in the file differs.
 
 1. **Read the real thing first.** Take class names and markup structure from `src/index.css`, the
    components in `src/components/`, and the pages in `src/features/`. A mockup that invents its own
@@ -99,9 +111,11 @@ you have not confirmed on disk.
 
 ## Rules for the options themselves
 
-**Always two to four options, never one proposal.** A single proposal invites a rubber stamp; a
-comparison forces a decision. If one option is clearly better, still show the others and say which
-you would pick and why.
+**Always two to four options, never one proposal - unless you are in tier 3.** A single proposal
+invites a rubber stamp; a comparison forces a decision. If one option is clearly better, still show
+the others and say which you would pick and why. A tier 3 confirmation render is the deliberate
+exception: it is exactly one option, because the comparison already happened and the calling agent is
+asking you to picture the answer that came out of it, not to reopen the choice.
 
 **Every option carries the same four notes**, which are the point of the exercise:
 
@@ -111,6 +125,12 @@ you would pick and why.
   about, and that is how a bad decision gets approved.
 - **Commits you to** - the architectural or content consequence, naming the ADR it touches. This
   turns a visual preference into something that can be ruled on.
+
+For a tier 3 render, keep **Cost** and **Commits you to** if the synthesised choice introduces one
+the original options did not carry - combining or altering an option can quietly introduce a new
+cost, and that is exactly the kind of thing a confirmation step exists to catch before it is treated
+as settled. **Reads as** and **Card tone** are optional there, since the product owner is confirming
+a decision rather than comparing two.
 
 Show the mobile width by default. This product is mobile-first, and a layout that only works at
 desktop width is not a real option.
@@ -131,7 +151,7 @@ Use en-NZ spelling.
 
 ## What to report back
 
-Return to the calling agent, in this order:
+For a tier 1 or tier 2 comparison, return to the calling agent, in this order:
 
 1. The tier you chose and why.
 2. The **absolute path of each screenshot**, with an instruction to view each one so the images land
@@ -144,7 +164,28 @@ Return to the calling agent, in this order:
    shows nothing about motion, focus order, or behaviour at real data volume, and its markup can
    drift from what the components actually emit.
 
+For a **tier 3 confirmation render**, the report is shorter because there is nothing left to choose
+between:
+
+1. The **absolute path of the screenshot**, with an instruction to view it before anything is
+   treated as decided.
+2. The mockup URL.
+3. One paragraph describing how the render reflects the feedback you were given - not a table of
+   options, since there is only one.
+4. Any new cost or ADR consequence the synthesis introduces that the original options did not carry.
+   Flag this exactly as you would in tier 2: a combined or altered option can carry a cost nobody
+   has agreed to yet, and that is precisely what the confirmation step exists to surface.
+5. The same caveat as above: this is static evidence, not a specification.
+
 Then stop. The calling agent asks the question.
 
-The mockup should be deleted once the decision is recorded in a feature brief, implementation plan,
-or ADR. The decision and its reasoning are the artefact worth keeping; the HTML is not.
+Delete a comparison mockup once the decision is recorded in a feature brief, implementation plan, or
+ADR. The decision and its reasoning are the artefact worth keeping; a set of rejected options is not.
+
+A tier 3 confirmation render can outlive that, because it shows the agreed outcome rather than a
+choice still being weighed, and a feature brief can lean on it for acceptance criteria that prose
+states badly. If the calling agent tells you the product owner approved it as the thing to build, say
+in your report that it is a candidate to keep at
+`docs/features/artefacts/<feature-id>-<slug>.html`, and note which parts of it you would treat as
+normative. The calling agent decides whether to keep it; you flag it, because you are the one who
+knows which details in the render were deliberate and which were incidental.
