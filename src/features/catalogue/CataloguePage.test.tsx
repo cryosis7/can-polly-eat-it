@@ -557,6 +557,34 @@ describe('browsing a category with a preparation dimension', () => {
     return within(group).getByRole('link', { name: salmon.name }).closest('.food-card') as HTMLElement
   }
 
+  it('defaults preparation bands to collapsed and expands one without affecting its sibling or the result count', () => {
+    renderCatalogue(`/?${scope}`, preparedContent)
+    const countBefore = screen.getByText(/results in the guide/).textContent
+    expandGroup('Seafood')
+    const fish = screen.getByRole('button', { name: /^Fish, level \d+$/ }).closest('.category-group') as HTMLElement
+    const rawToggle = within(fish).getByRole('button', { name: /^Raw, \d+ entries$/ })
+    const cookedToggle = within(fish).getByRole('button', { name: /^Cooked, \d+ entries$/ })
+
+    expect(rawToggle).toHaveAttribute('aria-expanded', 'false')
+    expect(cookedToggle).toHaveAttribute('aria-expanded', 'false')
+    expect(within(fish).queryByRole('link', { name: salmon.name })).not.toBeInTheDocument()
+
+    fireEvent.click(rawToggle)
+
+    expect(rawToggle).toHaveAttribute('aria-expanded', 'true')
+    expect(cookedToggle).toHaveAttribute('aria-expanded', 'false')
+    expect(within(fish).getByRole('link', { name: salmon.name })).toHaveAttribute(
+      'href',
+      expect.stringContaining('prep=raw'),
+    )
+
+    fireEvent.click(rawToggle)
+
+    expect(rawToggle).toHaveAttribute('aria-expanded', 'false')
+    expect(within(fish).queryByRole('link', { name: salmon.name })).not.toBeInTheDocument()
+    expect(screen.getByText(/results in the guide/)).toHaveTextContent(countBefore!)
+  })
+
   it('groups the food under each preparation, each row showing one status', () => {
     renderCatalogue(`/?${scope}&q=${salmon.slug}`, preparedContent)
 
@@ -565,6 +593,15 @@ describe('browsing a category with a preparation dimension', () => {
     expect(within(cardFor('Raw')).getByText('Avoid')).toBeInTheDocument()
     expect(within(cardFor('Cooked')).getByText('Only with conditions')).toBeInTheDocument()
     expect(screen.getByText('2 results in the guide')).toBeInTheDocument()
+  })
+
+  it('keeps matching preparation rows discoverable in filtered result views', () => {
+    renderCatalogue(`/?${scope}&q=${salmon.slug}`, preparedContent)
+
+    expect(screen.getByRole('button', { name: 'Raw, 1 entry' })).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('button', { name: 'Cooked, 1 entry' })).toHaveAttribute('aria-expanded', 'true')
+    expect(within(cardFor('Raw')).getByText('Avoid')).toBeInTheDocument()
+    expect(within(cardFor('Cooked')).getByText('Only with conditions')).toBeInTheDocument()
   })
 
   it('links each row to the food in the preparation the reader was looking at', () => {
@@ -594,4 +631,3 @@ describe('browsing a category with a preparation dimension', () => {
     )
   })
 })
-

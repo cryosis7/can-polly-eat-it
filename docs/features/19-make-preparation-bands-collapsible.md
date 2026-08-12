@@ -1,6 +1,6 @@
 # F-19: Make Preparation Bands Collapsible
 
-**Status:** Proposed
+**Status:** Done
 
 **Depends on:** [F-11: Make the Browse Hierarchy Legible and Collapsible](<11-make-browse-hierarchy-legible.md>), [F-18: Model Preparation as a Catalogue Dimension](<18-model-preparation-as-a-catalogue-dimension.md>)
 
@@ -78,8 +78,12 @@ The artefact is normative for the interaction shape and acceptance criteria:
 - F-18 established that preparation groupings are rendering constructs, not synthetic categories. The
   approved design must preserve that boundary even while making the bands feel easier to browse.
 - Open: whether preparation bands should default to expanded in the unfiltered catalogue, matching the
-  current content visibility, or whether some contexts should start collapsed. The current design
-  artefact demonstrates expanded and collapsed states but does not settle a default policy.
+  current content visibility, or whether some contexts should start collapsed. Settled for the
+  approved implementation plan: preparation bands default collapsed in the unfiltered catalogue, and
+  search or filter views must still reveal matching rows rather than hiding them behind stale
+  collapsed state.
+- Approved implementation plan:
+  [19-make-preparation-bands-collapsible-plan.md](<19-make-preparation-bands-collapsible-plan.md>).
 
 ## Acceptance criteria
 
@@ -92,6 +96,7 @@ The artefact is normative for the interaction shape and acceptance criteria:
 - A preparation band displays its name and entry count, for example `Raw fish` and `2 entries`.
 - A reader can expand and collapse a preparation band with pointer and keyboard input, and a screen
   reader can determine the band's name, expanded/collapsed state, and entry count.
+- In the unfiltered catalogue, preparation bands render collapsed by default.
 - Collapsing `Raw fish` hides only the `Raw fish` guidance callout and entries; sibling bands such as
   `Smoked fish` remain available.
 - Expanding a preparation band reveals the same guidance callout and food-card content that rendered
@@ -110,5 +115,12 @@ band to skip to the next one, and a filtered URL containing preparation rows. Ex
 2.2 AA scans and repository-wide 100% statements, branches, functions, and lines coverage for
 application source are retained.
 
-A subagent must run the `prepare` skill after implementation and targeted validation, before merging
-into `main` or moving this feature to `Done`.
+Completed validation:
+
+- `npm test -- src/features/catalogue/CataloguePage.test.tsx` — 43 passing.
+- `npx playwright test e2e/catalogue.spec.ts` — 35 passing.
+- `npm run typecheck` — passed.
+- `npm run lint` — passed.
+- `npm run test:coverage` — 235 passing; 100% statements, branches, functions, and lines.
+- `prepare` subagent review — 0 blockers, no dependency-version, documentation-drift, or missing
+  documentation findings.

@@ -46,6 +46,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
   const [collapsedCategoryIds, setCollapsedCategoryIds] = useState(
     () => new Set(content.categories.filter((category) => category.parentId === null).map((category) => category.id)),
   )
+  const [expandedPreparationBands, setExpandedPreparationBands] = useState(() => new Set<string>())
   const index = createContentIndex(content.categories, content.assessments)
   const categoryRows = flattenCategoryRows(index.tree)
   const categoryBySlug = new Map(content.categories.map((category) => [category.slug, category]))
@@ -82,7 +83,8 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
   const entriesInCategory = entryRowsByCategoryId(selectedCategoryRows, preparationOrder)
   const contentCategoryIds = new Set([...rowsInCategory.keys(), ...matchedCategoryEntryIds])
   const rowsWithContent = withAncestorIds(categoryRows, contentCategoryIds)
-  const isFiltering = Boolean(queryState.query || queryState.categorySlug || queryState.outcomeBands.length > 0)
+  const hasNonDefaultScope = queryState.scopeSlugs.length !== 1 || queryState.scopeSlugs[0] !== defaultScopeSlug
+  const isFiltering = Boolean(queryState.query || queryState.categorySlug || queryState.outcomeBands.length > 0 || hasNonDefaultScope)
   const effectiveCollapsedIds = isFiltering
     ? new Set([...collapsedCategoryIds].filter((id) => !rowsWithContent.has(id)))
     : collapsedCategoryIds
@@ -101,7 +103,18 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
       return next
     })
   }
-  const hasNonDefaultScope = queryState.scopeSlugs.length !== 1 || queryState.scopeSlugs[0] !== defaultScopeSlug
+  const togglePreparationBand = (categoryId: string, preparationId: string) => {
+    setExpandedPreparationBands((current) => {
+      const next = new Set(current)
+      const key = `${categoryId}:${preparationId}`
+      if (next.has(key)) {
+        next.delete(key)
+      } else {
+        next.add(key)
+      }
+      return next
+    })
+  }
   const hasActiveFilters = Boolean(
     queryState.query || queryState.categorySlug || queryState.outcomeBands.length > 0 || hasNonDefaultScope,
   )
@@ -359,6 +372,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                     // The unqualified entry renders above, outside the collapse, so only a
                     // preparation-qualified entry belongs inside a grouping.
                     const hasEntry = preparation !== undefined && entryGroups.has(preparationId)
+                    const entryCount = rows.length + (hasEntry ? 1 : 0)
                     if (rows.length === 0 && !hasEntry) {
                       return null
                     }
@@ -403,6 +417,11 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                         ))}
                       </>
                     )
+                    const preparationBandKey = preparation === undefined ? undefined : `${category.id}:${preparation.id}`
+                    const isPreparationExpanded = preparationBandKey === undefined
+                      || isFiltering
+                      || expandedPreparationBands.has(preparationBandKey)
+                    const entryCountText = `${entryCount} ${entryCount === 1 ? 'entry' : 'entries'}`
                     const listContent = rows.length > 0 && (
                       <ul className="food-list">
                         {rows.map(({ food }) => (
@@ -436,9 +455,25 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                         className="preparation-group"
                         key={preparation.id}
                       >
-                        <h4 id={`preparation-${category.id}-${preparation.id}`}>{preparation.name}</h4>
-                        {entryContent}
-                        {listContent}
+                        <div className="preparation-header">
+                          <h4 id={`preparation-${category.id}-${preparation.id}`}>{preparation.name}</h4>
+                          <button
+                            aria-expanded={isPreparationExpanded}
+                            aria-label={`${preparation.name}, ${entryCountText}`}
+                            className="preparation-toggle"
+                            onClick={() => togglePreparationBand(category.id, preparation.id)}
+                            type="button"
+                          >
+                            <span aria-hidden="true" className="category-toggle-icon">{isPreparationExpanded ? '-' : '+'}</span>
+                            <span aria-hidden="true" className="preparation-count">{entryCountText}</span>
+                          </button>
+                        </div>
+                        {isPreparationExpanded && (
+                          <>
+                            {entryContent}
+                            {listContent}
+                          </>
+                        )}
                       </section>
                     )
                   })}

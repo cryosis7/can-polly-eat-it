@@ -363,6 +363,22 @@ test.describe('Food catalogue', () => {
     await expect(page.getByRole('heading', { name: /^Smoked/ })).toContainText('the preparation you were looking at')
   })
 
+  test('collapses preparation bands by default and expands one while browsing', async ({ page }) => {
+    await page.goto('/?v=1&scope=pregnancy-food-safety')
+
+    await page.getByRole('button', { name: 'Seafood, level 1' }).click()
+    const fishGroup = page.locator('section[aria-labelledby="category-fish"]')
+    const smokedToggle = fishGroup.getByRole('button', { name: /^Smoked, \d+ entries$/ })
+
+    await expect(smokedToggle).toHaveAttribute('aria-expanded', 'false')
+    await expect(fishGroup.getByRole('link', { name: 'Farmed salmon', exact: true })).toHaveCount(0)
+
+    await smokedToggle.click()
+
+    await expect(smokedToggle).toHaveAttribute('aria-expanded', 'true')
+    await expect(fishGroup.getByRole('link', { name: 'Farmed salmon', exact: true })).toBeVisible()
+  })
+
   test('loads a preparation-scoped food URL directly and keeps every declared state readable', async ({ page }) => {
     await page.goto('/food/farmed-salmon?v=1&scope=pregnancy-food-safety&prep=raw')
 
@@ -391,7 +407,7 @@ test.describe('Food catalogue', () => {
     await page.goto('/?v=1&scope=pregnancy-food-safety&q=skipjack')
     const banded = await sizeOf(page.locator('.preparation-group .food-card-header > :is(h4, h5)'))
     const categoryHeading = await sizeOf(page.locator('.category-group > h3'))
-    const band = await sizeOf(page.locator('.preparation-group > h4'))
+    const band = await sizeOf(page.locator('.preparation-header > h4'))
 
     await page.goto('/?v=1&scope=pregnancy-food-safety&q=cheddar')
     const unbanded = await sizeOf(page.locator('.food-card-header > :is(h4, h5)'))
@@ -477,4 +493,3 @@ test.describe('Food catalogue', () => {
     await expect(page.getByRole('link', { name: 'Back to the food guide' })).toBeVisible()
   })
 })
-
