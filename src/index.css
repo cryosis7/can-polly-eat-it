@@ -112,7 +112,7 @@ h3 { font-size: 1.35rem; }
 /* A preparation band labels the rows beneath it. It borrows the eyebrow treatment so it reads as a
    divider between the category heading and the food names, rather than competing with either. The
    same treatment is used on detail pages, so a preparation always looks like a preparation. */
-.preparation-group { margin-bottom: var(--space-3); }
+.preparation-group { margin-bottom: var(--space-3); margin-inline-start: var(--space-3); }
 .preparation-header { align-items: center; border-bottom: 1px solid var(--line); display: flex; gap: var(--space-2); margin-bottom: var(--space-2); padding-bottom: .3rem; }
 .preparation-band,
 .preparation-group > h4,
