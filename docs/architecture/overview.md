@@ -421,7 +421,9 @@ the guidance and never a substitute for it, so no view shows a status without th
 
 A **collapsed row** — a nested category heading or a preparation band, never a root group — carries an
 **aggregate chip** summarising what the collapse hides, so a reader can skip a group without opening
-it. It is not a status: no guidance list authors it, it is never persisted, and it disappears on
+it. Collapsing a category hides its own guidance along with its descendants, exactly as collapsing a
+preparation band hides its callout, so the chip is the row's whole answer rather than a summary
+sitting above a restatement of it. It is not a status: no guidance list authors it, it is never persisted, and it disappears on
 expansion so it never sits beside the statuses it stands for. It is derived in two folds over
 statuses `resolveAssessment` has already produced. First, each hidden entry's outcome is combined
 across the active scopes, most cautious first, where an entry unassessed on one scope but assessed on

@@ -143,6 +143,25 @@ execute — which reads as a safeguard while being dead code, and would have bro
 coverage gate — the invariant is asserted directly in the catalogue component tests and the Playwright
 suite, and the reasoning is recorded in a comment at the seam.
 
+## Follow-up: a collapsed category now hides its own guidance
+
+Raised by the product owner after the feature merged. A collapsed category showed its chip *and* its
+own guidance card, so `Hard cheese` read `✓ OK` on the row and then restated "OK to eat" with its full
+summary directly beneath — the same answer twice, and inconsistent with a collapsed preparation band,
+which has always hidden its callout.
+
+The category's own guidance now renders only while the row is expanded. Two consequences follow:
+
+- A category whose own guidance is all it holds, such as `Canned foods`, now has something to hide and
+  so becomes collapsible where it was previously a plain heading.
+- Every rendered row is therefore collapsible, because a row renders only when it holds foods, holds
+  its own guidance, or is an ancestor of a row that does. The `isExpandable` branch that rendered a
+  toggle-less heading became unreachable and was removed, along with the `rowCount` and
+  `hasChildCategories` reads that only fed it.
+
+Validated with `npm run test:coverage` (267 tests, 100% statements, branches, functions and lines) and
+`npx playwright test` (66 Chromium scenarios including the axe-core WCAG 2.2 AA scans).
+
 ## Done evidence to record
 
 Recorded on completion:

@@ -374,7 +374,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
           <p className="no-results">No foods match these filters. Try clearing a filter or searching for another name.</p>
         ) : (
           <div className="catalogue">
-            {renderedRows.map(({ category, breadcrumb, depth, hasChildCategories }) => {
+            {renderedRows.map(({ category, breadcrumb, depth }) => {
               const rowGroups: CategoryRowGroups = rowsInCategory.get(category.id) ?? new Map()
               const entryGroups: CategoryEntryGroups = entriesInCategory.get(category.id) ?? new Map()
               // A category's own guidance creates a preparation grouping just as a food's
@@ -382,17 +382,14 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
               // moves onto its parent, even where no food declares that state.
               const axes = [undefined, ...(preparationOrder.get(category.id) ?? [])]
                 .filter((preparationId) => rowGroups.has(preparationId) || entryGroups.has(preparationId))
-              const rowCount = [...rowGroups.values()].reduce((total, rows) => total + rows.length, 0)
               const hasUnqualifiedEntry = entryGroups.has(undefined)
-              // Only a qualified entry renders inside the collapse, so an unqualified-only category
-              // stays a plain heading rather than gaining a toggle that expands to nothing.
-              const collapsibleEntryCount = [...entryGroups.keys()]
-                .filter((preparationId) => preparationId !== undefined).length
-              const isExpandable = hasChildCategories || rowCount > 0 || collapsibleEntryCount > 0
               const isCollapsed = effectiveCollapsedIds.has(category.id)
-              // A root group spans too much of the catalogue for one chip to say anything useful,
-              // so it stays chip-free however it is collapsed.
-              const categoryChip = depth > 0 && isCollapsed && isExpandable
+              // Every rendered row is collapsible. A row only renders when it holds foods, holds its
+              // own guidance, or is an ancestor of a row that does, and each of those is now hidden
+              // by collapsing it — the category's own guidance included, as with a preparation band.
+              // A root group spans too much of the catalogue for one chip to say anything useful, so
+              // it stays chip-free however it is collapsed.
+              const categoryChip = depth > 0 && isCollapsed
                 ? chipFor(outcomesInSubtree.get(category.id)!)
                 : undefined
               const categoryEntryCount = outcomesInSubtree.get(category.id)!.length
@@ -409,24 +406,22 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                 >
                   {depth > 0 && <p className="breadcrumb">{breadcrumb}</p>}
                   <h3 id={`category-${category.id}`}>
-                    {isExpandable ? (
-                      <button
-                        aria-expanded={!isCollapsed}
-                        aria-label={categoryLabel}
-                        className="category-toggle"
-                        onClick={() => toggleCategory(category.id)}
-                        type="button"
-                      >
-                        <span aria-hidden="true" className="category-toggle-icon">{isCollapsed ? '+' : '-'}</span>
-                        <span>{category.name}</span>
-                        {categoryChip !== undefined && <CollapsedRowChip outcome={categoryChip} />}
-                      </button>
-                    ) : category.name}
+                    <button
+                      aria-expanded={!isCollapsed}
+                      aria-label={categoryLabel}
+                      className="category-toggle"
+                      onClick={() => toggleCategory(category.id)}
+                      type="button"
+                    >
+                      <span aria-hidden="true" className="category-toggle-icon">{isCollapsed ? '+' : '-'}</span>
+                      <span>{category.name}</span>
+                      {categoryChip !== undefined && <CollapsedRowChip outcome={categoryChip} />}
+                    </button>
                     {categoryChip !== undefined && (
                       <span aria-hidden="true" className="category-entry-count">{categoryCountText}</span>
                     )}
                   </h3>
-                  {hasUnqualifiedEntry && (
+                  {!isCollapsed && hasUnqualifiedEntry && (
                     <div className="category-entry">
                       <p className="category-entry-link">
                         <Link to={`/category/${category.slug}?${returnSearch}`}>
@@ -449,8 +444,8 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                       ? undefined
                       : preparationById.get(preparationId)!
                     const rows = rowGroups.get(preparationId) ?? []
-                    // The unqualified entry renders above, outside the collapse, so only a
-                    // preparation-qualified entry belongs inside a grouping.
+                    // The unqualified entry renders above the preparation groupings, so only a
+                    // preparation-qualified entry belongs inside one.
                     const hasEntry = preparation !== undefined && entryGroups.has(preparationId)
                     const entryCount = rows.length + (hasEntry ? 1 : 0)
                     if (rows.length === 0 && !hasEntry) {

@@ -52,11 +52,18 @@ and reach the part of the guide I want without scrolling past all of it.
   entries match, or the announced results.
 - A food and an assessed category use one shared guide-entry presentation: name link, per-scope status
   as text and icon as well as colour, summary, inherited-origin disclosure where guidance is
-  inherited, and a source link wherever a citation exists.
+  inherited, and a source link wherever a citation exists. Narrowed by
+  [F-20](<20-summarise-collapsed-rows-with-status-chip.md>) on 2026-08-14: an assessed category shows
+  that entry while its row is expanded. Collapsing the row hides its own guidance along with its
+  descendants, as a collapsed preparation band hides its callout, and the row's aggregate chip
+  answers for it instead.
 - An assessed category's entry sits above its child entries and remains identifiable as a group that
   also carries its own guidance.
-- A category with no authored assessment stays a plain browse heading and is never presented as
-  carrying guidance, but is always visible when it has visible descendants.
+- A category with no authored assessment is never presented as carrying guidance, and is always
+  visible when it has visible descendants. It was previously a toggle-less plain heading; since
+  [F-20](<20-summarise-collapsed-rows-with-status-chip.md>) every browsable row is collapsible,
+  because a row renders only when it holds foods, holds its own guidance, or is an ancestor of a row
+  that does, and collapsing hides each of those.
 - The view is derived from flattened display rows with depth-safe indentation and an exposed level.
   No recursive component rendering, no depth constant, and no heading level mapped to depth.
 
@@ -96,7 +103,9 @@ and reach the part of the guide I want without scrolling past all of it.
 - `Plain cakes, slices and muffins` renders beneath a visible `Cakes, slices and muffins` heading, and
   no category with visible descendants is omitted from the browse view.
 - An assessed category such as `Plain cakes, slices and muffins` shows the same status, summary, and
-  primary-source link that a food entry shows for the same selected scopes.
+  primary-source link that a food entry shows for the same selected scopes, while its row is
+  expanded. Since [F-20](<20-summarise-collapsed-rows-with-status-chip.md>) a collapsed row shows its
+  aggregate chip instead.
 - Landing on the guide with no search or filter shows only top-level group headings, collapsed, and
   substantially reduces total page scroll compared with the current view.
 - Searching a term that matches an entry inside a collapsed group reveals that entry without the user

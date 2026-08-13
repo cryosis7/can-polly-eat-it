@@ -64,7 +64,11 @@ this feature adds a real entry count to category headings, styled to match the e
   catalogue for one chip to say anything useful about it.
 - A chip appears only while the row is collapsed. Expanding a row removes its chip, because the real
   per-entry statuses are then visible and the summary would compete with them.
-- A row that is not expandable carries no chip, because there is nothing hidden to summarise.
+- Collapsing a category hides its own guidance along with its descendants, exactly as collapsing a
+  preparation band hides its callout. The chip already answers for the group, so restating the whole
+  rule beneath it would say the same thing twice.
+- Every browsable row is collapsible. A row renders only when it holds foods, holds its own guidance,
+  or is an ancestor of a row that does, and collapsing now hides each of those.
 - **A chip never summarises a filtered subset.** It either summarises the row's true, complete
   contents or it does not appear at all. While a search, category, or outcome filter is active, no
   chip is shown on any row. Selecting a further dietary scope is not filtering: it changes which
@@ -196,6 +200,8 @@ ratification of the combined-outcome ADR.
   `Raw Meat and poultry` shows a red `Avoid` chip.
 - A collapsed subtree in which no entry is assessed on any active scope shows the grey `Unknown` chip.
 - A root category shows no chip whether collapsed or expanded, and no row shows a chip while expanded.
+- Collapsing a category such as `Hard cheese` hides its own guidance card as well as its foods, so the
+  chip is the only answer on the row rather than sitting above a restatement of the same rule.
 - Searching `rice` shows no chip on `Cereals`, so the guide never implies that everything under
   `Cereals` is okay to eat on the strength of one matching food.
 - With two scopes active, a row still shows exactly one chip, and an entry that is `okay` on one

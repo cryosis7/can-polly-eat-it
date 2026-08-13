@@ -752,6 +752,42 @@ describe('CataloguePage collapsed-row chips', () => {
 
     expect(screen.getByText(/results in the guide/)).toHaveTextContent(before!)
   })
+
+  it('hides the category own guidance while collapsed, as a preparation band hides its callout', () => {
+    renderCatalogue()
+    expandGroup('Dairy')
+    const groupFor = (name: string) => rowToggle(name).closest('.category-group') as HTMLElement
+
+    expect(groupFor('Hard cheese').querySelector('.category-entry')).not.toBeNull()
+
+    collapseRow('Hard cheese')
+
+    // The chip already answers for the group, so restating the whole rule beneath it said the same
+    // thing twice and left the row disagreeing with every collapsed preparation band on the page.
+    expect(groupFor('Hard cheese').querySelector('.category-entry')).toBeNull()
+    expect(rowToggle('Hard cheese').querySelector('.aggregate-chip')).toHaveTextContent('OK')
+
+    fireEvent.click(rowToggle('Hard cheese'))
+
+    expect(groupFor('Hard cheese').querySelector('.category-entry')).not.toBeNull()
+  })
+
+  it('keeps a category collapsible when its own guidance is all it holds', () => {
+    // Canned foods carries a rule and holds no foods or subcategories, so before its guidance moved
+    // inside the collapse it had nothing to hide and therefore no toggle.
+    renderCatalogue()
+    expandGroup('Miscellaneous')
+    const canned = rowToggle('Canned foods')
+    const group = canned.closest('.category-group') as HTMLElement
+
+    expect(canned).toHaveAttribute('aria-expanded', 'true')
+    expect(group.querySelector('.category-entry')).not.toBeNull()
+
+    fireEvent.click(canned)
+
+    expect(rowToggle('Canned foods')).toHaveAttribute('aria-expanded', 'false')
+    expect(group.querySelector('.category-entry')).toBeNull()
+  })
 })
 
 // ADR: Derive a display-only combined outcome for collapsed-row summaries.
