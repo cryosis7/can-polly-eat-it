@@ -419,6 +419,23 @@ differ in how much of each layer they show, but never in *which* layers they sho
 subset by origin, depth, or novelty understates authored guidance. A status label is a summary of
 the guidance and never a substitute for it, so no view shows a status without the words behind it.
 
+A **collapsed row** — a nested category heading or a preparation band, never a root group — carries an
+**aggregate chip** summarising what the collapse hides, so a reader can skip a group without opening
+it. It is not a status: no guidance list authors it, it is never persisted, and it disappears on
+expansion so it never sits beside the statuses it stands for. It is derived in two folds over
+statuses `resolveAssessment` has already produced. First, each hidden entry's outcome is combined
+across the active scopes, most cautious first, where an entry unassessed on one scope but assessed on
+another reads as a caution rather than deferring to the real answer — silence is not evidence of
+safety. Second, those per-entry outcomes are compared: identical everywhere yields that outcome's own
+chip, and any difference yields the neutral "mixed, open it" chip. The row's own guidance participates
+as one more entry rather than being merged into its descendants, so a food that replaces its
+category's rule shows up as a disagreement. Because the chip is a uniformity check rather than a
+second most-cautious pass, a uniformly conditional group and a genuinely mixed one render alike; both
+correctly tell the reader the group needs attention. A chip never summarises a filtered subset, so
+none renders while a search, category, or outcome filter is active. Selecting a further dietary scope
+is not such a filter: it changes which guidance is shown rather than which entries qualify, leaving
+the result count and the reader's collapse state untouched.
+
 Search normalises case, diacritics, punctuation, and whitespace, then matches every query token
 against food names, aliases, and the labels/aliases on the food's category path. A category entry is
 matched against its own name, its aliases, and its ancestor path labels. It must not guess

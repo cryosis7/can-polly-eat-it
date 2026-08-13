@@ -41,7 +41,7 @@ const contentWithUncitedVegetarianAssessment: ContentData = {
   )),
 }
 
-const expandGroup = (name: string) => fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${name}, level \\d+$`) }))
+const expandGroup = (name: string) => fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${name}, level \\d+`) }))
 
 describe('CataloguePage', () => {
   // A rule may be authored above the foods it governs: one "smoked seafood" rule covers fish,
@@ -246,7 +246,7 @@ describe('CataloguePage', () => {
   it('shows a category entry heading with its own resolved guidance and detail link', () => {
     renderCatalogue('/?v=1&scope=pregnancy-food-safety,vegetarian-suitability&category=hard-cheese')
 
-    const hardCheeseToggle = screen.getByRole('button', { name: /^Hard cheese, level \d+$/ })
+    const hardCheeseToggle = screen.getByRole('button', { name: /^Hard cheese, level \d+/ })
     const categoryGroup = hardCheeseToggle.closest('.category-group') as HTMLElement
     const hardCheeseLink = within(categoryGroup).getByRole('link', { name: 'Hard cheese guidance' })
     expect(hardCheeseLink).toHaveAttribute(
@@ -277,8 +277,10 @@ describe('CataloguePage', () => {
     renderCatalogue('/?v=1&scope=dual', qualifiedOnly)
     expandGroup('Seafood')
 
-    const shellfish = screen.getByRole('button', { name: /^Shellfish, level \d+$/ })
+    const shellfish = screen.getByRole('button', { name: /^Shellfish, level \d+/ })
       .closest('.category-group') as HTMLElement
+    // A scope selection is a lens rather than a filter, so it no longer expands bands for us.
+    fireEvent.click(within(shellfish).getByRole('button', { name: /^Raw Shellfish,/ }))
     const raw = within(shellfish).getByRole('heading', { name: 'Raw Shellfish' })
       .closest('.preparation-group') as HTMLElement
 
@@ -332,13 +334,13 @@ describe('CataloguePage', () => {
   it('moves ice cream out of Dairy and fruit juice out of Miscellaneous', () => {
     renderCatalogue()
     expandGroup('Dairy')
-    expect(screen.queryByRole('button', { name: /^Ice cream, level \d+$/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Ice cream, level \d+/ })).not.toBeInTheDocument()
 
     expandGroup('Miscellaneous')
-    expect(screen.queryByRole('button', { name: /^Fruit juice, kombucha and cider \(non-alcoholic\), level \d+$/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Fruit juice, kombucha and cider \(non-alcoholic\), level \d+/ })).not.toBeInTheDocument()
 
     expandGroup('Drinks')
-    expect(screen.getByRole('button', { name: /^Fruit juice, kombucha and cider \(non-alcoholic\), level 2$/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Fruit juice, kombucha and cider \(non-alcoholic\), level 2/ })).toBeInTheDocument()
   })
 
   it('shows an accumulated food card stating the inherited group guidance', () => {
@@ -400,7 +402,7 @@ describe('CataloguePage', () => {
     const orangeJuiceLinks = screen.getAllByRole('link', { name: 'Orange juice' })
     expect(orangeJuiceLinks).toHaveLength(1)
 
-    const juiceGroup = screen.getByRole('button', { name: /^Fruit juice, kombucha and cider \(non-alcoholic\), level \d+$/ })
+    const juiceGroup = screen.getByRole('button', { name: /^Fruit juice, kombucha and cider \(non-alcoholic\), level \d+/ })
       .closest('.category-group') as HTMLElement
     expect(within(juiceGroup).getByRole('link', { name: 'Orange juice' })).toBeInTheDocument()
   })
@@ -409,7 +411,7 @@ describe('CataloguePage', () => {
     renderCatalogue()
     expandGroup('Breads and cereals')
 
-    const parentHeading = screen.getByRole('button', { name: /^Cakes, slices and muffins, level 2$/ })
+    const parentHeading = screen.getByRole('button', { name: /^Cakes, slices and muffins, level 2/ })
     const nested = screen.getByRole('heading', { name: 'Plain cakes, slices and muffins' })
     expect(parentHeading).toBeInTheDocument()
     expect(parentHeading.compareDocumentPosition(nested) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
@@ -419,8 +421,8 @@ describe('CataloguePage', () => {
     renderCatalogue()
     expandGroup('Dairy')
 
-    expect(screen.getByRole('button', { name: /^Cheese, level 2$/ })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^Custard, level 2$/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Cheese, level 2/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Custard, level 2/ })).toBeInTheDocument()
   })
 
   it('collapses top-level groups by default and reveals descendants when one is expanded', () => {
@@ -428,12 +430,12 @@ describe('CataloguePage', () => {
 
     const dairyToggle = screen.getByRole('button', { name: /^Dairy, level 1$/ })
     expect(dairyToggle).toHaveAttribute('aria-expanded', 'false')
-    expect(screen.queryByRole('button', { name: /^Cheese, level 2$/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Cheese, level 2/ })).not.toBeInTheDocument()
 
     fireEvent.click(dairyToggle)
 
     expect(dairyToggle).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByRole('button', { name: /^Cheese, level 2$/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Cheese, level 2/ })).toBeInTheDocument()
   })
 
   it('reveals a match inside a collapsed group and restores manual expansion when the search clears', () => {
@@ -443,7 +445,7 @@ describe('CataloguePage', () => {
 
     fireEvent.change(searchField, { target: { value: 'gouda' } })
     expect(screen.getByRole('link', { name: 'Gouda' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^Cheese, level 2$/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Cheese, level 2/ })).toBeInTheDocument()
 
     fireEvent.change(searchField, { target: { value: '' } })
     expect(screen.queryByRole('link', { name: 'Gouda' })).not.toBeInTheDocument()
@@ -458,7 +460,7 @@ describe('CataloguePage', () => {
 
     expandGroup('Cheese')
 
-    expect(screen.getByRole('button', { name: /^Cheese, level 2$/ })).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByRole('button', { name: /^Cheese, level 2/ })).toHaveAttribute('aria-expanded', 'false')
     expect(screen.queryByRole('link', { name: 'Cheddar' })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Butter' })).toBeInTheDocument()
   })
@@ -505,7 +507,7 @@ describe('CataloguePage', () => {
   it('renders a merged category entry with its own status, summary, and source', () => {
     renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=pasteurised-cottage-and-cream-cheese')
 
-    const toggle = screen.getByRole('button', { name: /^Pasteurised cottage cheese, cream cheese, etc, level \d+$/ })
+    const toggle = screen.getByRole('button', { name: /^Pasteurised cottage cheese, cream cheese, etc, level \d+/ })
     const entry = toggle.closest('.category-group')!.querySelector('.category-entry') as HTMLElement
     expect(within(entry).getByText('Only with conditions')).toBeInTheDocument()
     expect(within(entry).getByText(/Use pasteurised cheese from sealed packs within two days of opening/)).toBeInTheDocument()
@@ -561,9 +563,9 @@ describe('browsing a category with a preparation dimension', () => {
     renderCatalogue(`/?${scope}`, preparedContent)
     const countBefore = screen.getByText(/results in the guide/).textContent
     expandGroup('Seafood')
-    const fish = screen.getByRole('button', { name: /^Fish, level \d+$/ }).closest('.category-group') as HTMLElement
-    const rawToggle = within(fish).getByRole('button', { name: /^Raw Fish, \d+ entries$/ })
-    const cookedToggle = within(fish).getByRole('button', { name: /^Cooked Fish, \d+ entries$/ })
+    const fish = screen.getByRole('button', { name: /^Fish, level \d+/ }).closest('.category-group') as HTMLElement
+    const rawToggle = within(fish).getByRole('button', { name: /^Raw Fish,.*\d+ entries$/ })
+    const cookedToggle = within(fish).getByRole('button', { name: /^Cooked Fish,.*\d+ entries$/ })
 
     expect(rawToggle).toHaveAttribute('aria-expanded', 'false')
     expect(cookedToggle).toHaveAttribute('aria-expanded', 'false')
@@ -629,5 +631,152 @@ describe('browsing a category with a preparation dimension', () => {
       'href',
       expect.not.stringContaining('prep='),
     )
+  })
+})
+
+// ADR: Derive a display-only combined outcome for collapsed-row summaries.
+// See: docs/decisions/2026-08-13 ADR - derive a display-only combined outcome for collapsed-row summaries.md
+describe('CataloguePage collapsed-row chips', () => {
+  const rowToggle = (name: string) =>
+    screen.getByRole('button', { name: new RegExp(`^${name}, level \\d+`) })
+
+  const chipIn = (row: HTMLElement) => row.querySelector('.aggregate-chip')
+
+  // Roots start collapsed and their descendants start expanded, so a nested row has to be closed
+  // before it can be summarised.
+  const collapseRow = (name: string) => fireEvent.click(rowToggle(name))
+
+  it('summarises a uniformly okay category with its own solid chip', () => {
+    renderCatalogue()
+    expandGroup('Dairy')
+    collapseRow('Hard cheese')
+
+    const chip = chipIn(rowToggle('Hard cheese'))
+
+    expect(chip).toHaveTextContent('OK')
+    expect(chip).toHaveClass('tone-green')
+  })
+
+  it('summarises a category holding one dissenting food as mixed, not as its majority', () => {
+    // Cereals: the category rule, Breakfast cereals, Rice and Pasta all say okay to eat, while
+    // Fresh filled pasta replaces that rule with its own conditional one.
+    renderCatalogue()
+    expandGroup('Breads and cereals')
+    collapseRow('Cereals')
+
+    const chip = chipIn(rowToggle('Cereals'))
+
+    expect(chip).toHaveTextContent('Maybe')
+    expect(chip).toHaveClass('tone-amber')
+  })
+
+  it('reveals the dissenting entry the mixed chip stood for when the row is expanded', () => {
+    renderCatalogue()
+    expandGroup('Breads and cereals')
+
+    expect(screen.getByRole('link', { name: 'Fresh filled pasta' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Rice' })).toBeInTheDocument()
+  })
+
+  it('never chips a root category, however much it hides', () => {
+    renderCatalogue()
+
+    expect(chipIn(rowToggle('Dairy'))).toBeNull()
+    expect(chipIn(rowToggle('Seafood'))).toBeNull()
+  })
+
+  it('drops the chip once the row is expanded, so it never sits beside the statuses it summarised', () => {
+    renderCatalogue()
+    expandGroup('Dairy')
+    collapseRow('Hard cheese')
+    expect(chipIn(rowToggle('Hard cheese'))).not.toBeNull()
+
+    fireEvent.click(rowToggle('Hard cheese'))
+
+    expect(chipIn(rowToggle('Hard cheese'))).toBeNull()
+  })
+
+  it('shows no chip while a search is active, so it never summarises a filtered subset', () => {
+    // Searching `rice` narrows Cereals to one okay food. A chip folded over what survived would
+    // report the whole group as okay, implying Fresh filled pasta is okay too.
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety&q=rice')
+
+    for (const toggle of screen.getAllByRole('button', { name: /, level \d+/ })) {
+      expect(chipIn(toggle)).toBeNull()
+    }
+  })
+
+  it('shows no chip while an outcome filter is active', () => {
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety&outcome=okay')
+
+    for (const toggle of screen.getAllByRole('button', { name: /, level \d+/ })) {
+      expect(chipIn(toggle)).toBeNull()
+    }
+  })
+
+  it('summarises a collapsed preparation band', () => {
+    renderCatalogue()
+    expandGroup('Meat and poultry')
+
+    const heading = screen.getByRole('heading', { name: /^Raw Meat and poultry/ })
+
+    expect(heading.querySelector('.aggregate-chip')).toHaveTextContent('Avoid')
+  })
+
+  it('gives a collapsed row an entry count and speaks its summary to assistive technology', () => {
+    renderCatalogue()
+    expandGroup('Dairy')
+    collapseRow('Hard cheese')
+
+    const label = rowToggle('Hard cheese').getAttribute('aria-label')!
+
+    expect(label).toContain('Hard cheese')
+    expect(label).toContain('all okay')
+    expect(label).toMatch(/\d+ entr/)
+  })
+
+  it('hides the chip from assistive technology, so the row is not announced twice', () => {
+    renderCatalogue()
+    expandGroup('Dairy')
+    collapseRow('Hard cheese')
+
+    expect(chipIn(rowToggle('Hard cheese'))).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('leaves the result count untouched when a row is collapsed or expanded', () => {
+    renderCatalogue()
+    const before = screen.getByText(/results in the guide/).textContent
+    expandGroup('Dairy')
+    collapseRow('Hard cheese')
+    fireEvent.click(rowToggle('Hard cheese'))
+
+    expect(screen.getByText(/results in the guide/)).toHaveTextContent(before!)
+  })
+})
+
+// ADR: Derive a display-only combined outcome for collapsed-row summaries.
+// See: docs/decisions/2026-08-13 ADR - derive a display-only combined outcome for collapsed-row summaries.md
+describe('CataloguePage collapsed-row chips across dietary scopes', () => {
+  const bothScopes = '/?v=1&scope=pregnancy-food-safety,vegetarian-suitability'
+
+  const rowToggle = (name: string) =>
+    screen.getByRole('button', { name: new RegExp(`^${name}, level \\d+`) })
+
+  it('shows exactly one chip per row however many scopes are active', () => {
+    renderCatalogue(bothScopes)
+    fireEvent.click(rowToggle('Dairy'))
+    fireEvent.click(rowToggle('Hard cheese'))
+
+    expect(rowToggle('Hard cheese').querySelectorAll('.aggregate-chip')).toHaveLength(1)
+  })
+
+  it('lets a second scope change the summary, because the answer now covers both', () => {
+    // Hard cheese is uniformly okay under pregnancy alone. Adding vegetarian suitability splits it:
+    // Parmesan contains animal-derived rennet while its siblings only need their labels checked.
+    renderCatalogue(bothScopes)
+    fireEvent.click(rowToggle('Dairy'))
+    fireEvent.click(rowToggle('Hard cheese'))
+
+    expect(rowToggle('Hard cheese').querySelector('.aggregate-chip')).toHaveTextContent('Maybe')
   })
 })

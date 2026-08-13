@@ -1,10 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { buildCatalogueQuery, parseCatalogueQuery, withPreparationSlug, type CatalogueQueryState } from '../../app/catalogueQuery'
+import { CollapsedRowChip } from '../../components/CollapsedRowChip'
 import { GuidanceLayers } from '../../components/GuidanceLayers'
 import { GuideEntrySummary } from '../../components/GuideEntrySummary'
 import { StatusChip } from '../../components/StatusChip'
-import { resolveAssessment } from '../../domain/assessment'
+import { resolveAssessment, type AssessmentSubjectRef } from '../../domain/assessment'
+import {
+  combineOutcomesAcrossLists,
+  combinedOutcomeLabel,
+  summariseCollapsedRow,
+  type CombinedOutcome,
+} from '../../domain/collapsedRowSummary'
 import {
   entryRowsByCategoryId,
   entriesSurfacedByDescendants,
@@ -84,7 +91,11 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
   const contentCategoryIds = new Set([...rowsInCategory.keys(), ...matchedCategoryEntryIds])
   const rowsWithContent = withAncestorIds(categoryRows, contentCategoryIds)
   const hasNonDefaultScope = queryState.scopeSlugs.length !== 1 || queryState.scopeSlugs[0] !== defaultScopeSlug
-  const isFiltering = Boolean(queryState.query || queryState.categorySlug || queryState.outcomeBands.length > 0 || hasNonDefaultScope)
+  // Auto-expansion exists so a search or filter never hides a matching row behind a collapsed
+  // group. A bare scope change matches nothing new — with no outcome bands selected every entry
+  // still qualifies — so it is a lens on the guidance shown, not a filter on the rows, and it
+  // leaves the reader's own collapse state alone.
+  const isFiltering = Boolean(queryState.query || queryState.categorySlug || queryState.outcomeBands.length > 0)
   const effectiveCollapsedIds = isFiltering
     ? new Set([...collapsedCategoryIds].filter((id) => !rowsWithContent.has(id)))
     : collapsedCategoryIds
@@ -92,6 +103,61 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
     categoryRows.filter((row) => rowsWithContent.has(row.category.id)),
     effectiveCollapsedIds,
   )
+
+  // ADR: Derive a display-only combined outcome for collapsed-row summaries.
+  // See: docs/decisions/2026-08-13 ADR - derive a display-only combined outcome for collapsed-row summaries.md
+  // Folded once per render rather than per row, so a deep branch costs one pass over the entries
+  // rather than one pass per ancestor.
+  const combinedOutcomeFor = (subjectRef: AssessmentSubjectRef, preparationId?: string): CombinedOutcome =>
+    combineOutcomesAcrossLists(selectedGuidanceLists.map(
+      (guidanceList) => resolveAssessment(subjectRef, guidanceList, index, preparationId).status.outcomeBand,
+    ))
+
+  const outcomesInCategory = new Map<string, CombinedOutcome[]>()
+  const outcomesInBand = new Map<string, CombinedOutcome[]>()
+  const recordOutcome = (categoryId: string, preparationId: string | undefined, outcome: CombinedOutcome) => {
+    outcomesInCategory.set(categoryId, [...(outcomesInCategory.get(categoryId) ?? []), outcome])
+    if (preparationId !== undefined) {
+      const bandKey = `${categoryId}:${preparationId}`
+      outcomesInBand.set(bandKey, [...(outcomesInBand.get(bandKey) ?? []), outcome])
+    }
+  }
+  for (const [categoryId, groups] of entriesInCategory) {
+    for (const [preparationId, entryRows] of groups) {
+      for (const { category } of entryRows) {
+        recordOutcome(categoryId, preparationId, combinedOutcomeFor({ kind: 'category', category }, preparationId))
+      }
+    }
+  }
+  for (const [categoryId, groups] of rowsInCategory) {
+    for (const [preparationId, foodRows] of groups) {
+      for (const { food } of foodRows) {
+        recordOutcome(categoryId, preparationId, combinedOutcomeFor({ kind: 'food', food }, preparationId))
+      }
+    }
+  }
+
+  // Deepest first, so each category folds its children's already-folded outcomes in. Iterative
+  // because the tree has no depth limit and a recursive walk would put that limit back. Every
+  // category is visited before any parent that reads it, so a child's entry is always present.
+  const outcomesInSubtree = new Map<string, CombinedOutcome[]>()
+  for (let position = categoryRows.length - 1; position >= 0; position -= 1) {
+    const { category } = categoryRows[position]
+    const outcomes = [...(outcomesInCategory.get(category.id) ?? [])]
+    for (const childId of index.tree.childIdsByParentId.get(category.id) ?? []) {
+      outcomes.push(...outcomesInSubtree.get(childId)!)
+    }
+    outcomesInSubtree.set(category.id, outcomes)
+  }
+
+  // A chip must never summarise a filtered subset: searching `rice` narrows Cereals to one food,
+  // and a chip folded over what survived would report the whole group as okay. That holds
+  // structurally rather than by a guard here — under an active filter every rendered row has
+  // content, so `effectiveCollapsedIds` excludes it and it renders expanded, and an expanded row is
+  // never chipped. The invariant is asserted directly in the catalogue tests, because a runtime
+  // check for it would be unreachable code rather than a safeguard.
+  const chipFor = (outcomes: CombinedOutcome[]) => summariseCollapsedRow(outcomes)
+
   const toggleCategory = (categoryId: string) => {
     setCollapsedCategoryIds((current) => {
       const next = new Set(current)
@@ -324,6 +390,16 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                 .filter((preparationId) => preparationId !== undefined).length
               const isExpandable = hasChildCategories || rowCount > 0 || collapsibleEntryCount > 0
               const isCollapsed = effectiveCollapsedIds.has(category.id)
+              // A root group spans too much of the catalogue for one chip to say anything useful,
+              // so it stays chip-free however it is collapsed.
+              const categoryChip = depth > 0 && isCollapsed && isExpandable
+                ? chipFor(outcomesInSubtree.get(category.id)!)
+                : undefined
+              const categoryEntryCount = outcomesInSubtree.get(category.id)!.length
+              const categoryCountText = `${categoryEntryCount} ${categoryEntryCount === 1 ? 'entry' : 'entries'}`
+              const categoryLabel = categoryChip === undefined
+                ? `${category.name}, level ${depth + 1}`
+                : `${category.name}, level ${depth + 1}, ${combinedOutcomeLabel[categoryChip]}, ${categoryCountText}`
               return (
                 <section
                   aria-labelledby={`category-${category.id}`}
@@ -336,15 +412,19 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                     {isExpandable ? (
                       <button
                         aria-expanded={!isCollapsed}
-                        aria-label={`${category.name}, level ${depth + 1}`}
+                        aria-label={categoryLabel}
                         className="category-toggle"
                         onClick={() => toggleCategory(category.id)}
                         type="button"
                       >
                         <span aria-hidden="true" className="category-toggle-icon">{isCollapsed ? '+' : '-'}</span>
                         <span>{category.name}</span>
+                        {categoryChip !== undefined && <CollapsedRowChip outcome={categoryChip} />}
                       </button>
                     ) : category.name}
+                    {categoryChip !== undefined && (
+                      <span aria-hidden="true" className="category-entry-count">{categoryCountText}</span>
+                    )}
                   </h3>
                   {hasUnqualifiedEntry && (
                     <div className="category-entry">
@@ -423,6 +503,12 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                       || expandedPreparationBands.has(preparationBandKey)
                     const entryCountText = `${entryCount} ${entryCount === 1 ? 'entry' : 'entries'}`
                     const preparationBandLabel = preparation === undefined ? undefined : `${preparation.name} ${category.name}`
+                    const bandChip = preparationBandKey !== undefined && !isPreparationExpanded
+                      ? chipFor(outcomesInBand.get(preparationBandKey)!)
+                      : undefined
+                    const bandLabel = bandChip === undefined
+                      ? `${preparationBandLabel}, ${entryCountText}`
+                      : `${preparationBandLabel}, ${combinedOutcomeLabel[bandChip]}, ${entryCountText}`
                     const listContent = rows.length > 0 && (
                       <ul className="food-list">
                         {rows.map(({ food }) => (
@@ -459,14 +545,17 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                         <div className="preparation-header">
                           <button
                             aria-expanded={isPreparationExpanded}
-                            aria-label={`${preparationBandLabel}, ${entryCountText}`}
+                            aria-label={bandLabel}
                             className="preparation-toggle"
                             onClick={() => togglePreparationBand(category.id, preparation.id)}
                             type="button"
                           >
                             <span aria-hidden="true" className="category-toggle-icon">{isPreparationExpanded ? '-' : '+'}</span>
                           </button>
-                          <h4 id={`preparation-${category.id}-${preparation.id}`}>{preparationBandLabel}</h4>
+                          <h4 id={`preparation-${category.id}-${preparation.id}`}>
+                            {preparationBandLabel}
+                            {bandChip !== undefined && <CollapsedRowChip outcome={bandChip} />}
+                          </h4>
                           <span aria-hidden="true" className="preparation-count">{entryCountText}</span>
                         </div>
                         {isPreparationExpanded && (

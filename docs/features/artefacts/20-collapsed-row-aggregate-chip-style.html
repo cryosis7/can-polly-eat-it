@@ -1,0 +1,152 @@
+<!doctype html>
+<!--
+  Approved design artefact for F-20. Normative for: the aggregate-chip lozenge shape (pill,
+  single glyph, one word), its tone-to-colour mapping using existing --status-*-soft tokens, its
+  inline placement immediately after the heading text and before the entry count, and the fourth
+  grey "Unknown" state for a uniformly not-assessed subtree. Not normative for the illustrative
+  .category-entry-count styling (categories previously had no entry count; F-20 adds one, styled
+  to match .preparation-count, not to match this harness CSS verbatim).
+  Serve with the existing dev server (npm run dev), then open:
+  http://localhost:5173/docs/features/artefacts/20-collapsed-row-aggregate-chip-style.html
+-->
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Confirm: collapsed-row aggregate chip</title>
+
+<link rel="stylesheet" href="/src/index.css" />
+
+<style>
+  /* ---- Harness only. Scaffolding for the confirmation render, never application styling. ---- */
+  body { background: #e9e4dc; }
+  .harness { width: min(100% - 2rem, 56rem); margin-inline: auto; padding: 1.5rem 0 4rem; }
+  .harness-intro { background: #fff; border: 1px solid #c9c2b6; border-radius: .5rem; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+  .harness-intro h1 { font-size: 1.4rem; margin-bottom: .5rem; }
+  .harness-intro p { margin-bottom: .5rem; max-width: 70ch; }
+  .render-frame { background: var(--paper); border: 1px solid #c9c2b6; border-radius: .5rem; padding: 1.25rem 1.5rem; }
+  .row-caption { color: #4a443c; font-size: .82rem; margin: 0 0 .35rem; }
+  .row-block + .row-block { margin-top: 1.75rem; }
+
+  /* ---- Application CSS: the confirmed aggregate chip for collapsed, non-root category headings
+     and collapsed preparation bands. Distinct from StatusChip (.status), which is the circular
+     icon + full-sentence label used on expanded food/category entries. ---- */
+  .aggregate-chip {
+    align-items: center;
+    border-radius: 999px;
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: .78rem;
+    font-weight: 800;
+    gap: .3rem;
+    line-height: 1;
+    padding: .25rem .6rem;
+  }
+  .aggregate-chip-icon { font-size: .82rem; line-height: 1; }
+  .aggregate-chip.tone-green { background: var(--status-green-soft); color: var(--status-green); }
+  .aggregate-chip.tone-amber { background: var(--status-amber-soft); color: var(--status-amber); }
+  .aggregate-chip.tone-red { background: var(--status-red-soft); color: var(--status-red); }
+  .aggregate-chip.tone-grey { background: var(--status-grey-soft); color: var(--status-grey); }
+  /* Illustrative only: F-20 adds a real entry count to category headings, styled to match
+     .preparation-count, not necessarily this exact class. */
+  .category-entry-count { color: var(--muted-ink); flex: 0 0 auto; font-size: .82rem; font-weight: 800; }
+</style>
+</head>
+<body>
+<div class="harness">
+
+  <div class="harness-intro">
+    <h1>Confirmed: the collapsed-row aggregate chip</h1>
+    <p>
+      Four real collapsed rows from <code>src/data/</code>, each with the confirmed lozenge in
+      place: a compact pill, one glyph, one word ("OK" / "Maybe" / "Avoid" / "Unknown"), tinted
+      with the existing <code>--status-*-soft</code> tokens, placed inline immediately after the
+      heading text and before the entry count.
+    </p>
+  </div>
+
+  <div class="render-frame">
+
+    <!-- Row 1: uniform-green nested category. Dairy > Cheese > Hard cheese — every food in this
+         category (Cheddar, Parmesan, Gouda) resolves to `pregnancy-ok` per
+         src/data/assessments.ts ("The guide lists hard cheese as okay to eat when refrigerated."). -->
+    <div class="row-block">
+      <p class="row-caption">1 — uniform OK · nested category (real: Dairy → Cheese → Hard cheese)</p>
+      <section aria-labelledby="mock-category-hard-cheese" class="category-group" style="--category-indent: 2rem;">
+        <p class="breadcrumb">Dairy: Cheese</p>
+        <h3 id="mock-category-hard-cheese">
+          <button aria-expanded="false" aria-label="Hard cheese, level 3" class="category-toggle" type="button">
+            <span aria-hidden="true" class="category-toggle-icon">+</span>
+            <span>Hard cheese</span>
+            <span aria-hidden="true" class="aggregate-chip tone-green">
+              <span class="aggregate-chip-icon">✓</span>OK
+            </span>
+          </button>
+          <span aria-hidden="true" class="category-entry-count">3 entries</span>
+        </h3>
+      </section>
+    </div>
+
+    <!-- Row 2: uniform-red preparation band. Meat and poultry — Raw resolves to `pregnancy-avoid`
+         per src/data/assessments.ts ("Do not eat or taste raw meat or poultry."). -->
+    <div class="row-block">
+      <p class="row-caption">2 — uniform Avoid · preparation band (real: Meat and poultry — Raw)</p>
+      <section aria-labelledby="mock-prep-raw-meat" class="preparation-group">
+        <div class="preparation-header">
+          <button aria-expanded="false" aria-label="Raw Meat and poultry, 1 entry" class="preparation-toggle" type="button">
+            <span aria-hidden="true" class="category-toggle-icon">+</span>
+          </button>
+          <h4 id="mock-prep-raw-meat">
+            Raw Meat and poultry
+            <span aria-hidden="true" class="aggregate-chip tone-red">
+              <span class="aggregate-chip-icon">✕</span>Avoid
+            </span>
+          </h4>
+          <span aria-hidden="true" class="preparation-count">1 entry</span>
+        </div>
+      </section>
+    </div>
+
+    <!-- Row 3: mixed preparation band. Seafood > Fish — Cooked. Illustrative of "non-uniform"
+         (see F-20 brief for the confirmed combine algorithm that decides this). -->
+    <div class="row-block">
+      <p class="row-caption">3 — mixed · preparation band (real subtree, illustrative aggregation: Seafood → Fish — Cooked)</p>
+      <section aria-labelledby="mock-prep-cooked-fish" class="preparation-group">
+        <div class="preparation-header">
+          <button aria-expanded="false" aria-label="Cooked Fish, 59 entries" class="preparation-toggle" type="button">
+            <span aria-hidden="true" class="category-toggle-icon">+</span>
+          </button>
+          <h4 id="mock-prep-cooked-fish">
+            Cooked Fish
+            <span aria-hidden="true" class="aggregate-chip tone-amber">
+              <span class="aggregate-chip-icon">⚠</span>Maybe
+            </span>
+          </h4>
+          <span aria-hidden="true" class="preparation-count">59 entries</span>
+        </div>
+      </section>
+    </div>
+
+    <!-- Row 4: uniform not-assessed nested category. Drinks > Alcoholic drinks carries no
+         assessment on any guidance list in src/data/assessments.ts today. -->
+    <div class="row-block">
+      <p class="row-caption">4 — uniform not-assessed · nested category (real: Drinks → Alcoholic drinks)</p>
+      <section aria-labelledby="mock-category-alcoholic-drinks" class="category-group" style="--category-indent: 1rem;">
+        <p class="breadcrumb">Drinks</p>
+        <h3 id="mock-category-alcoholic-drinks">
+          <button aria-expanded="false" aria-label="Alcoholic drinks, level 2" class="category-toggle" type="button">
+            <span aria-hidden="true" class="category-toggle-icon">+</span>
+            <span>Alcoholic drinks</span>
+            <span aria-hidden="true" class="aggregate-chip tone-grey">
+              <span class="aggregate-chip-icon">?</span>Unknown
+            </span>
+          </button>
+          <span aria-hidden="true" class="category-entry-count">1 entry</span>
+        </h3>
+      </section>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

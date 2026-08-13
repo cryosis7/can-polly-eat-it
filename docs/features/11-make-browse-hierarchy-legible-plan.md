@@ -31,6 +31,10 @@ collapsed set for rendering only.
 Clearing the filter therefore restores exactly what the reader had open, rather than snapping
 everything shut or leaving the whole catalogue expanded. This needs no extra state and no effect.
 
+Narrowed by [F-20](<20-summarise-collapsed-rows-with-status-chip.md>) on 2026-08-13: "a filter" here
+means a search, category, or outcome filter. Selecting a further dietary scope no longer derives any
+expansion, because it changes which guidance is shown rather than which entries match.
+
 ### 3. Collapse is not URL state
 
 Consistent with the brief's non-goals and the `v=1` contract owned by F-02 and F-08, expansion is

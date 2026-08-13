@@ -97,6 +97,16 @@ h3 { font-size: 1.35rem; }
 .category-toggle:hover { color: var(--accent-ink, inherit); }
 .category-toggle:focus-visible { border-radius: var(--radius); outline: 3px solid var(--status-amber); outline-offset: 3px; }
 .category-toggle-icon { align-items: center; aspect-ratio: 1; background: var(--line); border-radius: .3rem; display: inline-flex; flex: 0 0 1.25rem; font-size: .85rem; font-weight: 900; height: 1.25rem; justify-content: center; line-height: 1; width: 1.25rem; }
+/* The collapsed-row summary lozenge. Deliberately distinct from .status, which renders a guidance
+   list's own authored status on an entry, so an aggregate is never mistaken for an authored one.
+   See: docs/decisions/2026-08-13 ADR - derive a display-only combined outcome for collapsed-row summaries.md */
+.aggregate-chip { align-items: center; border-radius: 999px; display: inline-flex; flex: 0 0 auto; font-family: var(--font-body); font-size: .78rem; font-weight: 800; gap: .3rem; line-height: 1; padding: .25rem .6rem; }
+.aggregate-chip-icon { font-size: .82rem; line-height: 1; }
+.aggregate-chip.tone-green { background: var(--status-green-soft); color: var(--status-green); }
+.aggregate-chip.tone-amber { background: var(--status-amber-soft); color: var(--status-amber); }
+.aggregate-chip.tone-red { background: var(--status-red-soft); color: var(--status-red); }
+.aggregate-chip.tone-grey { background: var(--status-grey-soft); color: var(--status-grey); }
+.category-entry-count { color: var(--muted-ink); font-family: var(--font-body); font-size: .82rem; font-weight: 800; margin-inline-start: .6rem; white-space: nowrap; }
 .category-entry { display: grid; gap: .3rem; margin-bottom: var(--space-3); }
 .category-entry-link { margin-bottom: .2rem; }
 /* The group's rule for this band, called out so it reads as advice that covers the rows beneath it

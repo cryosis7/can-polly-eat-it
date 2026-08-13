@@ -368,7 +368,7 @@ test.describe('Food catalogue', () => {
 
     await page.getByRole('button', { name: 'Seafood, level 1' }).click()
     const fishGroup = page.locator('section[aria-labelledby="category-fish"]')
-    const smokedToggle = fishGroup.getByRole('button', { name: /^Smoked Fish, \d+ entries$/ })
+    const smokedToggle = fishGroup.getByRole('button', { name: /^Smoked Fish,.*\d+ entries$/ })
 
     await expect(smokedToggle).toHaveAttribute('aria-expanded', 'false')
     await expect(fishGroup.getByRole('link', { name: 'Farmed salmon', exact: true })).toHaveCount(0)
@@ -491,5 +491,57 @@ test.describe('Food catalogue', () => {
     await goudaCard.getByRole('link', { name: 'See Hard cheese guidance' }).first().click()
     await expect(page.getByRole('heading', { name: 'Hard cheese' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Back to the food guide' })).toBeVisible()
+  })
+})
+
+// ADR: Derive a display-only combined outcome for collapsed-row summaries.
+// See: docs/decisions/2026-08-13 ADR - derive a display-only combined outcome for collapsed-row summaries.md
+test.describe('Collapsed-row summary chips', () => {
+  test('summarises a collapsed group and drops the chip once it is opened', async ({ page }) => {
+    await page.goto('/?v=1&scope=pregnancy-food-safety')
+
+    await page.getByRole('button', { name: /^Dairy, level 1/ }).click()
+    const hardCheese = page.getByRole('button', { name: /^Hard cheese, level \d+/ })
+    await hardCheese.click()
+
+    await expect(hardCheese.locator('.aggregate-chip')).toHaveText(/OK/)
+    await expect(hardCheese).toHaveAttribute('aria-label', /all okay/)
+
+    await hardCheese.click()
+
+    await expect(hardCheese.locator('.aggregate-chip')).toHaveCount(0)
+  })
+
+  test('summarises a group holding one dissenting food as mixed', async ({ page }) => {
+    await page.goto('/?v=1&scope=pregnancy-food-safety')
+
+    await page.getByRole('button', { name: /^Breads and cereals, level 1/ }).click()
+    const cereals = page.getByRole('button', { name: /^Cereals, level \d+/ })
+    await cereals.click()
+
+    await expect(cereals.locator('.aggregate-chip')).toHaveText(/Maybe/)
+
+    await cereals.click()
+
+    await expect(page.getByRole('link', { name: 'Fresh filled pasta' })).toBeVisible()
+  })
+
+  test('shows no chip while a search is active, so none summarises a filtered subset', async ({ page }) => {
+    await page.goto('/?v=1&scope=pregnancy-food-safety&q=rice')
+
+    await expect(page.getByRole('link', { name: 'Rice' })).toBeVisible()
+    await expect(page.locator('.aggregate-chip')).toHaveCount(0)
+  })
+
+  test('keeps collapse state and chips when a second dietary scope is selected', async ({ page }) => {
+    await page.goto('/?v=1&scope=pregnancy-food-safety,vegetarian-suitability')
+
+    await page.getByRole('button', { name: /^Dairy, level 1/ }).click()
+    const hardCheese = page.getByRole('button', { name: /^Hard cheese, level \d+/ })
+    await hardCheese.click()
+
+    // Uniformly okay under pregnancy alone, but Parmesan carries a vegetarian animal-derived
+    // override its siblings do not, so the two scopes together read as mixed.
+    await expect(hardCheese.locator('.aggregate-chip')).toHaveText(/Maybe/)
   })
 })

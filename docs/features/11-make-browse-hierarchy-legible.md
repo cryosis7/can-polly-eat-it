@@ -42,8 +42,12 @@ and reach the part of the guide I want without scrolling past all of it.
   technology and is operable by keyboard with visible focus.
 - With no search or filter applied, top-level groups start collapsed and their descendants start
   expanded, so expanding one group reveals that whole group.
-- When a search or filter is active, every group containing a match is expanded so that no matching
-  entry is hidden behind a collapsed group.
+- When a search, category, or outcome filter is active, every group containing a match is expanded so
+  that no matching entry is hidden behind a collapsed group. Narrowed by
+  [F-20](<20-summarise-collapsed-rows-with-status-chip.md>) on 2026-08-13: selecting a further
+  dietary scope does not count as a filter here. It changes which guidance is shown rather than which
+  entries match — the result count is unchanged by it — so there is nothing to reveal, and the
+  reader's collapse state survives it.
 - Collapse state is presentation only. It must not change the result count, the URL contract, which
   entries match, or the announced results.
 - A food and an assessed category use one shared guide-entry presentation: name link, per-scope status

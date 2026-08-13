@@ -78,12 +78,18 @@ collapsed presentation state must not silently hide results the current query or
 
 3. **Apply the default and result-discovery policy**
    - Default preparation bands to collapsed in the unfiltered catalogue.
-   - When search text, category filtering, or outcome/scope filtering creates a result view, ensure
+   - When search text, category filtering, or outcome filtering creates a result view, ensure
      matching preparation rows are discoverable rather than hidden behind stale collapse state. Prefer
      deriving expansion from active result constraints or resetting stale collapsed state at the
      catalogue render seam; do not change filter predicates, result counts, URL state, or guidance
      resolution to achieve this.
    - Empty search remains the normal catalogue and therefore returns to the default collapsed state.
+
+   Narrowed by [F-20](<20-summarise-collapsed-rows-with-status-chip.md>) on 2026-08-13: selecting a
+   further dietary scope no longer creates a result view for this purpose. A scope changes which
+   guidance is shown rather than which entries qualify — the result count is unchanged by it — so it
+   no longer expands anything and the reader's collapse state survives it. Search, category, and
+   outcome filtering are unaffected.
 
 4. **Preserve existing guidance and row semantics**
    - Expanding a band must reveal the same guidance callout and guide-entry cards that render today.

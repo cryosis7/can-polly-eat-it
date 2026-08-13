@@ -54,8 +54,11 @@ The artefact is normative for the interaction shape and acceptance criteria:
   semantics.
 - Collapse state is presentation only. It must not change the URL, result count, search matches,
   filter matches, guidance resolution, or the set of layers rendered.
-- Search and filters must not leave matching rows unexpectedly hidden behind a collapsed preparation
-  band.
+- Search, category, and outcome filters must not leave matching rows unexpectedly hidden behind a
+  collapsed preparation band. Narrowed by
+  [F-20](<20-summarise-collapsed-rows-with-status-chip.md>) on 2026-08-13: selecting a further
+  dietary scope is not a filter for this purpose, because it changes which guidance is shown rather
+  than which rows match, so it leaves collapse state untouched.
 - Preparation band controls expose their expanded state to assistive technology and are operable by
   keyboard with visible focus.
 
