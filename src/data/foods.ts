@@ -175,6 +175,48 @@ const foodGroups: FoodGroup[] = [
     ],
   },
   {
+    // Tea declares no preparation states. Every source treats a cup of tea as one thing and speaks
+    // about the leaf rather than the brewing, so there is no state to declare and no evidence that
+    // New Zealanders distinguish these teas by a preparation the catalogue already holds.
+    categoryId: 'caffeinated-tea',
+    foods: [
+      { id: 'black-tea', name: 'Black tea', aliases: ['English breakfast tea', 'Earl Grey tea', 'Orange Pekoe', 'builders tea', 'iced tea'] },
+      { id: 'green-tea', name: 'Green tea' },
+      { id: 'matcha-tea', name: 'Matcha', aliases: ['matcha tea', 'matcha latte'] },
+      { id: 'white-tea', name: 'White tea' },
+      { id: 'oolong-tea', name: 'Oolong tea' },
+      { id: 'chai-tea', name: 'Chai', aliases: ['chai tea', 'chai latte', 'masala chai'] },
+    ],
+  },
+  {
+    categoryId: 'herbal-tea',
+    foods: [
+      { id: 'chamomile-tea', name: 'Chamomile tea', aliases: ['camomile tea', 'German chamomile', 'Matricaria recutita'] },
+      { id: 'peppermint-tea', name: 'Peppermint tea', aliases: ['mint tea', 'peppermint leaf'] },
+      { id: 'ginger-tea', name: 'Ginger tea', aliases: ['ginger root tea'] },
+      { id: 'raspberry-leaf-tea', name: 'Raspberry leaf tea', aliases: ['red raspberry leaf tea'] },
+      { id: 'lemon-balm-tea', name: 'Lemon balm tea', aliases: ['melissa tea'] },
+      { id: 'pregnancy-tea-blends', name: 'Pregnancy tea blends', aliases: ['pregnancy tea', 'labour tea', 'birth prep tea'] },
+      { id: 'nettle-tea', name: 'Nettle tea', aliases: ['stinging nettle leaf tea', 'nettle leaf tea'] },
+      { id: 'fennel-tea', name: 'Fennel tea', aliases: ['Foeniculum vulgare'] },
+      { id: 'licorice-root-tea', name: 'Licorice root tea', aliases: ['liquorice tea'] },
+      { id: 'sage-tea', name: 'Sage tea' },
+      { id: 'hibiscus-tea', name: 'Hibiscus tea' },
+      { id: 'lemongrass-tea', name: 'Lemongrass tea' },
+      { id: 'rosemary-tea', name: 'Rosemary tea' },
+      { id: 'st-johns-wort-tea', name: "St John's wort tea", aliases: ['saint johns wort tea'] },
+      { id: 'alfalfa-tea', name: 'Alfalfa tea' },
+      { id: 'yellow-dock-tea', name: 'Yellow dock tea' },
+      { id: 'dandelion-tea', name: 'Dandelion tea', aliases: ['dandelion root tea', 'dandelion leaf tea'] },
+      { id: 'rose-hip-tea', name: 'Rose hip tea', aliases: ['rosehip tea'] },
+      { id: 'pennyroyal-tea', name: 'Pennyroyal tea' },
+      { id: 'black-cohosh-tea', name: 'Black cohosh tea' },
+      { id: 'blue-cohosh-tea', name: 'Blue cohosh tea' },
+      { id: 'motherwort-tea', name: 'Motherwort tea' },
+      { id: 'borage-tea', name: 'Borage tea' },
+    ],
+  },
+  {
     categoryId: 'fish',
     foods: seafood([
       { id: 'anchovy', name: 'Anchovy' }, { id: 'barracouta', name: 'Barracouta' },

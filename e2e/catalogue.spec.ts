@@ -34,7 +34,7 @@ test.describe('Food catalogue', () => {
 
     await expect(page.getByRole('button', { name: 'Dairy, level 1' })).toHaveAttribute('aria-expanded', 'false')
     await expect(page.getByRole('button', { name: 'Cheese, level 2' })).toHaveCount(0)
-    await expect(page.getByText('202 results in the guide')).toBeVisible()
+    await expect(page.getByText('233 results in the guide')).toBeVisible()
 
     const collapsedHeight = await page.evaluate(() => document.body.scrollHeight)
     expect(collapsedHeight).toBeLessThan(6000)
@@ -200,7 +200,7 @@ test.describe('Food catalogue', () => {
     await page.keyboard.press('Tab')
     await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused()
     await expect(page.getByRole('searchbox', { name: 'Search foods' })).toBeVisible()
-    await expect(page.getByText('202 results in the guide')).toBeVisible()
+    await expect(page.getByText('233 results in the guide')).toBeVisible()
     await expect(page.locator('details')).not.toHaveAttribute('open', '')
 
     await page.getByText('Filters', { exact: true }).click()
@@ -529,7 +529,9 @@ test.describe('Collapsed-row summary chips', () => {
   test('shows no chip while a search is active, so none summarises a filtered subset', async ({ page }) => {
     await page.goto('/?v=1&scope=pregnancy-food-safety&q=rice')
 
-    await expect(page.getByRole('link', { name: 'Rice' })).toBeVisible()
+    // "rice" is a substring of "licorice", so the tea now matches this search too; the assertion
+    // names the exact link it means rather than relying on the query returning a single food.
+    await expect(page.getByRole('link', { name: 'Rice', exact: true })).toBeVisible()
     await expect(page.locator('.aggregate-chip')).toHaveCount(0)
   })
 

@@ -80,6 +80,44 @@ const rawEggFoodIds = [
 ]
 
 /**
+ * Tea foods introduced by the tea curation. They have no pre-migration baseline because nothing in
+ * the guide had assessed tea before. They are listed explicitly rather than derived from the tea
+ * categories: the point of this invariant is that new content is named, and a derived list would let
+ * a later addition pass in silence.
+ */
+const teaFoodIds = [
+  'alfalfa-tea',
+  'black-cohosh-tea',
+  'black-tea',
+  'blue-cohosh-tea',
+  'borage-tea',
+  'chai-tea',
+  'chamomile-tea',
+  'dandelion-tea',
+  'fennel-tea',
+  'ginger-tea',
+  'green-tea',
+  'hibiscus-tea',
+  'lemon-balm-tea',
+  'lemongrass-tea',
+  'licorice-root-tea',
+  'matcha-tea',
+  'motherwort-tea',
+  'nettle-tea',
+  'oolong-tea',
+  'pennyroyal-tea',
+  'peppermint-tea',
+  'pregnancy-tea-blends',
+  'raspberry-leaf-tea',
+  'rose-hip-tea',
+  'rosemary-tea',
+  'sage-tea',
+  'st-johns-wort-tea',
+  'white-tea',
+  'yellow-dock-tea',
+]
+
+/**
  * Foods whose guidance F-13, F-14 and F-16 deliberately change. Panna cotta moves from a root outside
  * pregnancy coverage into `Cold desserts`, which is inside it. The two footnoted shellfish gain the
  * group's cooking instruction as a second layer, which F-16 exists to surface. Tortillas and
@@ -162,7 +200,7 @@ describe('guidance migration invariant', () => {
     const departed = baselineFoodIds.filter((foodId) => !currentFoodIds.has(foodId))
     const arrived = [...currentFoodIds].filter((foodId) => !(foodId in baseline))
     expect([...departed].sort()).toEqual([...retiredFoodIds].sort())
-    expect([...arrived].sort()).toEqual([...introducedFoodIds.map((entry) => entry.id), ...rawEggFoodIds].sort())
+    expect([...arrived].sort()).toEqual([...introducedFoodIds.map((entry) => entry.id), ...rawEggFoodIds, ...teaFoodIds].sort())
   })
 
   it('gives each introduced food the guidance of the mirror food it replaces', () => {

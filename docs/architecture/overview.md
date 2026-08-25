@@ -504,6 +504,44 @@ frequency limits. The user-provided pullout guide is retained as a starting refe
 editorial process must cite the currently reviewed authoritative URL and exact locator for every
 implemented assessment.
 
+### Tea and herbal drinks
+
+`pregnancy-food-safety` also draws on three reviewed tea sources, because New Zealand Food Safety
+does not address tea: the [Medeniyet Medical Journal review](https://pmc.ncbi.nlm.nih.gov/articles/PMC7384490/),
+the [American Pregnancy Association](https://americanpregnancy.org/pregnancy/herbal-tea/), and
+[BabyCenter](https://www.babycenter.com/pregnancy/diet-and-fitness/herbal-teas-during-pregnancy_3537).
+They are peers of New Zealand Food Safety inside the one list rather than a list of their own,
+because they answer the same question about the same reader.
+
+Tea is filed under `Drinks > Tea`, split into `Caffeinated tea` and `Herbal tea`. That split is what
+every source makes: caffeine governs one branch and unstudied plant compounds govern the other. Tea
+declares no preparation states, because no source distinguishes a cup of tea by how it was made.
+
+Every tea in the catalogue is there because a reviewed source named it, and carries that source's own
+assessment. A tea is not listed merely because people drink it, so when a source is dropped, the teas
+only it named are dropped with it. `src/domain/teaGuidance.test.ts` enforces this.
+
+These sources disagree often, and the disagreement is authored rather than resolved: each source's
+advice is its own assessment, the most cautious authored status governs the entry, and the dissenting
+positions are named and linked. Where they agree on a status but differ in detail — BabyCenter sets a
+200 mg daily caffeine limit where the American Pregnancy Association declines to name a figure — each
+position stays inside the sentence of the source that stated it, and no reconciled figure is shown.
+
+Adding these sources made the pregnancy list multi-source, so every pre-existing pregnancy assessment
+now names `new-zealand-food-safety` and the guide renders attribution on content that previously
+spoke in an unattributed voice.
+
+### `Not enough evidence`
+
+The pregnancy list owns a fifth status, `pregnancy-insufficient-evidence` (amber, `maybe` band), for
+a source that declines to judge. The American Pregnancy Association rates several herbs "insufficient
+reliable information available", which is not a conditional verdict, and rendering it as
+`Only with conditions` would attribute to that source a conclusion it did not reach. It shares the
+`maybe` outcome band with `pregnancy-conditions`, so the catalogue's outcome filter groups the two
+and only the authored words separate them; that filtering imprecision was accepted deliberately in
+preference to misattribution. Like every other authored status it is never the fallback, which stays
+`pregnancy-not-assessed`.
+
 ## Deployment and operations
 
 - Deploy the Vite bundle to Netlify using `netlify.toml` and `public/_redirects`; test the root, a

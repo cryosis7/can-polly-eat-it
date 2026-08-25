@@ -260,6 +260,11 @@ describe('a food eaten in several preparations', () => {
         id: 'salmon-raw-pregnancy',
         subject: { kind: 'food', foodId: salmon.id },
         guidanceListId: 'pregnancy-food-safety',
+        // The pregnancy list declares more than one source, so a fixture assessment names one too.
+        // Naming New Zealand Food Safety also keeps `salmon-mercury-pregnancy` below on the same
+        // axis and source as the authored farmed-salmon rule, which is the collision this fixture
+        // exists to exercise.
+        sourceId: 'new-zealand-food-safety',
         statusId: 'pregnancy-avoid',
         preparationId: 'raw',
         summary: 'Do not eat raw salmon.',
@@ -271,6 +276,7 @@ describe('a food eaten in several preparations', () => {
         id: 'salmon-mercury-pregnancy',
         subject: { kind: 'food', foodId: salmon.id },
         guidanceListId: 'pregnancy-food-safety',
+        sourceId: 'new-zealand-food-safety',
         statusId: 'pregnancy-conditions',
         summary: 'Limit to 3 to 4 servings a week.',
         guidanceScenarios: [],
@@ -281,6 +287,7 @@ describe('a food eaten in several preparations', () => {
         id: 'smoked-group-pregnancy',
         subject: { kind: 'category', categoryId: salmon.primaryCategoryId },
         guidanceListId: 'pregnancy-food-safety',
+        sourceId: 'new-zealand-food-safety',
         statusId: 'pregnancy-avoid',
         preparationId: 'smoked',
         scopeStatement: 'Applies to all smoked seafood in this group.',

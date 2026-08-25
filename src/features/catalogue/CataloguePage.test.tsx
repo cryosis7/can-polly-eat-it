@@ -122,7 +122,7 @@ describe('CataloguePage', () => {
     const disclosure = container.querySelector('details')
     expect(disclosure).not.toHaveAttribute('open')
     expect(screen.getByRole('searchbox', { name: 'Search foods' })).toBeInTheDocument()
-    expect(screen.getByText('202 results in the guide')).toBeInTheDocument()
+    expect(screen.getByText('233 results in the guide')).toBeInTheDocument()
 
     disclosure!.open = true
     fireEvent(disclosure!, new Event('toggle', { bubbles: true }))
@@ -531,6 +531,9 @@ describe('browsing a category with a preparation dimension', () => {
         id: 'salmon-raw-pregnancy',
         subject: { kind: 'food', foodId: salmon.id },
         guidanceListId: 'pregnancy-food-safety',
+        // The pregnancy list declares more than one source, so a fixture assessment must name one
+        // too; an unattributed one would be rejected by validation and cannot arise in real content.
+        sourceId: 'new-zealand-food-safety',
         statusId: 'pregnancy-avoid',
         preparationId: 'raw',
         summary: 'Do not eat raw salmon.',
@@ -542,6 +545,7 @@ describe('browsing a category with a preparation dimension', () => {
         id: 'salmon-cooked-pregnancy',
         subject: { kind: 'food', foodId: salmon.id },
         guidanceListId: 'pregnancy-food-safety',
+        sourceId: 'new-zealand-food-safety',
         statusId: 'pregnancy-ok',
         preparationId: 'cooked',
         summary: 'Cooked salmon is fine.',

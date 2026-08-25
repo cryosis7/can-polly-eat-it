@@ -68,6 +68,11 @@ const scannedStates = [
     settled: (page: Page) => page.getByRole('heading', { name: 'Ice cream' }),
   },
   {
+    name: 'a contested food detail page showing competing source positions',
+    url: '/food/chamomile-tea?v=1&scope=pregnancy-food-safety',
+    settled: (page: Page) => page.getByRole('heading', { name: 'What each source says' }),
+  },
+  {
     name: 'the food-not-found route',
     url: '/food/removed-food?v=1&scope=pregnancy-food-safety',
     settled: (page: Page) => page.getByRole('heading', { name: 'Food not found' }),

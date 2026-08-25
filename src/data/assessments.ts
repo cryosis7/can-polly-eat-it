@@ -1,4 +1,5 @@
 import type { Assessment } from '../domain/schemas'
+import { teaAssessments } from './teaAssessments'
 
 type Condition = {
   kind: 'preparation' | 'storage' | 'serving' | 'frequency' | 'composition' | 'other'
@@ -63,6 +64,9 @@ const createAssessments = (spec: AssessmentSpec): Assessment[] =>
     id: `${foodId}-pregnancy`,
     subject: { kind: 'food', foodId },
     guidanceListId: 'pregnancy-food-safety',
+    // The pregnancy list now draws on more than one authority, so every assessment names the one
+    // that stated it. These are all New Zealand Food Safety's.
+    sourceId: 'new-zealand-food-safety',
     statusId: spec.statusId,
     summary: spec.summary,
     ...(spec.relation ? { relation: spec.relation } : {}),
@@ -81,6 +85,7 @@ const createCategoryAssessments = (spec: CategoryAssessmentSpec): Assessment[] =
       subject: { kind: 'category', categoryId },
       ...(preparationId === undefined ? {} : { preparationId }),
       guidanceListId: 'pregnancy-food-safety',
+      sourceId: 'new-zealand-food-safety',
       statusId: spec.statusId,
       summary: spec.summary,
       scopeStatement,
@@ -683,6 +688,7 @@ const vegetarianCategoryAssessments: Assessment[] = [
 export const assessments = [
   ...assessmentSpecs.flatMap(createAssessments),
   ...categoryAssessmentSpecs.flatMap(createCategoryAssessments),
+  ...teaAssessments,
   ...vegetarianAssessments,
   ...vegetarianCategoryAssessments,
 ]

@@ -39,6 +39,11 @@ export const categories: Category[] = [
   { id: 'ice-cream', slug: 'ice-cream', name: 'Ice cream', parentId: 'cold-desserts', aliases: [], sortOrder: 1 },
   { id: 'drinks', slug: 'drinks', name: 'Drinks', parentId: null, aliases: ['beverages'], sortOrder: 5 },
   { id: 'fruit-juice-kombucha-and-cider', slug: 'fruit-juice-kombucha-and-cider', name: 'Fruit juice, kombucha and cider (non-alcoholic)', parentId: 'drinks', aliases: ['pasteurised juice', 'pasteurised kombucha', 'pasteurised cider', 'raw fruit juice', 'raw kombucha', 'raw cider', 'raw juice'], sortOrder: 1 },
+  { id: 'tea', slug: 'tea', name: 'Tea', parentId: 'drinks', aliases: ['teas', 'brew', 'cuppa', 'infusion'], sortOrder: 2 },
+  // Tea splits on what the leaf is, not on how it is brewed, because that is the split every source
+  // makes: caffeine governs one branch and unstudied plant compounds govern the other.
+  { id: 'caffeinated-tea', slug: 'caffeinated-tea', name: 'Caffeinated tea', parentId: 'tea', aliases: ['non-herbal tea', 'true tea', 'Camellia sinensis', 'iced tea', 'English breakfast', 'Earl Grey', 'Orange Pekoe'], sortOrder: 1 },
+  { id: 'herbal-tea', slug: 'herbal-tea', name: 'Herbal tea', parentId: 'tea', aliases: ['tisane', 'herbal infusion', 'herbal teas'], sortOrder: 2 },
   { id: 'alcoholic-drinks', slug: 'alcoholic-drinks', name: 'Alcoholic drinks', parentId: 'drinks', aliases: [], sortOrder: 3 },
   { id: 'eggs', slug: 'eggs', name: 'Eggs', parentId: null, aliases: ['Raw eggs and foods containing raw eggs', 'uncooked eggs', 'runny eggs', 'fried eggs', 'scrambled eggs', 'poached eggs'], sortOrder: 6 },
   { id: 'ingredients-and-additives', slug: 'ingredients-and-additives', name: 'Ingredients and additives', parentId: null, aliases: [], sortOrder: 7 },

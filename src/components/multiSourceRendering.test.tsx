@@ -90,9 +90,9 @@ describe('rendering guidance from more than one source', () => {
     expect(screen.queryByText(/reached a different conclusion/)).not.toBeInTheDocument()
   })
 
-  it('renders no attribution chrome at all in a list that declares fewer than two sources', () => {
+  it('renders no attribution chrome in a list that declares no source, while an attributed list names its own', () => {
     render(
-      <MemoryRouter initialEntries={['/food/cheddar?v=1&scope=pregnancy-food-safety']}>
+      <MemoryRouter initialEntries={['/food/cheddar?v=1&scope=pregnancy-food-safety,vegetarian-suitability']}>
         <Routes>
           <Route
             path="/food/:foodSlug"
@@ -102,8 +102,19 @@ describe('rendering guidance from more than one source', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.queryByText(/Stated by/)).not.toBeInTheDocument()
-    expect(screen.queryByText(/reached a different conclusion/)).not.toBeInTheDocument()
+    const cardFor = (title: string) =>
+      screen.getByRole('heading', { name: title }).closest('.guidance-summary') as HTMLElement
+
+    // Vegetarian suitability stands on its evidentiary basis rather than a named authority, so it
+    // renders no attribution at all.
+    const vegetarian = cardFor('Vegetarian suitability')
+    expect(within(vegetarian).queryByText(/Stated by/)).not.toBeInTheDocument()
+    expect(within(vegetarian).queryByText(/reached a different conclusion/)).not.toBeInTheDocument()
+
+    // Pregnancy food safety now draws on more than one authority, so it names the one that spoke.
+    const pregnancy = cardFor('Pregnancy food safety')
+    expect(within(pregnancy).getByText(/Stated by/)).toHaveTextContent('Stated by New Zealand Food Safety')
+    expect(within(pregnancy).queryByText(/reached a different conclusion/)).not.toBeInTheDocument()
   })
 
   it('states the disagreement on the catalogue card, where most readers see the status', () => {

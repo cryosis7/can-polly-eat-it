@@ -9,12 +9,16 @@ const index = createContentIndex(content.categories, content.assessments)
 
 describe('guide content validation', () => {
   it('accepts the authored fixture content', () => {
-    expect(content.categories).toHaveLength(49)
-    expect(content.foods).toHaveLength(109)
-    expect(content.assessments).toHaveLength(142)
+    expect(content.categories).toHaveLength(52)
+    expect(content.foods).toHaveLength(138)
+    expect(content.assessments).toHaveLength(183)
     expect(content.guidanceLists.map((list) => list.id)).toEqual(['pregnancy-food-safety', 'vegetarian-suitability'])
     expect(content.guidanceLists[0].statuses.map((status) => status.outcomeBand)).toEqual([
       'okay',
+      'maybe',
+      // `Not enough evidence` shares the `maybe` band with `Only with conditions`: the outcome
+      // filter groups them, and only the authored words tell a reader that one source set
+      // conditions while another declined to judge at all.
       'maybe',
       'not-okay',
       'not-assessed',
@@ -197,6 +201,7 @@ describe('guide content validation', () => {
       id: 'gummy-bears-pregnancy',
       subject: { kind: 'food', foodId: 'gummy-bears' },
       guidanceListId: 'pregnancy-food-safety',
+      sourceId: 'new-zealand-food-safety',
       statusId: 'pregnancy-avoid',
       summary: 'Adds to guidance that does not exist.',
       relation: 'adds-to',
@@ -308,27 +313,29 @@ describe('guide content validation', () => {
   })
 
   it('requires attribution only in a list that declares more than one source', () => {
-    const pregnancyId = 'pregnancy-food-safety'
-    const secondSource = { ...content.sources[0], id: 'second-authority', slug: 'second-authority' }
-
+    // The pregnancy list now declares five sources, so an assessment that names none is rejected.
     expect(() => validateContent({
       ...content,
-      sources: [...content.sources, secondSource],
-      guidanceLists: content.guidanceLists.map((list) => (
-        list.id === pregnancyId ? { ...list, sourceIds: [...list.sourceIds, secondSource.id] } : list
+      assessments: content.assessments.map((assessment) => (
+        assessment.id === 'mousse-pregnancy'
+          ? { ...assessment, sourceId: undefined }
+          : assessment
       )),
     })).toThrow('must name its source')
 
     expect(() => validateContent({
       ...content,
       assessments: content.assessments.map((assessment) => (
-        assessment.guidanceListId === pregnancyId
+        assessment.id === 'mousse-pregnancy'
           ? { ...assessment, sourceId: 'an-authority-this-list-does-not-declare' }
           : assessment
       )),
     })).toThrow('does not declare')
 
-    // Both authored lists are single-source or no-source today, so nothing needs attribution.
+    // Vegetarian suitability declares no source, so its assessments carry no attribution and the
+    // authored content as a whole still validates.
+    expect(content.assessments.filter((assessment) => assessment.guidanceListId === 'vegetarian-suitability')
+      .every((assessment) => assessment.sourceId === undefined)).toBe(true)
     expect(() => validateContent(content)).not.toThrow()
   })
 
