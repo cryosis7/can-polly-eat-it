@@ -4,18 +4,18 @@
 
 **Depends on:** None
 
-**Governing decisions:** [Static TypeScript React SPA](<../decisions/2026-08-04 ADR - use a static TypeScript React SPA.md>), [unbounded category tree](<../decisions/2026-08-04 ADR - model food groups as an unbounded category tree.md>), and [independent guidance lists](<../decisions/2026-08-04 ADR - use independent guidance lists for food assessments.md>)
+**Governing decisions:** [Static TypeScript React SPA](<../decisions/2026-08-04 ADR - use a static TypeScript React SPA.md>), [unbounded category tree](<../decisions/2026-08-04 ADR - model food groups as an unbounded category tree.md>), [independent guidance lists](<../decisions/2026-08-04 ADR - use independent guidance lists for food assessments.md>), and [default the catalogue to pregnancy and vegetarian scopes](<../decisions/2026-08-25 ADR - default the catalogue to pregnancy and vegetarian scopes.md>)
 
 ## Goal
 
 Let Polly scan the full food guide in familiar groups and immediately see each food's outcome for
-the selected guidance list.
+the selected guidance lists.
 
 ## Primary experience
 
 1. Open the home page.
-2. See the pregnancy food-safety list selected by default and a concise explanation of its status
-   labels.
+2. See the pregnancy food-safety and vegetarian suitability lists selected by default and a concise
+   explanation of their status labels.
 3. Browse grouped categories in editorial order, for example `Dairy -> Cheese -> Hard cheese`.
 4. See food cards inside their category with an explicit text status, summary, and source link.
 5. Follow a card to learn the details delivered by [F-03](<03-explain-food-guidance.md>).

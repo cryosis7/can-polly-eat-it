@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { buildCatalogueQuery, parseCatalogueQuery, withPreparationSlug, type CatalogueQueryState } from '../../app/catalogueQuery'
+import { buildCatalogueQuery, defaultScopeSlugs, parseCatalogueQuery, withPreparationSlug, type CatalogueQueryState } from '../../app/catalogueQuery'
 import { CollapsedRowChip } from '../../components/CollapsedRowChip'
 import { GuidanceLayers } from '../../components/GuidanceLayers'
 import { GuideEntrySummary } from '../../components/GuideEntrySummary'
@@ -45,8 +45,6 @@ const outcomeLabels: Record<OutcomeBand, string> = {
   'not-assessed': 'Not assessed',
 }
 
-const defaultScopeSlug = 'pregnancy-food-safety'
-
 export const CataloguePage = ({ content }: CataloguePageProps) => {
   const [searchParams, setSearchParams] = useSearchParams()
   const [filterRemovalAnnouncement, setFilterRemovalAnnouncement] = useState('')
@@ -63,6 +61,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
     new Set(categoryBySlug.keys()),
   )
   const selectedGuidanceLists = content.guidanceLists.filter((list) => queryState.scopeSlugs.includes(list.slug))
+  const scopeDefaults = defaultScopeSlugs(content.guidanceLists)
   const filterState = {
     query: queryState.query,
     categoryId: queryState.categorySlug ? categoryBySlug.get(queryState.categorySlug)?.id : undefined,
@@ -90,7 +89,8 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
   const entriesInCategory = entryRowsByCategoryId(selectedCategoryRows, preparationOrder)
   const contentCategoryIds = new Set([...rowsInCategory.keys(), ...matchedCategoryEntryIds])
   const rowsWithContent = withAncestorIds(categoryRows, contentCategoryIds)
-  const hasNonDefaultScope = queryState.scopeSlugs.length !== 1 || queryState.scopeSlugs[0] !== defaultScopeSlug
+  const hasNonDefaultScope = queryState.scopeSlugs.length !== scopeDefaults.length ||
+    !scopeDefaults.every((slug) => queryState.scopeSlugs.includes(slug))
   // Auto-expansion exists so a search or filter never hides a matching row behind a collapsed
   // group. A bare scope change matches nothing new — with no outcome bands selected every entry
   // still qualifies — so it is a lens on the guidance shown, not a filter on the rows, and it
@@ -311,7 +311,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                   ...current,
                   query: '',
                   categorySlug: undefined,
-                  scopeSlugs: [defaultScopeSlug],
+                  scopeSlugs: scopeDefaults,
                   outcomeBands: [],
                 }))}
               >

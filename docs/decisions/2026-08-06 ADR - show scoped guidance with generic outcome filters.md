@@ -156,3 +156,10 @@ The 2026-08-07
 [single not-assessed state ADR](<2026-08-07 ADR - resolve unassessed guidance from a single not-assessed state.md>)
 later superseded this ADR's distinct-fallback-band detail. The generic outcome filter contract and
 AND-across-scopes semantics remain in force.
+
+The 2026-08-25
+[default pregnancy and vegetarian scopes ADR](<2026-08-25 ADR - default the catalogue to pregnancy and vegetarian scopes.md>)
+later superseded this ADR's default-scope detail (pregnancy alone by default): the no-`scope`
+catalogue default now selects both `pregnancy-food-safety` and `vegetarian-suitability`. Every other
+decision here — generic outcome bands, OR-within-scope/AND-across-scope semantics, and the URL
+contract — remains in force.

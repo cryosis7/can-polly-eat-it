@@ -164,8 +164,9 @@ Coverage is now derived, not declared: what a list covers is exactly the set of 
   [2026-08-06 ADR: show scoped guidance with generic outcome filters](<2026-08-06 ADR - show scoped guidance with generic outcome filters.md>),
   specifically its consequence that "missing assessments and outside-coverage states remain necessary
   domain fallbacks" and its verification criterion that missing assessments "resolve to distinct
-  in-coverage and outside-coverage fallback states". The rest of that ADR — generic outcome bands,
-  AND-across-scopes filtering, and the pregnancy default — stands unchanged.
+  in-coverage and outside-coverage fallback states". The rest of that ADR — generic outcome bands and
+  AND-across-scopes filtering — stands unchanged; its pregnancy-only default was later superseded in
+  turn by [2026-08-25 ADR: default the catalogue to pregnancy and vegetarian scopes](<2026-08-25 ADR - default the catalogue to pregnancy and vegetarian scopes.md>).
 - Amends
   [2026-08-05 ADR: remove temporal freshness metadata from guidance content](<2026-08-05 ADR - remove temporal freshness metadata from guidance content.md>),
   which retained "explicit coverage" alongside cited sources. Cited, precisely located sources are

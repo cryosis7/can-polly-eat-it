@@ -99,21 +99,24 @@ describe('CataloguePage', () => {
     expect(screen.getAllByRole('region', { name: /^Smoked / }).length).toBeGreaterThan(0)
   })
 
-  it('defaults to pregnancy scope and renders its list-specific card guidance', () => {
+  it('defaults to pregnancy and vegetarian scopes and renders their list-specific card guidance', () => {
     renderCatalogue()
     expandGroup('Dairy')
 
     expect(screen.getByRole('heading', { name: "Polly's Food Guide" })).toBeInTheDocument()
     expect(screen.getByRole('checkbox', { name: 'Pregnancy food safety' })).toBeChecked()
-    expect(screen.getByRole('checkbox', { name: 'Pregnancy food safety' })).toBeDisabled()
-    expect(screen.getByRole('checkbox', { name: 'Vegetarian suitability' })).not.toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'Pregnancy food safety' })).not.toBeDisabled()
+    expect(screen.getByRole('checkbox', { name: 'Vegetarian suitability' })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'Vegetarian suitability' })).not.toBeDisabled()
     expect(screen.queryByRole('checkbox', { name: 'Not assessed' })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Low-acid soft pasteurised cheese' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Cheddar' })).toHaveAttribute(
       'href',
-      '/food/cheddar?v=1&scope=pregnancy-food-safety',
+      '/food/cheddar?v=1&scope=pregnancy-food-safety%2Cvegetarian-suitability',
     )
-    expect(screen.getByRole('link', { name: 'Cheddar' }).closest('.food-card')).toHaveTextContent('Pregnancy food safety')
+    const cheddarCard = screen.getByRole('link', { name: 'Cheddar' }).closest('.food-card')
+    expect(cheddarCard).toHaveTextContent('Pregnancy food safety')
+    expect(cheddarCard).toHaveTextContent('Vegetarian suitability')
   })
 
   it('keeps search available while mobile filter facets use a native disclosure', () => {
@@ -171,7 +174,7 @@ describe('CataloguePage', () => {
     renderCatalogue('/?v=2&scope=retired-list&outcome=unknown&category=retired-category&q=yogurt')
 
     expect(screen.getByRole('status')).toHaveTextContent('Unavailable shared filters were removed.')
-    expect(screen.getByRole('link', { name: 'Yoghurt guidance' })).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: 'Yoghurt guidance' }).length).toBeGreaterThan(0)
     expect(screen.queryByRole('link', { name: 'Cheddar' })).not.toBeInTheDocument()
     expect(screen.getByText('1 result in the guide')).toBeInTheDocument()
   })
@@ -651,7 +654,7 @@ describe('CataloguePage collapsed-row chips', () => {
   const collapseRow = (name: string) => fireEvent.click(rowToggle(name))
 
   it('summarises a uniformly okay category with its own solid chip', () => {
-    renderCatalogue()
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety')
     expandGroup('Dairy')
     collapseRow('Hard cheese')
 
@@ -728,7 +731,7 @@ describe('CataloguePage collapsed-row chips', () => {
   })
 
   it('gives a collapsed row an entry count and speaks its summary to assistive technology', () => {
-    renderCatalogue()
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety')
     expandGroup('Dairy')
     collapseRow('Hard cheese')
 
@@ -758,7 +761,7 @@ describe('CataloguePage collapsed-row chips', () => {
   })
 
   it('hides the category own guidance while collapsed, as a preparation band hides its callout', () => {
-    renderCatalogue()
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety')
     expandGroup('Dairy')
     const groupFor = (name: string) => rowToggle(name).closest('.category-group') as HTMLElement
 

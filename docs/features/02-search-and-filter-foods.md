@@ -4,7 +4,7 @@
 
 **Depends on:** [F-01: Browse the Food Guide](<01-browse-food-guide.md>)
 
-**Governing decisions:** [Static TypeScript React SPA](<../decisions/2026-08-04 ADR - use a static TypeScript React SPA.md>), [independent guidance lists](<../decisions/2026-08-04 ADR - use independent guidance lists for food assessments.md>), and [scoped guidance with generic outcome filters](<../decisions/2026-08-06 ADR - show scoped guidance with generic outcome filters.md>)
+**Governing decisions:** [Static TypeScript React SPA](<../decisions/2026-08-04 ADR - use a static TypeScript React SPA.md>), [independent guidance lists](<../decisions/2026-08-04 ADR - use independent guidance lists for food assessments.md>), [scoped guidance with generic outcome filters](<../decisions/2026-08-06 ADR - show scoped guidance with generic outcome filters.md>), and [default the catalogue to pregnancy and vegetarian scopes](<../decisions/2026-08-25 ADR - default the catalogue to pregnancy and vegetarian scopes.md>)
 
 ## Goal
 
@@ -23,8 +23,8 @@ shareable result.
 - Search food names, aliases, and category-path labels with case-, punctuation-, and
   diacritic-insensitive matching.
 - Include descendants when a category is selected.
-- Default an absent scope to pregnancy food safety; allow additional dietary scopes as cumulative
-  constraints.
+- Default an absent scope to pregnancy food safety and vegetarian suitability; allow removing or
+  adding dietary scopes as cumulative constraints.
 - Allow several generic outcome bands as alternatives within every selected scope.
 - Combine selected dietary scopes with category and search predicates cumulatively.
 - Support a clear, visible "clear filters" action.
@@ -32,8 +32,8 @@ shareable result.
 - Use `v=1`, `scope=<comma-separated-guidance-list-slugs>`, `outcome=<comma-separated-outcome-bands>`,
   `q`, and `category` as the URL contract.
 - Show every active filter as a dietary-scope or generic-outcome-labelled chip.
-- Validate URL parameters and, if content has changed, default to pregnancy scope, drop only invalid
-  constraints, and announce that unavailable shared filters were removed.
+- Validate URL parameters and, if content has changed, default to pregnancy and vegetarian scopes,
+  drop only invalid constraints, and announce that unavailable shared filters were removed.
 
 ## Non-goals
 

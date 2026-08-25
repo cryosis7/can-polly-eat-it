@@ -15,8 +15,20 @@ export type ParsedCatalogueQuery = {
 const unique = (values: string[]) => [...new Set(values)]
 const outcomeBandOrder: OutcomeBand[] = ['okay', 'maybe', 'not-okay', 'not-assessed']
 
+// ADR: Default the catalogue to pregnancy and vegetarian scopes
+// See: docs/decisions/2026-08-25 ADR - default the catalogue to pregnancy and vegetarian scopes.md
+const defaultScopeSlugCandidates = ['pregnancy-food-safety', 'vegetarian-suitability']
+
+/** The scope slugs selected when a catalogue URL carries no `scope` at all. */
+export const defaultScopeSlugs = (guidanceLists: GuidanceList[]): string[] => {
+  const matches = guidanceLists
+    .filter((list) => defaultScopeSlugCandidates.includes(list.slug))
+    .map((list) => list.slug)
+  return matches.length > 0 ? matches : [guidanceLists[0].slug]
+}
+
 const defaultState = (guidanceLists: GuidanceList[]): CatalogueQueryState => ({
-  scopeSlugs: [guidanceLists.find((list) => list.slug === 'pregnancy-food-safety')?.slug ?? guidanceLists[0].slug],
+  scopeSlugs: defaultScopeSlugs(guidanceLists),
   outcomeBands: [],
   query: '',
 })

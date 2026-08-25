@@ -7,7 +7,7 @@ const foodCard = (page: Page, name: string) =>
   page.locator('.food-card', { has: page.getByRole('link', { name, exact: true }) })
 
 test.describe('Food catalogue', () => {
-  test('shows pregnancy guidance by default with neutral fallback states', async ({ page }) => {
+  test('shows pregnancy and vegetarian guidance by default with neutral fallback states', async ({ page }) => {
     await page.goto('/')
     await page.getByRole('button', { name: 'Dairy, level 1' }).click()
     await page.getByRole('button', { name: 'Seafood, level 1' }).click()
@@ -15,8 +15,9 @@ test.describe('Food catalogue', () => {
 
     await expect(page.getByRole('heading', { name: "Polly's Food Guide" })).toBeVisible()
     await expect(page.getByRole('checkbox', { name: 'Pregnancy food safety' })).toBeChecked()
-    await expect(page.getByRole('checkbox', { name: 'Pregnancy food safety' })).toBeDisabled()
-    await expect(page.getByRole('checkbox', { name: 'Vegetarian suitability' })).not.toBeChecked()
+    await expect(page.getByRole('checkbox', { name: 'Pregnancy food safety' })).not.toBeDisabled()
+    await expect(page.getByRole('checkbox', { name: 'Vegetarian suitability' })).toBeChecked()
+    await expect(page.getByRole('checkbox', { name: 'Vegetarian suitability' })).not.toBeDisabled()
     await expect(page.locator('.breadcrumb', { hasText: 'Dairy > Cheese > Low-acid soft pasteurised cheese' })).toBeVisible()
     await expect(page.getByText('OK to eat').first()).toBeVisible()
     await expect(page.getByText('Only with conditions').first()).toBeVisible()
@@ -26,6 +27,7 @@ test.describe('Food catalogue', () => {
 
     const cheddarCard = foodCard(page, 'Cheddar')
     await expect(cheddarCard.getByRole('heading', { name: 'Pregnancy food safety' })).toBeVisible()
+    await expect(cheddarCard.getByRole('heading', { name: 'Vegetarian suitability' })).toBeVisible()
     await expect(cheddarCard.getByRole('link', { name: /Primary source/ })).toHaveCount(0)
   })
 
@@ -68,7 +70,7 @@ test.describe('Food catalogue', () => {
     await page.getByRole('searchbox', { name: 'Search foods' }).fill('yogurt')
 
     const pasteurisedGroup = page.locator('.preparation-group', { hasText: 'Pasteurised' })
-    await expect(pasteurisedGroup.getByRole('link', { name: 'Yoghurt guidance', exact: true })).toBeVisible()
+    await expect(pasteurisedGroup.getByRole('link', { name: 'Yoghurt guidance', exact: true }).first()).toBeVisible()
     await expect(page.getByRole('link', { name: 'Cheddar' })).not.toBeVisible()
     await expect(page.getByText('1 result in the guide')).toBeVisible()
     await expect(page).toHaveURL(/q=yogurt/)
@@ -143,7 +145,7 @@ test.describe('Food catalogue', () => {
     await expect(page.getByRole('checkbox', { name: 'Pregnancy food safety' })).toBeChecked()
     await expect(page.getByRole('checkbox', { name: 'Vegetarian suitability' })).toBeChecked()
     await expect(page.getByRole('checkbox', { name: 'Maybe - see notes' })).toBeChecked()
-    await expect(page.getByRole('button', { name: 'Dietary scope: Vegetarian suitability' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Outcome: Maybe - see notes' })).toBeVisible()
     await expect(page.getByText('1 result in the guide')).toBeVisible()
 
     // Each selected scope gets its own callout on the band, so the two lists are never blended.
@@ -318,7 +320,7 @@ test.describe('Food catalogue', () => {
     await page.goto('/?v=2&scope=unknown&outcome=unknown&q=yogurt')
 
     await expect(page.getByRole('status')).toContainText('Unavailable shared filters were removed.')
-    await expect(page.getByRole('link', { name: 'Yoghurt guidance', exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Yoghurt guidance', exact: true }).first()).toBeVisible()
     await expect(page).toHaveURL(/scope=pregnancy-food-safety/)
   })
 

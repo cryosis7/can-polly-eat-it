@@ -10,7 +10,7 @@ import {
 } from './catalogueQuery'
 
 describe('catalogue query', () => {
-  it('defaults an absent scope to pregnancy food safety', () => {
+  it('defaults an absent scope to pregnancy and vegetarian suitability', () => {
     const parsed = parseCatalogueQuery(
       new URLSearchParams('v=1&q=hard%20cheese&category=dairy'),
       guidanceLists,
@@ -19,7 +19,7 @@ describe('catalogue query', () => {
 
     expect(parsed).toEqual({
       state: {
-        scopeSlugs: ['pregnancy-food-safety'],
+        scopeSlugs: ['pregnancy-food-safety', 'vegetarian-suitability'],
         outcomeBands: [],
         query: 'hard cheese',
         categorySlug: 'dairy',
@@ -61,7 +61,7 @@ describe('catalogue query', () => {
 
     expect(parsed).toEqual({
       state: {
-        scopeSlugs: ['pregnancy-food-safety'],
+        scopeSlugs: ['pregnancy-food-safety', 'vegetarian-suitability'],
         outcomeBands: [],
         query: 'brie',
         categorySlug: 'dairy',
@@ -113,7 +113,7 @@ describe('catalogue query', () => {
 
     expect(parsed).toEqual({
       state: {
-        scopeSlugs: ['pregnancy-food-safety'],
+        scopeSlugs: ['pregnancy-food-safety', 'vegetarian-suitability'],
         outcomeBands: [],
         query: '',
       },

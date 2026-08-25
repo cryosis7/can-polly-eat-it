@@ -446,7 +446,7 @@ equivalent foods from a model or an external service. Empty search returns the n
 Filter rules are predictable:
 
 - A category filter includes its entire descendant subtree.
-- The default selected dietary scope is pregnancy food safety.
+- The default selected dietary scopes are pregnancy food safety and vegetarian suitability.
 - Selected dietary scopes are cumulative (AND): a food must satisfy every selected scope.
 - Selected generic outcome bands are alternatives (OR) within each selected scope.
 - When no primary outcome is selected, scopes do not narrow foods by outcome; cards still render the
@@ -457,7 +457,7 @@ Filter rules are predictable:
   present or excluded.
 
 The URL query contract is versioned with `v=1`. `scope=<comma-separated-guidance-list-slugs>`
-selects dietary constraints, defaulting to `pregnancy-food-safety`; `outcome=<comma-separated-outcome-bands>`
+selects dietary constraints, defaulting to `pregnancy-food-safety,vegetarian-suitability`; `outcome=<comma-separated-outcome-bands>`
 selects generic outcomes; `q=<text>` and `category=<category-slug>` control search and category.
 For example,
 `/food/cheddar?v=1&scope=pregnancy-food-safety,vegetarian-suitability&outcome=okay,maybe`

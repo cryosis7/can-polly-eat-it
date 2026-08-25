@@ -4,7 +4,7 @@
 
 **Depends on:** [F-05: Add Independent Guidance Lists](<05-add-independent-guidance-lists.md>)
 
-**Governing decisions:** [independent guidance lists](<../decisions/2026-08-04 ADR - use independent guidance lists for food assessments.md>), [version-controlled static content](<../decisions/2026-08-04 ADR - store reviewed guide content as version-controlled static data.md>), and [show scoped guidance with generic outcome filters](<../decisions/2026-08-06 ADR - show scoped guidance with generic outcome filters.md>)
+**Governing decisions:** [independent guidance lists](<../decisions/2026-08-04 ADR - use independent guidance lists for food assessments.md>), [version-controlled static content](<../decisions/2026-08-04 ADR - store reviewed guide content as version-controlled static data.md>), [show scoped guidance with generic outcome filters](<../decisions/2026-08-06 ADR - show scoped guidance with generic outcome filters.md>), and [default the catalogue to pregnancy and vegetarian scopes](<../decisions/2026-08-25 ADR - default the catalogue to pregnancy and vegetarian scopes.md>)
 
 ## Goal
 
@@ -14,8 +14,8 @@ list-specific status filters.
 
 ## Primary experience
 
-1. Open the guide with pregnancy selected by default.
-2. Add vegetarian suitability as another dietary scope when both constraints matter.
+1. Open the guide with pregnancy and vegetarian suitability selected by default.
+2. Remove a dietary scope, or add a further one, when only some constraints matter.
 3. Narrow selected scopes with "Okay", "Maybe - see notes", or "Not okay".
 4. Read each result's list-specific labels, summaries, sources, conditions, and review details.
 
@@ -24,7 +24,7 @@ Polly's Food Guide
 
 Dietary scopes
   [x] Pregnancy
-  [ ] Vegetarian
+  [x] Vegetarian
 
 Outcome
   [ ] Okay
@@ -36,8 +36,8 @@ Cheddar
   Vegetarian: Vegetarian
 ```
 
-Selecting Pregnancy and Vegetarian with Okay and Maybe - see notes shows only foods whose resolved
-outcome is Okay or Maybe - see notes in both scopes.
+Adding "Okay" and "Maybe - see notes" to the default Pregnancy plus Vegetarian selection shows only
+foods whose resolved outcome is Okay or Maybe - see notes in both scopes.
 
 | Food | Pregnancy | Vegetarian | Shows? |
 | --- | --- | --- | --- |
@@ -95,7 +95,7 @@ classDiagram
 - Keep `Food` and `Category` free from pregnancy, vegetarian, or global-status fields.
 - Map every list-owned status to exactly one generic outcome band: `okay`, `maybe`, `not-okay`, or
   `not-assessed`.
-- Default an absent URL scope to pregnancy food safety.
+- Default an absent URL scope to pregnancy food safety and vegetarian suitability.
 - OR selected outcome bands within every selected scope and AND selected scopes with category/search
   predicates.
 - Keep `not-assessed` as a neutral fallback; it is not safe nor a primary RAG filter.
@@ -116,10 +116,14 @@ classDiagram
   scopes.
 - The accepted ADR's implementation plan governed the completed work across schemas, domain
   filtering, URL state, catalogue and detail rendering, and browser coverage.
+- The [2026-08-25 ADR](<../decisions/2026-08-25 ADR - default the catalogue to pregnancy and vegetarian scopes.md>)
+  superseded the default-scope clause: the no-`scope` catalogue default now selects both
+  `pregnancy-food-safety` and `vegetarian-suitability` rather than pregnancy alone.
 
 ## Acceptance criteria
 
-- The catalogue defaults to pregnancy scope when its URL has no scope.
+- The catalogue defaults to pregnancy food safety and vegetarian suitability scopes when its URL has
+  no scope.
 - Pregnancy plus vegetarian with Okay and Maybe - see notes includes only foods matching those bands
   in both scopes.
 - The primary outcome controls do not expose Not assessed as a normal RAG choice, while missing
@@ -136,3 +140,8 @@ Completed 2026-08-06:
 - `npm run lint`
 - `npm run typecheck`
 - `npm run build`
+
+Default-scope amendment completed 2026-08-25 ([2026-08-25 ADR](<../decisions/2026-08-25 ADR - default the catalogue to pregnancy and vegetarian scopes.md>)):
+
+- `npx vitest run src/app/catalogueQuery.test.ts src/features/catalogue/CataloguePage.test.tsx`
+- `npx playwright test e2e/catalogue.spec.ts e2e/accessibility.spec.ts e2e/tea-guidance.spec.ts`

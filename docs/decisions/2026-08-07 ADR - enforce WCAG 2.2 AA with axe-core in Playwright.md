@@ -110,7 +110,7 @@ The gate is configured as follows:
   `.disableRules()` or `.exclude()` to make a scan pass. Keep the scans in a dedicated
   `e2e/accessibility.spec.ts` and leave `e2e/catalogue.spec.ts` behavioural.
 - **States to scan**, each at a 320px mobile viewport and at the desktop default:
-  1. `/` in its default pregnancy scope.
+  1. `/` in its default scope.
   2. `/` with search text and an active category filter.
   3. `/` in its zero-results state.
   4. `/` with invalid URL constraints, so the removal announcement is present.
