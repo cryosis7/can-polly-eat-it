@@ -129,6 +129,55 @@ Two tests must pass before you declare a state:
 1. **Evidence test** — can you point to a source showing people eat it that way here?
 2. **Everyday test** — is it ordinary practice for some community, rather than a novelty?
 
+## Retrieving the source
+
+Getting the bytes is not the easy part of this workflow. Two failures have both happened in
+practice, and both are silent unless you look for them.
+
+- **The live page may not be fetchable.** Government health sites time out or block agent fetches.
+  An archived snapshot *of the maintainer-supplied URL* (for example the Wayback Machine) is an
+  acceptable retrieval path for the same document — it is not a different source. But
+  "inaccessible" is one of the stop-and-ask triggers above, so treat the fallback as a disclosure,
+  not a silent workaround: tell the maintainer you are using it, and record the snapshot URL and its
+  timestamp in the review packet alongside the canonical citation URL. Cite the canonical URL in the
+  data; the snapshot is evidence of retrieval, not the address readers should be sent to. It is
+  never a licence to substitute a *different* page, domain, or source.
+- **Markdown conversion silently destroys table structure.** These sources present their advice as
+  a table where merged header cells (`rowspan`/`colspan`) carry the meaning. Converting to markdown
+  flattens those groups, so rows detach from the heading that governs them and a locator built from
+  the flattened view can attribute advice to the wrong food group. Where a source's meaning depends
+  on which row sits under which group header, fetch the **raw HTML** and read the table markup
+  directly.
+
+  Worked example: the NSW Food Authority pregnancy table renders `Poultry` as one `rowspan="3"`
+  header spanning "Cold chicken or turkey", "Hot take-away chicken" and "Home cooked" — three rows
+  with three *different* statuses. The markdown rendering dropped the `Poultry` cell entirely, so
+  the three rows appeared as unparented siblings. Recovering the real grouping is what let the
+  locators read `Other foods: Soy` rather than a guess at which section a row belonged to.
+
+## What validation will actually touch
+
+Step 9 says to update focused tests. In practice a content-only addition changes **more test files
+than data files**, because the guide holds deliberate tripwires against silent content drift. Budget
+for these rather than being surprised by them:
+
+- **Fixed content totals.** `src/domain/contentValidation.test.ts` asserts exact category, food and
+  assessment counts. They exist so content cannot change unnoticed, so updating them is expected —
+  but confirm the new numbers are the ones you intended before you change them, since that
+  assertion is the tripwire doing its job.
+- **Alias and search collisions.** A new food whose name or alias contains a term an existing test
+  searches for will change that test's result count. This is the least obvious failure, because the
+  failing test names a food you never touched.
+
+  Worked example: adding `soy-yoghurt` with the alias `soy yogurt` broke one unit test and one e2e
+  test that searched `yogurt` and asserted exactly `1 result in the guide`. Nothing about yoghurt
+  changed; those tests had been silently relying on there being only one `yogurt`-matching entry in
+  the whole catalogue. The fix is to assert the new, correct count and name the newly-matching entry
+  explicitly, so the next collision fails loudly rather than drifting.
+
+Run the narrowest relevant checks first, then the repository's coverage, e2e and build commands.
+Report each command and its outcome; surface a failure rather than treating the draft as validated.
+
 ## Review gate
 
 After drafting and validation, stop. Do not commit or publish the changes. Present the maintainer with a 
@@ -147,6 +196,7 @@ End every invocation with this review packet:
 
 ### Sources consulted
 - [URL] — exact locator(s) used
+- Retrieval path — direct fetch, or the archived snapshot URL and timestamp used and why
 
 ### Claim-by-claim evidence
 | Record | Proposed status | Outcome band | Source URL and exact locator | Paraphrase or condition | Inherited advice |

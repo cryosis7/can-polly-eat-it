@@ -189,10 +189,13 @@ Entry-by-entry reconciliation of the +4:
 - `Pasteurised cottage cheese, cream cheese, etc` became an entry while `Pasteurised cottage cheese`
   and `Pasteurised cream cheese` kept theirs: +1.
 
-A migration-invariant test in `src/domain/migrationInvariant.test.ts` compares every retained food's
-fully resolved status, summary, scenarios, conditions and citations against the pre-migration
-baseline in `src/test/preMigrationResolution.ts`, excluding synthetic record ids. It also asserts the
-departed and introduced food sets exactly. No food's displayed guidance changed.
+The migration was verified at the time by a migration-invariant test, which compared every retained
+food's fully resolved status, summary, scenarios, conditions and citations against a frozen
+pre-migration baseline, and asserted the departed and introduced food sets exactly. No food's
+displayed guidance changed. That subject-keyed pin and its baseline have since been retired: the
+guide no longer tracks per-food resolution history, and the wording-preservation invariant in
+`src/domain/wordingPreservation.test.ts` now carries the standing guarantee that authored guidance
+is never lost, reworded, or reattributed.
 
 ## Acceptance criteria
 
