@@ -46,6 +46,11 @@ const veggyMaltaCitation = {
   url: 'https://veggymalta.com/15-products-not-vegetarian/',
 }
 
+const nswFoodAuthorityCitation = {
+  title: 'NSW Food Authority: Foods to eat or avoid when pregnant',
+  url: 'https://www.foodauthority.nsw.gov.au/consumer/life-events-and-food/pregnancy/foods-to-eat-or-avoid-when-pregnant',
+}
+
 const guidanceScenariosFor = (subjectId: string, spec: Pick<AssessmentSpec, 'instruction' | 'conditions'>) =>
   spec.instruction === undefined
     ? []
@@ -685,10 +690,52 @@ const vegetarianCategoryAssessments: Assessment[] = [
   },
 ]
 
+// NSW Food Authority additions, drawn from the "Foods to eat or avoid when pregnant" table. These
+// are foods and categories the New Zealand Food Safety-based content above does not yet cover, so
+// each is a first assessment for its subject rather than a second opinion alongside an existing one.
+const nswFoodAuthorityAssessments: Assessment[] = [
+  {
+    id: 'soy-products-pregnancy',
+    subject: { kind: 'category', categoryId: 'soy-products' },
+    guidanceListId: 'pregnancy-food-safety',
+    sourceId: 'nsw-food-authority',
+    statusId: 'pregnancy-ok',
+    summary: 'The source lists soy products such as tofu, soy milk and soy yoghurt as okay to eat, provided you check the best-before or use-by date and follow the storage instructions.',
+    scopeStatement: 'Applies to all soy products, including tofu, soy milk and soy yoghurt.',
+    guidanceScenarios: [],
+    reasonLinks: [],
+    citations: [{ ...nswFoodAuthorityCitation, locator: 'Other foods: Soy' }],
+  },
+  {
+    id: 'fermented-drinks-pregnancy',
+    subject: { kind: 'category', categoryId: 'fermented-drinks' },
+    guidanceListId: 'pregnancy-food-safety',
+    sourceId: 'nsw-food-authority',
+    statusId: 'pregnancy-avoid',
+    summary: 'The source says not to drink kvass, kefir or ginger beer during pregnancy, because of an increased contamination risk and the possibility of residual alcohol from fermentation.',
+    scopeStatement: 'Applies to kvass, kefir and ginger beer.',
+    guidanceScenarios: [],
+    reasonLinks: [],
+    citations: [{ ...nswFoodAuthorityCitation, locator: 'Other foods: Fermented drinks' }],
+  },
+  {
+    id: 'rockmelon-pregnancy',
+    subject: { kind: 'food', foodId: 'rockmelon' },
+    guidanceListId: 'pregnancy-food-safety',
+    sourceId: 'nsw-food-authority',
+    statusId: 'pregnancy-avoid',
+    summary: 'The source says not to eat rockmelon during pregnancy, because its rough rind can trap bacteria that cutting can transfer into the flesh.',
+    guidanceScenarios: [],
+    reasonLinks: [],
+    citations: [{ ...nswFoodAuthorityCitation, locator: 'Vegetables & fruit: Fruit — Rockmelon' }],
+  },
+]
+
 export const assessments = [
   ...assessmentSpecs.flatMap(createAssessments),
   ...categoryAssessmentSpecs.flatMap(createCategoryAssessments),
   ...teaAssessments,
   ...vegetarianAssessments,
   ...vegetarianCategoryAssessments,
+  ...nswFoodAuthorityAssessments,
 ]

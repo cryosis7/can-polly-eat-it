@@ -118,6 +118,22 @@ const teaFoodIds = [
 ]
 
 /**
+ * Foods introduced by the NSW Food Authority pregnancy-list addition. They have no pre-migration
+ * baseline because nothing in the guide had assessed soy products, fermented drinks or rockmelon
+ * before. Listed explicitly for the same reason as `teaFoodIds`: a derived list would let a later
+ * addition pass in silence.
+ */
+const nswFoodAuthorityFoodIds = [
+  'ginger-beer',
+  'kefir',
+  'kvass',
+  'rockmelon',
+  'soy-milk',
+  'soy-yoghurt',
+  'tofu',
+]
+
+/**
  * Foods whose guidance F-13, F-14 and F-16 deliberately change. Panna cotta moves from a root outside
  * pregnancy coverage into `Cold desserts`, which is inside it. The two footnoted shellfish gain the
  * group's cooking instruction as a second layer, which F-16 exists to surface. Tortillas and
@@ -200,7 +216,7 @@ describe('guidance migration invariant', () => {
     const departed = baselineFoodIds.filter((foodId) => !currentFoodIds.has(foodId))
     const arrived = [...currentFoodIds].filter((foodId) => !(foodId in baseline))
     expect([...departed].sort()).toEqual([...retiredFoodIds].sort())
-    expect([...arrived].sort()).toEqual([...introducedFoodIds.map((entry) => entry.id), ...rawEggFoodIds, ...teaFoodIds].sort())
+    expect([...arrived].sort()).toEqual([...introducedFoodIds.map((entry) => entry.id), ...rawEggFoodIds, ...teaFoodIds, ...nswFoodAuthorityFoodIds].sort())
   })
 
   it('gives each introduced food the guidance of the mirror food it replaces', () => {

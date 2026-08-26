@@ -122,7 +122,7 @@ describe('CataloguePage', () => {
     const disclosure = container.querySelector('details')
     expect(disclosure).not.toHaveAttribute('open')
     expect(screen.getByRole('searchbox', { name: 'Search foods' })).toBeInTheDocument()
-    expect(screen.getByText('233 results in the guide')).toBeInTheDocument()
+    expect(screen.getByText('242 results in the guide')).toBeInTheDocument()
 
     disclosure!.open = true
     fireEvent(disclosure!, new Event('toggle', { bubbles: true }))
@@ -173,7 +173,9 @@ describe('CataloguePage', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Unavailable shared filters were removed.')
     expect(screen.getByRole('link', { name: 'Yoghurt guidance' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Cheddar' })).not.toBeInTheDocument()
-    expect(screen.getByText('1 result in the guide')).toBeInTheDocument()
+    // Soy yoghurt's "soy yogurt" alias also matches this search term, alongside the Yoghurt category.
+    expect(screen.getByRole('link', { name: 'Soy yoghurt' })).toBeInTheDocument()
+    expect(screen.getByText('2 results in the guide')).toBeInTheDocument()
   })
 
   it('uses source row names as separate food titles rather than combined example cards', () => {

@@ -12,6 +12,7 @@ export const guidanceLists: GuidanceList[] = [
       'medeniyet-medical-journal',
       'american-pregnancy-association',
       'babycenter',
+      'nsw-food-authority',
     ],
     unassessedStatusId: 'pregnancy-not-assessed',
     statuses: [
