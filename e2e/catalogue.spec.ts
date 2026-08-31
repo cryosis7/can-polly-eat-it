@@ -36,7 +36,7 @@ test.describe('Food catalogue', () => {
 
     await expect(page.getByRole('button', { name: 'Dairy, level 1' })).toHaveAttribute('aria-expanded', 'false')
     await expect(page.getByRole('button', { name: 'Cheese, level 2' })).toHaveCount(0)
-    await expect(page.getByText('233 results in the guide')).toBeVisible()
+    await expect(page.getByText('242 results in the guide')).toBeVisible()
 
     const collapsedHeight = await page.evaluate(() => document.body.scrollHeight)
     expect(collapsedHeight).toBeLessThan(6000)
@@ -72,7 +72,9 @@ test.describe('Food catalogue', () => {
     const pasteurisedGroup = page.locator('.preparation-group', { hasText: 'Pasteurised' })
     await expect(pasteurisedGroup.getByRole('link', { name: 'Yoghurt guidance', exact: true }).first()).toBeVisible()
     await expect(page.getByRole('link', { name: 'Cheddar' })).not.toBeVisible()
-    await expect(page.getByText('1 result in the guide')).toBeVisible()
+    // Soy yoghurt's "soy yogurt" alias also matches this search term, alongside the Yoghurt category.
+    await expect(page.getByRole('link', { name: 'Soy yoghurt' })).toBeVisible()
+    await expect(page.getByText('2 results in the guide')).toBeVisible()
     await expect(page).toHaveURL(/q=yogurt/)
   })
 
@@ -202,7 +204,7 @@ test.describe('Food catalogue', () => {
     await page.keyboard.press('Tab')
     await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused()
     await expect(page.getByRole('searchbox', { name: 'Search foods' })).toBeVisible()
-    await expect(page.getByText('233 results in the guide')).toBeVisible()
+    await expect(page.getByText('242 results in the guide')).toBeVisible()
     await expect(page.locator('details')).not.toHaveAttribute('open', '')
 
     await page.getByText('Filters', { exact: true }).click()

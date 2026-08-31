@@ -45,6 +45,7 @@ export const categories: Category[] = [
   { id: 'caffeinated-tea', slug: 'caffeinated-tea', name: 'Caffeinated tea', parentId: 'tea', aliases: ['non-herbal tea', 'true tea', 'Camellia sinensis', 'iced tea', 'English breakfast', 'Earl Grey', 'Orange Pekoe'], sortOrder: 1 },
   { id: 'herbal-tea', slug: 'herbal-tea', name: 'Herbal tea', parentId: 'tea', aliases: ['tisane', 'herbal infusion', 'herbal teas'], sortOrder: 2 },
   { id: 'alcoholic-drinks', slug: 'alcoholic-drinks', name: 'Alcoholic drinks', parentId: 'drinks', aliases: [], sortOrder: 3 },
+  { id: 'fermented-drinks', slug: 'fermented-drinks', name: 'Fermented drinks', parentId: 'drinks', aliases: ['kvass', 'kefir', 'ginger beer'], sortOrder: 4 },
   { id: 'eggs', slug: 'eggs', name: 'Eggs', parentId: null, aliases: ['Raw eggs and foods containing raw eggs', 'uncooked eggs', 'runny eggs', 'fried eggs', 'scrambled eggs', 'poached eggs'], sortOrder: 6 },
   { id: 'ingredients-and-additives', slug: 'ingredients-and-additives', name: 'Ingredients and additives', parentId: null, aliases: [], sortOrder: 7 },
   { id: 'meat-and-poultry', slug: 'meat-and-poultry', name: 'Meat and poultry', parentId: null, aliases: ['Cooked meat and poultry', 'beef', 'pork', 'chicken', 'mince', 'sausages', 'ham', 'salami', 'luncheon', 'pate', 'pastrami', 'biltong', 'jerky', 'cold chicken', 'cold turkey', 'Raw meat and poultry', 'raw meat', 'raw chicken', 'raw beef', 'raw pork'], sortOrder: 8 },
@@ -69,5 +70,6 @@ export const categories: Category[] = [
   { id: 'brown-seaweed', slug: 'brown-seaweed', name: 'Brown seaweed', parentId: 'seaweed', aliases: ['kelp', 'kombu', 'wakame', 'arame', 'quandai-cai', 'hijiki', 'Sargassum fusiforme'], sortOrder: 1 },
   { id: 'red-and-green-seaweed', slug: 'red-and-green-seaweed', name: 'Red or green seaweed', parentId: 'seaweed', aliases: ['Red and green seaweed', 'nori', 'karengo', 'dulse'], sortOrder: 2 },
   { id: 'sprouts-and-enoki-mushrooms', slug: 'sprouts-and-enoki-mushrooms', name: 'Sprouts and enoki mushrooms', parentId: 'miscellaneous', aliases: ['Seed sprouts and enoki mushrooms'], sortOrder: 8 },
+  { id: 'soy-products', slug: 'soy-products', name: 'Soy products', parentId: 'miscellaneous', aliases: ['soya products', 'soy'], sortOrder: 9 },
   { id: 'soups', slug: 'soups', name: 'Soups', parentId: null, aliases: [], sortOrder: 11 },
 ]

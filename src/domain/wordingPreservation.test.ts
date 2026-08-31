@@ -7,9 +7,9 @@ import { createContentIndex } from './contentIndex'
 /**
  * The F-18 wording-preservation invariant.
  *
- * F-18 retires fifteen categories and moves species between them, so a subject-keyed pin of the
- * kind `migrationInvariant.test.ts` holds cannot survive by construction: the migration exists to
- * re-scope which layer applies to which row. What must not change is what the layers *say*.
+ * F-18 retires fifteen categories and moves species between them, so a subject-keyed pin — one that
+ * fixes each food's resolved outcome to a baseline — cannot survive by construction: the migration
+ * exists to re-scope which layer applies to which row. What must not change is what the layers *say*.
  *
  * So this checks the stronger, honest thing. For every food and every guidance list, the union of
  * authored bodies across all of that food's rows — its declared preparations, or its bare

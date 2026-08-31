@@ -95,6 +95,28 @@ const foodGroups: FoodGroup[] = [
     ],
   },
   {
+    categoryId: 'soy-products',
+    foods: [
+      { id: 'tofu', name: 'Tofu', aliases: ['bean curd'] },
+      { id: 'soy-milk', name: 'Soy milk', aliases: ['soymilk'] },
+      { id: 'soy-yoghurt', name: 'Soy yoghurt', aliases: ['soy yogurt'] },
+    ],
+  },
+  {
+    categoryId: 'fermented-drinks',
+    foods: [
+      { id: 'kvass', name: 'Kvass' },
+      { id: 'kefir', name: 'Kefir' },
+      { id: 'ginger-beer', name: 'Ginger beer' },
+    ],
+  },
+  {
+    categoryId: 'fruit',
+    foods: [
+      { id: 'rockmelon', name: 'Rockmelon', aliases: ['cantaloupe'] },
+    ],
+  },
+  {
     categoryId: 'confectionery',
     foods: [
       { id: 'gummy-bears', name: 'Gummy bears' },

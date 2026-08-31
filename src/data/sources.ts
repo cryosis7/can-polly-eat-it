@@ -36,4 +36,11 @@ export const sources: Source[] = [
     organisation: 'BabyCenter, L.L.C.',
     homeUrl: 'https://www.babycenter.com/pregnancy/diet-and-fitness/herbal-teas-during-pregnancy_3537',
   },
+  {
+    id: 'nsw-food-authority',
+    slug: 'nsw-food-authority',
+    name: 'NSW Food Authority',
+    organisation: 'NSW Department of Primary Industries and Regional Development',
+    homeUrl: 'https://www.foodauthority.nsw.gov.au/consumer/life-events-and-food/pregnancy/foods-to-eat-or-avoid-when-pregnant',
+  },
 ]
