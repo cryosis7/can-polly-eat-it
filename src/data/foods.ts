@@ -141,7 +141,7 @@ const foodGroups: FoodGroup[] = [
   {
     categoryId: 'baked-desserts',
     foods: [
-      { id: 'apple-pie', name: 'Apple pie' },
+      { id: 'pies-and-other-pastries', name: 'Pies and Other Pastries', aliases: ['apple pie'] },
     ],
   },
   {

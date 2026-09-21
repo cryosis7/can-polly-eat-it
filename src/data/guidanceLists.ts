@@ -40,10 +40,10 @@ export const guidanceLists: GuidanceList[] = [
     id: 'vegetarian-suitability',
     slug: 'vegetarian-suitability',
     title: 'Vegetarian suitability',
-    description: 'Article-backed guidance for foods that can contain animal-derived ingredients.',
+    description: 'Guidance for foods that can contain animal-derived ingredients.',
     citationPolicy: 'optional',
     sourceIds: [],
-    evidentiaryBasis: 'Reflects general vegetarian knowledge; sources are attached where a useful one exists.',
+    evidentiaryBasis: 'Reflects general vegetarian knowledge.',
     unassessedStatusId: 'vegetarian-not-assessed',
     statuses: [
       { id: 'vegetarian-suitable', slug: 'vegetarian', label: 'Vegetarian', tone: 'green', outcomeBand: 'okay', sortOrder: 1, filterLabel: 'Vegetarian', summary: 'This food is suitable for vegetarians.' },
@@ -53,11 +53,7 @@ export const guidanceLists: GuidanceList[] = [
     ],
     unassessedNotice: {
       description: 'This item has not been added to this guide yet, so it has not been assessed.',
-      citations: [{
-        title: 'Veggy Malta: 15 Products Not Vegetarian',
-        url: 'https://veggymalta.com/15-products-not-vegetarian/',
-        locator: '15 non-vegetarian foods',
-      }],
+      citations: [],
     },
   },
 ]

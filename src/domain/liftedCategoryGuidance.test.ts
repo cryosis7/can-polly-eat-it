@@ -76,7 +76,7 @@ describe('guidance lifted onto categories', () => {
     const vegetarianResolved = resolveAssessment({ kind: 'category', category }, vegetarian, index, 'pasteurised')
     expect(vegetarianResolved.origin).toEqual({ kind: 'own' })
     expect(vegetarianResolved.status.id).toBe('vegetarian-check-ingredients')
-    expect(vegetarianResolved.assessment?.citations[0].title).toContain('Veggy Malta')
+    expect(vegetarianResolved.assessment?.citations).toEqual([])
   })
 
   it('splits the sprouts mirror into two foods that both inherit the single authored rule', () => {

@@ -41,11 +41,6 @@ const mpiCitation = {
   url: 'https://www.mpi.govt.nz/food-safety-home/food-pregnancy/list-safe-food-pregnancy',
 }
 
-const veggyMaltaCitation = {
-  title: 'Veggy Malta: 15 Products Not Vegetarian',
-  url: 'https://veggymalta.com/15-products-not-vegetarian/',
-}
-
 const nswFoodAuthorityCitation = {
   title: 'NSW Food Authority: Foods to eat or avoid when pregnant',
   url: 'https://www.foodauthority.nsw.gov.au/consumer/life-events-and-food/pregnancy/foods-to-eat-or-avoid-when-pregnant',
@@ -513,14 +508,14 @@ const assessmentSpecs: AssessmentSpec[] = [
 
 const vegetarianAssessments: Assessment[] = [
   {
-    id: 'apple-pie-vegetarian',
-    subject: { kind: 'food', foodId: 'apple-pie' },
+    id: 'pies-and-other-pastries-vegetarian',
+    subject: { kind: 'food', foodId: 'pies-and-other-pastries' },
     guidanceListId: 'vegetarian-suitability',
     statusId: 'vegetarian-check-ingredients',
-    summary: 'Traditional apple pie crust can contain lard, so check the ingredients.',
+    summary: 'Some pies and other pastries use lard, so check the ingredients.',
     guidanceScenarios: [],
     reasonLinks: [],
-    citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Apple pie' }],
+    citations: [],
   },
   {
     id: 'french-fries-vegetarian',
@@ -530,7 +525,7 @@ const vegetarianAssessments: Assessment[] = [
     summary: 'Restaurant fries can be cooked in animal fats, so ask how they are prepared.',
     guidanceScenarios: [],
     reasonLinks: [],
-    citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: French fries' }],
+    citations: [],
   },
   {
     id: 'gelatin-vegetarian',
@@ -540,7 +535,7 @@ const vegetarianAssessments: Assessment[] = [
     summary: 'Gelatin is an animal-derived gelling ingredient.',
     guidanceScenarios: [],
     reasonLinks: [],
-    citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Gummy Bears; Marshmallows; Panna Cotta; Starburst' }],
+    citations: [],
   },
   {
     id: 'gummy-bears-vegetarian',
@@ -550,7 +545,7 @@ const vegetarianAssessments: Assessment[] = [
     summary: 'Gummy bears can contain gelatin; gelatin-free alternatives exist.',
     guidanceScenarios: [],
     reasonLinks: [{ kind: 'contains', targetFoodId: 'gelatin', statement: 'Can contain gelatin.' }],
-    citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Gummy Bears' }],
+    citations: [],
   },
   {
     id: 'jelly-vegetarian',
@@ -560,7 +555,7 @@ const vegetarianAssessments: Assessment[] = [
     summary: 'Check whether jelly contains animal-derived ingredients; vegan alternatives exist.',
     guidanceScenarios: [],
     reasonLinks: [],
-    citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Jelly' }],
+    citations: [],
   },
   {
     id: 'marshmallows-vegetarian',
@@ -570,7 +565,7 @@ const vegetarianAssessments: Assessment[] = [
     summary: 'Marshmallows traditionally contain animal-derived gelatin.',
     guidanceScenarios: [],
     reasonLinks: [{ kind: 'contains', targetFoodId: 'gelatin', statement: 'Contains gelatin.' }],
-    citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Marshmallows' }],
+    citations: [],
   },
   {
     id: 'orange-juice-vegetarian',
@@ -580,7 +575,7 @@ const vegetarianAssessments: Assessment[] = [
     summary: 'Some orange juice brands add omega-3 derived from fish.',
     guidanceScenarios: [],
     reasonLinks: [],
-    citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Orange juice' }],
+    citations: [],
   },
   {
     id: 'panna-cotta-vegetarian',
@@ -590,7 +585,7 @@ const vegetarianAssessments: Assessment[] = [
     summary: 'Panna cotta traditionally uses gelatin to set.',
     guidanceScenarios: [],
     reasonLinks: [{ kind: 'contains', targetFoodId: 'gelatin', statement: 'Contains gelatin.' }],
-    citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Panna Cotta' }],
+    citations: [],
   },
   {
     id: 'parmesan-vegetarian',
@@ -600,7 +595,7 @@ const vegetarianAssessments: Assessment[] = [
     summary: 'Traditional Parmesan uses animal-derived rennet.',
     guidanceScenarios: [],
     reasonLinks: [],
-    citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Parmesan' }],
+    citations: [],
   },
   {
     id: 'starburst-vegetarian',
@@ -610,7 +605,7 @@ const vegetarianAssessments: Assessment[] = [
     summary: 'The article identifies Starburst as containing gelatin.',
     guidanceScenarios: [],
     reasonLinks: [{ kind: 'contains', targetFoodId: 'gelatin', statement: 'Contains gelatin.' }],
-    citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Starburst' }],
+    citations: [],
   },
   {
     id: 'tortillas-vegetarian',
@@ -620,7 +615,7 @@ const vegetarianAssessments: Assessment[] = [
     summary: 'Some tortillas use lard, so check the ingredients or ask the cook.',
     guidanceScenarios: [],
     reasonLinks: [],
-    citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Tortillas' }],
+    citations: [],
   },
   {
     id: 'vegetable-soup-vegetarian',
@@ -630,7 +625,7 @@ const vegetarianAssessments: Assessment[] = [
     summary: 'Restaurant vegetable soup can contain chicken broth, so ask about the ingredients.',
     guidanceScenarios: [],
     reasonLinks: [],
-    citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Vegetables soups' }],
+    citations: [],
   },
   {
     id: 'white-sugar-vegetarian',
@@ -640,7 +635,7 @@ const vegetarianAssessments: Assessment[] = [
     summary: 'White sugar can be refined using bone char, so check how it is processed.',
     guidanceScenarios: [],
     reasonLinks: [],
-    citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: White sugar' }],
+    citations: [],
   },
   {
     id: 'wine-and-beer-vegetarian',
@@ -650,7 +645,7 @@ const vegetarianAssessments: Assessment[] = [
     summary: 'Some wines and beers use fish-derived isinglass; vegetarian alternatives exist.',
     guidanceScenarios: [],
     reasonLinks: [],
-    citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Wines & Beer' }],
+    citations: [],
   },
   {
     id: 'worcestershire-sauce-vegetarian',
@@ -660,7 +655,7 @@ const vegetarianAssessments: Assessment[] = [
     summary: 'Worcestershire sauce can contain anchovies; vegan alternatives exist.',
     guidanceScenarios: [],
     reasonLinks: [],
-    citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Worcestershire sauce' }],
+    citations: [],
   },
 ]
 
@@ -686,7 +681,7 @@ const vegetarianCategoryAssessments: Assessment[] = [
     scopeStatement: 'Applies to all pasteurised yoghurt.',
     guidanceScenarios: [],
     reasonLinks: [],
-    citations: [{ ...veggyMaltaCitation, locator: '15 non-vegetarian foods: Yogurt' }],
+    citations: [],
   },
 ]
 

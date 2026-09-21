@@ -41,7 +41,7 @@ describe('filterFoods', () => {
     // Every food with no pregnancy rule now shares the single fallback band, whether or not an
     // ancestor was once named in a coverage declaration.
     expect(notAssessed).toContain('gummy-bears')
-    expect(notAssessed).toContain('apple-pie')
+    expect(notAssessed).toContain('pies-and-other-pastries')
   })
 
   it('preserves the source cheese hierarchy and its low-acid soft cheese examples', () => {

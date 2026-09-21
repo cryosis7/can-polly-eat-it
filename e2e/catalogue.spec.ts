@@ -1,7 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 
 const mpiSourceUrl = 'https://www.mpi.govt.nz/food-safety-home/food-pregnancy/list-safe-food-pregnancy'
-const veggyMaltaSourceUrl = 'https://veggymalta.com/15-products-not-vegetarian/'
 
 const foodCard = (page: Page, name: string) =>
   page.locator('.food-card', { has: page.getByRole('link', { name, exact: true }) })
@@ -254,10 +253,8 @@ test.describe('Food catalogue', () => {
     })
     await expect(vegetarianGuidance.getByText('Check ingredients')).toBeVisible()
     await expect(vegetarianGuidance.getByText('Some yoghurts use gelatin as a gelling agent, so check the label.')).toBeVisible()
-    await expect(vegetarianGuidance.getByRole('link', { name: 'Veggy Malta: 15 Products Not Vegetarian' })).toHaveAttribute(
-      'href',
-      veggyMaltaSourceUrl,
-    )
+    await expect(vegetarianGuidance.getByText('Reflects general vegetarian knowledge.')).toBeVisible()
+    await expect(vegetarianGuidance.getByRole('heading', { name: 'Sources' })).toHaveCount(0)
 
     await expect(page.getByRole('link', { name: 'Back to the food guide' })).toHaveAttribute(
       'href',
@@ -335,8 +332,9 @@ test.describe('Food catalogue', () => {
   })
 
   test('shows a food with no reviewed rule as a single not-assessed state with the guide notice', async ({ page }) => {
-    await page.goto('/food/apple-pie?v=1&scope=pregnancy-food-safety')
+    await page.goto('/food/pies-and-other-pastries?v=1&scope=pregnancy-food-safety')
 
+    await expect(page.getByRole('heading', { name: 'Pies and Other Pastries' })).toBeVisible()
     await expect(page.getByText('Not assessed')).toBeVisible()
     await expect(page.getByText('This item has not been added to this guide yet, so it has not been assessed.').first()).toBeVisible()
     await expect(page.getByText('Outside current coverage')).toHaveCount(0)

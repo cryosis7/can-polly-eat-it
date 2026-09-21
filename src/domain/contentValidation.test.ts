@@ -38,10 +38,10 @@ describe('guide content validation', () => {
   it('resolves every missing assessment to the list single not-assessed state', () => {
     const list = content.guidanceLists[0]
     const yellowfinTuna = content.foods.find((food) => food.id === 'yellowfin-tuna')!
-    const applePie = content.foods.find((food) => food.id === 'apple-pie')!
+    const piesAndOtherPastries = content.foods.find((food) => food.id === 'pies-and-other-pastries')!
 
     expect(resolveAssessment({ kind: 'food', food: yellowfinTuna }, list, index).status.label).toBe('Not assessed')
-    expect(resolveAssessment({ kind: 'food', food: applePie }, list, index).status.label).toBe('Not assessed')
+    expect(resolveAssessment({ kind: 'food', food: piesAndOtherPastries }, list, index).status.label).toBe('Not assessed')
     expect(yellowfinTuna).not.toHaveProperty('pregnancyStatus')
   })
 
@@ -417,16 +417,9 @@ describe('guide content validation', () => {
       )),
     })).toThrow('must not declare an evidentiary basis')
 
-    const uncitedVegetarian = validateContent({
-      ...content,
-      guidanceLists: content.guidanceLists.map((list) => (
-        list.id === vegetarianId ? { ...list, unassessedNotice: { ...list.unassessedNotice, citations: [] } } : list
-      )),
-      assessments: content.assessments.map((assessment) => (
-        assessment.guidanceListId === vegetarianId ? { ...assessment, citations: [] } : assessment
-      )),
-    })
-    expect(uncitedVegetarian.assessments.filter((assessment) => assessment.guidanceListId === vegetarianId)
+    const vegetarianList = content.guidanceLists.find((list) => list.id === vegetarianId)!
+    expect(vegetarianList.unassessedNotice.citations).toEqual([])
+    expect(content.assessments.filter((assessment) => assessment.guidanceListId === vegetarianId)
       .every((assessment) => assessment.citations.length === 0)).toBe(true)
   })
 

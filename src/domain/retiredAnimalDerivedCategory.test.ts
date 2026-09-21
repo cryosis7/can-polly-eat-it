@@ -30,7 +30,7 @@ const entriesMatching = (query: string) => [...new Set([
  * is.
  */
 const migratedFoods: [string, string][] = [
-  ['apple-pie', 'baked-desserts'],
+  ['pies-and-other-pastries', 'baked-desserts'],
   ['french-fries', 'miscellaneous'],
   ['gelatin', 'ingredients-and-additives'],
   ['gummy-bears', 'confectionery'],
@@ -133,7 +133,8 @@ describe('retired animal-derived ingredients category', () => {
 
   it('still reaches every migrated food by its authored name and aliases', () => {
     const queries: [string, string][] = [
-      ['Apple pie', 'apple-pie'],
+      ['Pies and Other Pastries', 'pies-and-other-pastries'],
+      ['Apple pie', 'pies-and-other-pastries'],
       ['chips', 'french-fries'],
       ['gelatine', 'gelatin'],
       ['Gummy bears', 'gummy-bears'],

@@ -174,24 +174,31 @@ describe('FoodDetailPage', () => {
     expect(screen.getByText('Contains animal-derived ingredients')).toBeInTheDocument()
     expect(screen.getByText('Traditional Parmesan uses animal-derived rennet.')).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Pregnancy food safety' })).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Sources' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Veggy Malta: 15 Products Not Vegetarian' })).toHaveAttribute(
-      'href',
-      'https://veggymalta.com/15-products-not-vegetarian/',
-    )
+    expect(screen.getByText('Reflects general vegetarian knowledge.')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Sources' })).not.toBeInTheDocument()
+  })
+
+  it('renders the revised pies and other pastries vegetarian entry', () => {
+    renderDetail('/food/pies-and-other-pastries?v=1&scope=vegetarian-suitability')
+
+    expect(screen.getByRole('heading', { name: 'Pies and Other Pastries' })).toBeInTheDocument()
+    expect(screen.getByText('Check ingredients')).toBeInTheDocument()
+    expect(screen.getByText('Some pies and other pastries use lard, so check the ingredients.')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Sources' })).not.toBeInTheDocument()
   })
 
   it('renders the evidentiary basis and omits the Sources section for an uncited assessment', () => {
     renderDetail('/food/parmesan?v=1&scope=vegetarian-suitability', uncitedVegetarianContent)
 
     expect(screen.getByText('Contains animal-derived ingredients')).toBeInTheDocument()
-    expect(screen.getByText(/Reflects general vegetarian knowledge/)).toBeInTheDocument()
+    expect(screen.getByText('Reflects general vegetarian knowledge.')).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Sources' })).not.toBeInTheDocument()
   })
 
   it('renders the single not-assessed state with the medical-information disclaimer', () => {
-    renderDetail('/food/apple-pie?v=1&scope=pregnancy-food-safety')
+    renderDetail('/food/pies-and-other-pastries?v=1&scope=pregnancy-food-safety')
 
+    expect(screen.getByRole('heading', { name: 'Pies and Other Pastries' })).toBeInTheDocument()
     expect(screen.getByText('Not assessed')).toBeInTheDocument()
     expect(screen.queryByText('Outside current coverage')).not.toBeInTheDocument()
     expect(screen.getByLabelText('Medical information disclaimer')).toHaveTextContent(disclaimer)

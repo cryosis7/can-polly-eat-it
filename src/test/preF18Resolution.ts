@@ -133,7 +133,6 @@ export const preF18Resolution: Record<string, Record<string, string[]>> = {
       "summary:The guide lists hard cheese as okay to eat when refrigerated."
     ],
     "vegetarian-suitability": [
-      "citation:Veggy Malta: 15 Products Not Vegetarian|https://veggymalta.com/15-products-not-vegetarian/|15 non-vegetarian foods: Parmesan",
       "summary:Traditional Parmesan uses animal-derived rennet."
     ]
   },
@@ -221,70 +220,60 @@ export const preF18Resolution: Record<string, Record<string, string[]>> = {
   "gummy-bears": {
     "pregnancy-food-safety": [],
     "vegetarian-suitability": [
-      "citation:Veggy Malta: 15 Products Not Vegetarian|https://veggymalta.com/15-products-not-vegetarian/|15 non-vegetarian foods: Gummy Bears",
       "summary:Gummy bears can contain gelatin; gelatin-free alternatives exist."
     ]
   },
   "jelly": {
     "pregnancy-food-safety": [],
     "vegetarian-suitability": [
-      "citation:Veggy Malta: 15 Products Not Vegetarian|https://veggymalta.com/15-products-not-vegetarian/|15 non-vegetarian foods: Jelly",
       "summary:Check whether jelly contains animal-derived ingredients; vegan alternatives exist."
     ]
   },
   "marshmallows": {
     "pregnancy-food-safety": [],
     "vegetarian-suitability": [
-      "citation:Veggy Malta: 15 Products Not Vegetarian|https://veggymalta.com/15-products-not-vegetarian/|15 non-vegetarian foods: Marshmallows",
       "summary:Marshmallows traditionally contain animal-derived gelatin."
     ]
   },
   "starburst": {
     "pregnancy-food-safety": [],
     "vegetarian-suitability": [
-      "citation:Veggy Malta: 15 Products Not Vegetarian|https://veggymalta.com/15-products-not-vegetarian/|15 non-vegetarian foods: Starburst",
       "summary:The article identifies Starburst as containing gelatin."
     ]
   },
   "gelatin": {
     "pregnancy-food-safety": [],
     "vegetarian-suitability": [
-      "citation:Veggy Malta: 15 Products Not Vegetarian|https://veggymalta.com/15-products-not-vegetarian/|15 non-vegetarian foods: Gummy Bears; Marshmallows; Panna Cotta; Starburst",
       "summary:Gelatin is an animal-derived gelling ingredient."
     ]
   },
   "white-sugar": {
     "pregnancy-food-safety": [],
     "vegetarian-suitability": [
-      "citation:Veggy Malta: 15 Products Not Vegetarian|https://veggymalta.com/15-products-not-vegetarian/|15 non-vegetarian foods: White sugar",
       "summary:White sugar can be refined using bone char, so check how it is processed."
     ]
   },
   "vegetable-soup": {
     "pregnancy-food-safety": [],
     "vegetarian-suitability": [
-      "citation:Veggy Malta: 15 Products Not Vegetarian|https://veggymalta.com/15-products-not-vegetarian/|15 non-vegetarian foods: Vegetables soups",
       "summary:Restaurant vegetable soup can contain chicken broth, so ask about the ingredients."
     ]
   },
-  "apple-pie": {
+  "pies-and-other-pastries": {
     "pregnancy-food-safety": [],
     "vegetarian-suitability": [
-      "citation:Veggy Malta: 15 Products Not Vegetarian|https://veggymalta.com/15-products-not-vegetarian/|15 non-vegetarian foods: Apple pie",
-      "summary:Traditional apple pie crust can contain lard, so check the ingredients."
+      "summary:Some pies and other pastries use lard, so check the ingredients."
     ]
   },
   "wine-and-beer": {
     "pregnancy-food-safety": [],
     "vegetarian-suitability": [
-      "citation:Veggy Malta: 15 Products Not Vegetarian|https://veggymalta.com/15-products-not-vegetarian/|15 non-vegetarian foods: Wines & Beer",
       "summary:Some wines and beers use fish-derived isinglass; vegetarian alternatives exist."
     ]
   },
   "orange-juice": {
     "pregnancy-food-safety": [],
     "vegetarian-suitability": [
-      "citation:Veggy Malta: 15 Products Not Vegetarian|https://veggymalta.com/15-products-not-vegetarian/|15 non-vegetarian foods: Orange juice",
       "summary:Some orange juice brands add omega-3 derived from fish."
     ]
   },
@@ -295,7 +284,6 @@ export const preF18Resolution: Record<string, Record<string, string[]>> = {
       "summary:The guide lists this food as okay to eat."
     ],
     "vegetarian-suitability": [
-      "citation:Veggy Malta: 15 Products Not Vegetarian|https://veggymalta.com/15-products-not-vegetarian/|15 non-vegetarian foods: Tortillas",
       "summary:Some tortillas use lard, so check the ingredients or ask the cook."
     ]
   },
@@ -308,14 +296,12 @@ export const preF18Resolution: Record<string, Record<string, string[]>> = {
       "summary:Refrigerate opened products and follow their manufacturer storage and heating instructions."
     ],
     "vegetarian-suitability": [
-      "citation:Veggy Malta: 15 Products Not Vegetarian|https://veggymalta.com/15-products-not-vegetarian/|15 non-vegetarian foods: Worcestershire sauce",
       "summary:Worcestershire sauce can contain anchovies; vegan alternatives exist."
     ]
   },
   "french-fries": {
     "pregnancy-food-safety": [],
     "vegetarian-suitability": [
-      "citation:Veggy Malta: 15 Products Not Vegetarian|https://veggymalta.com/15-products-not-vegetarian/|15 non-vegetarian foods: French fries",
       "summary:Restaurant fries can be cooked in animal fats, so ask how they are prepared."
     ]
   },
@@ -364,7 +350,6 @@ export const preF18Resolution: Record<string, Record<string, string[]>> = {
       "summary:The guide says not to eat foods containing raw eggs, so check whether this one contains raw egg."
     ],
     "vegetarian-suitability": [
-      "citation:Veggy Malta: 15 Products Not Vegetarian|https://veggymalta.com/15-products-not-vegetarian/|15 non-vegetarian foods: Panna Cotta",
       "summary:Panna cotta traditionally uses gelatin to set."
     ]
   },
