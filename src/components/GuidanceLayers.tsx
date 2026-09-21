@@ -13,8 +13,8 @@ export type GuidanceLayersProps = {
  * Every authored layer that applies, in resolution order, each with its own summary and the scope it
  * was authored at.
  *
- * ADR: Accumulate inherited guidance through additive assessments.
- * See: docs/decisions/2026-08-07 ADR - accumulate inherited guidance through additive assessments.md
+ * ADR: Resolve guidance conservatively without inference.
+ * See: docs/decisions/2026-09-21 ADR - resolve guidance conservatively without inference.md
  *
  * The whole stack renders, never a chosen subset. A summary view that showed only some layers would
  * understate authored guidance — a species mercury limit disappearing behind its group's cooking

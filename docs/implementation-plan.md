@@ -1,60 +1,52 @@
-# Implementation Plan
+# Implementation Guidance
 
-## Delivery strategy
+## Purpose
 
-Build the smallest trustworthy pregnancy-guide experience first, but establish the category and
-assessment abstractions before adding real content. The first release is static, client-side, and
-does not require accounts or a backend.
+The [Feature Register](features/README.md) describes the product's current capabilities and their
+acceptance criteria. The [Architecture Decision Register](decisions/index.md) describes the durable
+technical choices that constrain implementation. This document defines how future work moves from
+an approved outcome to a locally merged change; it is not a delivery history or backlog.
 
-Each delivered feature ends with a usable, verifiable increment. Later features do not duplicate data
-or UI for a new dietary perspective; they extend the shared guidance-list model.
+## Planning and delivery
 
-## Relationship to feature planning
-
-This document records the high-level delivery sequence across the product, the quality gates every
-change inherits, and the decisions deliberately deferred. It does not restate how any feature is
-built.
-
-The [Feature Register](features/README.md) is the source of truth for an individual feature's
-outcome, status, dependencies, non-goals, acceptance criteria, and feature-specific
-implementation-plan link. A feature-specific implementation plan is the source of truth for how that
-feature lands in code. Do not infer a feature's current delivery status from this document, and do
-not add per-feature task detail here.
-
-Feature-specific implementation plans inherit the quality gates below and add a pre-PR verification
-task that instructs a subagent to run the `prepare` skill after implementation and targeted
-validation. Resolve or record any `prepare` findings before opening a PR or marking the feature
-`Done`.
+1. Update an existing feature brief when work strengthens the same independently valuable outcome.
+   Create a new feature only when the user or maintainer receives a distinct new capability.
+2. Move a feature to `Planned` only after its outcome, boundaries, dependencies, acceptance criteria,
+   and feature-specific implementation plan are approved.
+3. In the implementation plan, name the affected surfaces, governing ADRs, observable tests, and a
+   final task for a subagent to run the `prepare` skill after targeted validation.
+4. Move the feature to `In progress` when implementation begins.
+5. Resolve or record `prepare` findings, complete the quality gates below, merge locally into
+   `main`, and only then mark the feature `Done`.
+6. Fold delivered behaviour into the durable feature brief and remove the obsolete implementation
+   plan so the register remains current-state documentation.
 
 ## Decision baseline
 
-The Accepted ADRs in [`docs/decisions/`](decisions/) govern this implementation plan. Create a new
-ADR or explicitly amend an existing decision before adopting a conflicting approach.
+Accepted ADRs in [`docs/decisions/`](decisions/) are binding. Refine an ADR when the current choice
+is unchanged. Write a self-contained replacement before implementing a conflicting choice, update
+all references, and remove the wholly obsolete record once Git history is its only remaining value.
 
-## Quality gates
+## Local quality gates
 
-Every pull request that changes application or content code should run:
+Run the narrowest relevant checks while implementing. Before a local merge that changes application
+or content behaviour, complete:
 
-- package-manager clean install;
-- linting and strict TypeScript checking;
-- the full Vitest suite with enforced 100% global statements, branches, functions, and lines for
+- `npm run lint`;
+- `npm run typecheck`;
+- `npm run test:coverage`, retaining 100% global statements, branches, functions, and lines for
   application source;
-- domain/schema/tree/search/filter unit tests;
-- React Testing Library tests for catalogue, filters, and detail rendering;
-- Chromium Playwright end-to-end tests for every implemented user-facing flow, including direct
-  detail-route loading and a filtered URL;
-- WCAG 2.2 AA `axe-core` scans in Playwright for key routes and responsive states, with zero
-  violations and no allowlist or baseline;
-- a Husky pre-commit hook that runs the coverage and Playwright commands before every local commit;
-- coverage resolution, mutually exclusive-scenario, and 1,000-level tree tests;
-- Netlify deploy-preview smoke tests for direct detail routes and cache/rewrite configuration;
-- build output generation;
-- a subagent `prepare` skill run for feature implementation work, with findings resolved or recorded
-  before PR readiness.
+- `npm run test:e2e`, including focused Chromium journeys and WCAG 2.2 AA axe scans for changed
+  user-facing behaviour;
+- `npm run build`;
+- the Husky pre-commit gate, which reruns coverage and Playwright;
+- a subagent `prepare` skill run for feature work, with every finding resolved or recorded.
+
+The repository is local-only. Do not add remote, pull-request, hosted-CI, or deploy-preview steps to
+feature plans.
 
 ## Deferred decisions
 
-Do not introduce a backend, CMS, authentication, personal recommendations, third-party search,
-analytics, or offline-first caching until a concrete product requirement requires it. If editorial
-collaboration or frequent live changes become necessary, create a new ADR that evaluates a CMS or
-backend against the version-controlled-data approach.
+A backend, CMS, authentication, personal recommendations, third-party search, analytics, or
+offline-first caching requires a concrete product need and a replacement or additional ADR before
+implementation.

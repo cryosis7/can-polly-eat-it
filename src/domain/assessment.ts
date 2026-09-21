@@ -270,8 +270,8 @@ const resolveWithAncestors = (
   }
 }
 
-// ADR: Model preparation as a catalogue dimension.
-// See: docs/decisions/2026-08-10 ADR - model preparation as a catalogue dimension.md
+// ADR: Model catalogue subjects and preparation independently.
+// See: docs/decisions/2026-09-21 ADR - model catalogue subjects and preparation independently.md
 /** Resolves one axis: food-wide guidance without a preparation, that preparation's guidance with one. */
 const resolveOnAxis = (
   subjectRef: AssessmentSubjectRef,

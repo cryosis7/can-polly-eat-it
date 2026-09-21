@@ -2,8 +2,8 @@ import type { ContentData } from '../domain/contentValidation'
 import type { Assessment, Category, Food, GuidanceList, Preparation, Source } from '../domain/schemas'
 
 /**
- * Fixture content for a guidance list carrying two attributed authorities. F-17 curates no real
- * second authority, so agreement and disagreement are proven here rather than in reviewed content.
+ * Fixture content for a guidance list carrying two attributed authorities. Production content has
+ * no suitable stable pair, so agreement and disagreement are proven here.
  */
 
 export const nzfs: Source = {

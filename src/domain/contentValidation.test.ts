@@ -447,8 +447,8 @@ describe('guide content validation', () => {
   })
 })
 
-// ADR: Model preparation as a catalogue dimension.
-// See: docs/decisions/2026-08-10 ADR - model preparation as a catalogue dimension.md
+// ADR: Model catalogue subjects and preparation independently.
+// See: docs/decisions/2026-09-21 ADR - model catalogue subjects and preparation independently.md
 describe('preparation validation', () => {
   const assessedFood = content.foods[0]
   const raw = { id: 'raw', slug: 'raw', name: 'Raw', sortOrder: 1 }

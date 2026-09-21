@@ -1,7 +1,7 @@
 import type { Preparation } from '../domain/schemas'
 
-// ADR: Model preparation as a catalogue dimension.
-// See: docs/decisions/2026-08-10 ADR - model preparation as a catalogue dimension.md
+// ADR: Model catalogue subjects and preparation independently.
+// See: docs/decisions/2026-09-21 ADR - model catalogue subjects and preparation independently.md
 //
 // One global vocabulary, so `raw` means the same thing under fish, meat, and eggs. `sortOrder` is
 // the display order on every surface, running from least processed to most, then pasteurisation,

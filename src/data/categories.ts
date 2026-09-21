@@ -5,8 +5,8 @@ import type { Category } from '../domain/schemas'
  * predictable. Ordering inside a root stays authored, because a child's order often
  * carries meaning the alphabet would destroy.
  *
- * ADR: Model preparation as a catalogue dimension.
- * See: docs/decisions/2026-08-10 ADR - model preparation as a catalogue dimension.md
+ * ADR: Model catalogue subjects and preparation independently.
+ * See: docs/decisions/2026-09-21 ADR - model catalogue subjects and preparation independently.md
  *
  * Categories that split a food group by how it is prepared, processed, or sourced no longer exist
  * here. `Raw eggs` and `Cooked eggs` were never two kinds of food; they were one food in two states,

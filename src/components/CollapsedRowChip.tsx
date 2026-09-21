@@ -1,7 +1,7 @@
 import { combinedOutcomePresentation, type CombinedOutcome } from '../domain/collapsedRowSummary'
 
-// ADR: Derive a display-only combined outcome for collapsed-row summaries.
-// See: docs/decisions/2026-08-13 ADR - derive a display-only combined outcome for collapsed-row summaries.md
+// ADR: Resolve guidance conservatively without inference.
+// See: docs/decisions/2026-09-21 ADR - resolve guidance conservatively without inference.md
 /**
  * The summary lozenge on a collapsed row. Deliberately separate from `StatusChip`, which renders a
  * guidance list's own authored status on an entry: this one summarises what a collapse is hiding,

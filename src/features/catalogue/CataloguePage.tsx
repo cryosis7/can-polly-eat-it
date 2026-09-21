@@ -104,8 +104,8 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
     effectiveCollapsedIds,
   )
 
-  // ADR: Derive a display-only combined outcome for collapsed-row summaries.
-  // See: docs/decisions/2026-08-13 ADR - derive a display-only combined outcome for collapsed-row summaries.md
+  // ADR: Resolve guidance conservatively without inference.
+  // See: docs/decisions/2026-09-21 ADR - resolve guidance conservatively without inference.md
   // Folded once per render rather than per row, so a deep branch costs one pass over the entries
   // rather than one pass per ancestor.
   const combinedOutcomeFor = (subjectRef: AssessmentSubjectRef, preparationId?: string): CombinedOutcome =>

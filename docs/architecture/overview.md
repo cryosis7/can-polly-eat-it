@@ -71,7 +71,7 @@ Reviewed source material
 Version-controlled content data --> schema and relationship validation
         |                                      |
         v                                      v
-React domain/query layer ----------------> validation errors in CI
+React domain/query layer ----------------> validation errors in local checks
         |
         +--> category tree builder
         +--> search index
@@ -279,8 +279,8 @@ A **source** is the authority that stands behind a statement, and is distinct fr
 is a link to a passage. Provenance is never inferred from a citation's URL, title, or array position.
 A guidance list declares the sources it draws on; a list standing on its `evidentiaryBasis` declares
 none. Attribution is required only where it carries meaning: a list declaring two or more sources
-must name a `sourceId` on every assessment, and a single-source or no-source list authors none and
-renders no attribution.
+must name a `sourceId` on every assessment. A single-source list may omit the redundant ID or name
+its one declared source; a no-source list authors none.
 
 Where several sources assessed the same subject and agree on a status, the guide shows one status and
 one ordered set of attributed layers; two sources whose whole authored body is identical collapse
@@ -464,9 +464,10 @@ For example,
 preserves the catalogue's selected dietary constraints when opening detail guidance, and
 `/category/<slug>` does the same for an assessed category. `prep=<preparation-slug>` carries the
 preparation a reader opened a detail page from; the page still shows every state the subject is
-assessed in and marks the one they were looking at. Unknown version,
-scope, category, outcome, or preparation values are removed while valid constraints remain, and the
-UI announces that unavailable shared filters were removed.
+assessed in and marks the one they were looking at. Unknown version, scope, category, or outcome values are removed while valid constraints remain, and
+the UI announces that unavailable shared filters were removed. An unknown detail-only preparation
+value is ignored, highlights no preparation, and is omitted from links generated from the parsed
+state without triggering the shared-filter announcement.
 
 ## Trust, accessibility, and privacy
 
@@ -544,10 +545,10 @@ preference to misattribution. Like every other authored status it is never the f
 
 ## Deployment and operations
 
-- Deploy the Vite bundle to Netlify using `netlify.toml` and `public/_redirects`; test the root, a
-  direct `/food/<slug>` route, and a direct `/category/<slug>` route in a Netlify deploy preview
-  before production.
+- Deploy the Vite bundle to Netlify using `netlify.toml` and `public/_redirects`; verify the root and
+  direct `/food/<slug>` and `/category/<slug>` routes with the local production preview before
+  merging into `main`.
 - Commit the package lockfile and content data with every release.
-- Run type-checking, data validation, unit tests, and UI tests in continuous integration before
-  deployment.
+- Run type-checking, data validation, unit tests, UI tests, and a production build locally before
+  merging into `main`.
 - Review and update citations, assessments, and unassessed notices whenever a source changes.

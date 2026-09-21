@@ -49,8 +49,8 @@ type LayerBodyProps = {
 const sourceNames = (sourceIds: string[], sources: Source[]): string =>
   sourceIds.map((id) => sources.find((source) => source.id === id)!.name).join(' and ')
 
-// ADR: Accumulate inherited guidance through additive assessments.
-// See: docs/decisions/2026-08-07 ADR - accumulate inherited guidance through additive assessments.md
+// ADR: Resolve guidance conservatively without inference.
+// See: docs/decisions/2026-09-21 ADR - resolve guidance conservatively without inference.md
 const LayerBody = ({ layer, content, headingId, returnSearch, isAccumulated }: LayerBodyProps) => {
   const { assessment, origin } = layer
   const ScenarioHeading = isAccumulated ? 'h6' : 'h5'
@@ -120,8 +120,8 @@ const LayerBody = ({ layer, content, headingId, returnSearch, isAccumulated }: L
   )
 }
 
-// ADR: Link assessments to canonical reason foods.
-// See: docs/decisions/2026-08-04 ADR - link assessments to canonical reason foods.md
+// ADR: Model guidance as independent lists and sources.
+// See: docs/decisions/2026-09-21 ADR - model guidance as independent lists and sources.md
 export const GuidanceSection = ({
   guidanceList,
   resolved,
@@ -232,4 +232,3 @@ export const GuidanceSection = ({
     </article>
   )
 }
-

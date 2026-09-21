@@ -15,8 +15,8 @@ export type ParsedCatalogueQuery = {
 const unique = (values: string[]) => [...new Set(values)]
 const outcomeBandOrder: OutcomeBand[] = ['okay', 'maybe', 'not-okay', 'not-assessed']
 
-// ADR: Default the catalogue to pregnancy and vegetarian scopes
-// See: docs/decisions/2026-08-25 ADR - default the catalogue to pregnancy and vegetarian scopes.md
+// ADR: Model guidance as independent lists and sources.
+// See: docs/decisions/2026-09-21 ADR - model guidance as independent lists and sources.md
 const defaultScopeSlugCandidates = ['pregnancy-food-safety', 'vegetarian-suitability']
 
 /** The scope slugs selected when a catalogue URL carries no `scope` at all. */
@@ -113,8 +113,8 @@ export const buildCatalogueQuery = (
   return searchParams
 }
 
-// ADR: Model preparation as a catalogue dimension.
-// See: docs/decisions/2026-08-10 ADR - model preparation as a catalogue dimension.md
+// ADR: Model catalogue subjects and preparation independently.
+// See: docs/decisions/2026-09-21 ADR - model catalogue subjects and preparation independently.md
 /**
  * The preparation a food page was opened in. It is deliberately not part of `CatalogueQueryState`,
  * so the catalogue's canonical URL never carries one and the back link from a preparation-scoped

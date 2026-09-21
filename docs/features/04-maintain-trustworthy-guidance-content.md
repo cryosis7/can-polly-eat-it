@@ -1,72 +1,72 @@
-# F-04: Maintain Trustworthy Guidance Content
+# F-04: Maintain trustworthy guidance content
 
 **Status:** Done
 
 **Depends on:** None
 
-**Governing decisions:** [version-controlled static content](<../decisions/2026-08-04 ADR - store reviewed guide content as version-controlled static data.md>), [unbounded category tree](<../decisions/2026-08-04 ADR - model food groups as an unbounded category tree.md>), and [independent guidance lists](<../decisions/2026-08-04 ADR - use independent guidance lists for food assessments.md>)
+**Governing decisions:** [Validated static guidance](<../decisions/2026-09-21 ADR - store reviewed guidance as validated static data.md>), [catalogue subjects and preparation](<../decisions/2026-09-21 ADR - model catalogue subjects and preparation independently.md>), [independent guidance lists and sources](<../decisions/2026-09-21 ADR - model guidance as independent lists and sources.md>), [conservative resolution](<../decisions/2026-09-21 ADR - resolve guidance conservatively without inference.md>), [review-gated AI drafting](<../decisions/2026-09-21 ADR - permit review-gated AI guidance drafting.md>), and [local quality gates](<../decisions/2026-09-21 ADR - enforce local quality gates.md>)
 
 ## Goal
 
-Allow a maintainer to add and review food guidance safely through version-controlled data and
-automated validation.
+Let a maintainer curate catalogue and guidance changes as reviewable static data, with automated
+validation and optional AI drafting that never replaces human judgement.
 
 ## Editorial workflow
 
-1. Select an authoritative source and locate the exact section or table row.
-2. Add or update the category and food record without changing unrelated IDs/slugs.
-3. Add a guidance-list assessment with a named status, concise summary, complete guidance scenarios,
-   and, when the list's citation policy requires it, a citation URL and locator.
-4. Run schema and relationship validation, then review the rendered card and detail page when
-   applicable.
-5. Obtain human review before publishing a material health-guidance change.
+1. Select a credible source and define the intended list and catalogue scope.
+2. Edit typed records directly or ask the curation skill for a local review-ready draft.
+3. Review every subject, preparation, status, source, paraphrase, scenario, condition, and citation.
+4. Run schema, relationship, domain, rendering, and relevant browser validation.
+5. Accept the change only after human review of both source evidence and rendered guidance.
 
 ## Required behaviour
 
-- Data validation rejects dangling references, category cycles, duplicate assessment pairs, invalid
-  list statuses, fallback statuses authored on assessments, and, for a citation-required guidance
-  list, missing citations. A citation-optional list's requirements are amended by
-  [F-10](<10-vary-citation-expectations-by-list.md>).
-- Every published assessment is traceable to its source, or, for a citation-optional guidance list,
-  to its list's declared evidentiary basis.
-- Empty-state resolution uses a single neutral "Not assessed" fallback for any subject with no own
-  assessment and no assessed ancestor.
-- Source text is manually reviewed and succinctly paraphrased; the product does not scrape or
-  automatically infer guidance.
-- Each guidance scenario retains its authoritative prose instruction and ordered supporting
-  conditions. Alternative scenarios must remain separate.
-- An assessment reason link targets an existing canonical food, has an authored statement such as
-  "Contains gelatin", is supported by the assessed food's citation, and never substitutes for it.
-- Uncertain in-scope items remain unassessed or use an explicit amber/review status as defined by
-  the list.
-- Content changes are reviewable in source control alongside their tests.
+- Keep categories, foods, preparations, lists, sources, and assessments as declarative typed records
+  under `src/data/`.
+- Reject invalid schemas, identifiers, parent cycles, dangling references, duplicate assessment
+  keys, invalid status ownership, fallback statuses on assessments, invalid attribution, impossible
+  additive rules, and missing required citations.
+- Require each list to own its statuses, neutral fallback, unassessed notice, source set, and citation
+  policy or evidentiary basis.
+- Preserve every source position, category origin, preparation state, scenario, condition, reason
+  link, citation, and authored wording whole.
+- Manually review and paraphrase source material; never scrape, automatically update, or infer
+  guidance.
+- Treat inaccessible, ambiguous, brand-dependent, incomplete, or unsupported material as blocked or
+  unresolved rather than favourable.
+- Permit the AI curation skill to prepare only a local draft from a supplied credible source, its
+  directly linked same-domain pages, and a disclosed snapshot of that URL when the live page is
+  inaccessible.
+- Keep the draft uncommitted and unpublished until a human approves every claim.
+- Review content and tests together in source control.
 
 ## Non-goals
 
-- A CMS or in-app authoring workflow.
-- Automated ingestion from PDFs or web pages.
+- A CMS, database, content API, or in-app authoring workflow.
+- Runtime scraping, automatic ingestion, or automatic publication.
 - Treating a citation as proof without a human content review.
 - Silently extending a list's coverage because a food appears in the catalogue.
 
 ## Assumptions and open questions
 
-- Initial reviewed pregnancy content is intentionally small; scaling the content set remains an
-  editorial activity governed by this workflow, not an automatic import.
-- Material future changes should include rendering tests when they alter visible catalogue or detail
-  outcomes.
+- Content scale remains within the catalogue budget in the catalogue-model ADR.
+- User-visible changes require focused rendering and Playwright coverage in addition to content
+  validation.
+- No open question blocks this implemented capability.
 
 ## Acceptance criteria
 
-- Invalid authored content fails validation with useful errors before it can be rendered.
-- Every published assessment has a status, and, per its guidance list's citation policy, either a
-  citation with a durable URL and exact locator or the list's declared evidentiary basis (see
-  [F-10](<10-vary-citation-expectations-by-list.md>)).
-- A reviewer can trace each published rule to an authoritative source or, for a citation-optional
-  list, to its declared evidentiary basis.
+- Invalid authored content fails with a useful validation error before rendering.
+- Every published rule is traceable to its attributed authority and precise citations, or to a
+  citation-optional list's displayed evidentiary basis.
+- A source-backed AI draft identifies every locator and unresolved item, changes only local data and
+  tests, and stops before commit or publication.
+- A maintainer can verify the exact catalogue, resolver, and rendered outcomes affected by a content
+  change.
 
 ## Validation
 
-Tests retain the repository-wide 100% global statements, branches, functions, and lines coverage
-thresholds for application source. When content changes alter a user-visible catalogue or detail
-outcome, add or update Chromium Playwright scenarios that prove the reviewed data renders with its
-expected status and source link.
+Content and domain tests parse the complete dataset and exercise affected invariants. Rendering and
+Chromium Playwright tests prove changed user-visible outcomes, wording, attribution, and citations.
+The curation skill's own structural and scenario tests remain part of its maintenance. All
+application changes retain the repository-wide coverage and accessibility gates.

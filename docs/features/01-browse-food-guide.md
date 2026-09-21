@@ -1,61 +1,67 @@
-# F-01: Browse the Food Guide
+# F-01: Browse the food guide
 
 **Status:** Done
 
 **Depends on:** None
 
-**Governing decisions:** [Static TypeScript React SPA](<../decisions/2026-08-04 ADR - use a static TypeScript React SPA.md>), [unbounded category tree](<../decisions/2026-08-04 ADR - model food groups as an unbounded category tree.md>), [independent guidance lists](<../decisions/2026-08-04 ADR - use independent guidance lists for food assessments.md>), and [default the catalogue to pregnancy and vegetarian scopes](<../decisions/2026-08-25 ADR - default the catalogue to pregnancy and vegetarian scopes.md>)
+**Governing decisions:** [Client-only React SPA](<../decisions/2026-09-21 ADR - deliver a client-only React SPA.md>), [catalogue subjects and preparation](<../decisions/2026-09-21 ADR - model catalogue subjects and preparation independently.md>), [independent guidance lists and sources](<../decisions/2026-09-21 ADR - model guidance as independent lists and sources.md>), [conservative resolution](<../decisions/2026-09-21 ADR - resolve guidance conservatively without inference.md>), and [local quality gates](<../decisions/2026-09-21 ADR - enforce local quality gates.md>)
 
 ## Goal
 
-Let Polly scan the full food guide in familiar groups and immediately see each food's outcome for
-the selected guidance lists.
+Let Polly browse foods and assessed categories in familiar groups, see preparation context, and spot
+which collapsed areas need attention.
 
 ## Primary experience
 
-1. Open the home page.
-2. See the pregnancy food-safety and vegetarian suitability lists selected by default and a concise
-   explanation of their status labels.
-3. Browse grouped categories in editorial order, for example `Dairy -> Cheese -> Hard cheese`.
-4. See food cards inside their category with an explicit text status, summary, and source link.
-5. Follow a card to learn the details delivered by [F-03](<03-explain-food-guidance.md>).
+1. Open the home page with pregnancy food safety and vegetarian suitability selected.
+2. Browse the category hierarchy in editorial order.
+3. Expand a category or preparation band to see its complete guidance and entries.
+4. Use the collapsed-row chip to decide whether a hidden group needs attention.
+5. Follow a food or assessed-category entry to [F-03](<03-understand-reviewed-guidance.md>).
 
 ## Required behaviour
 
-- Render any number of category levels without a product-defined depth limit, using a full breadcrumb
-  and depth-safe indentation rather than heading levels.
-- Render categories with both direct foods and subcategories correctly.
-- Show green, amber, red, and grey states with text and icons as well as colour.
-- Resolve missing assessment data as the list's neutral "Not assessed" state; never show it as safe.
-- Give each food card a direct link to the primary source as well as its detail route.
-- Preserve stable category and food order supplied by content data.
-- Keep the view usable with a keyboard and on a narrow viewport.
-- Keep the initial fully rendered catalogue within the 2,000-food/500-category architecture budget;
-  do not silently truncate results when the budget is exceeded.
+- Render an arbitrary-depth category tree through flattened rows, complete breadcrumbs, and
+  depth-safe indentation.
+- Keep each food filed once under what it is, then group its rows by the preparation states people
+  actually eat it in.
+- Treat an assessed category as a guide entry with its own route, status, and guidance.
+- Let users collapse nested categories and preparation bands without hiding the fact that their
+  contents are uniform, mixed, or need attention.
+- Never show an aggregate chip beside the guidance it summarises or while a content-narrowing filter
+  is active.
+- Show every selected list's status and guidance with text and icons as well as colour.
+- Preserve editorial category, preparation, and food order.
+- Keep all disclosure controls keyboard-operable and the catalogue usable at 320px and desktop
+  widths.
+- Do not silently truncate the catalogue within its 2,000-food and 500-category budget.
 
 ## Non-goals
 
-- Full-text search and filters.
-- A food-detail explanation.
+- Search, filters, and shareable query state, which belong to [F-02](<02-find-filter-and-share-guide-entries.md>).
+- Detailed explanation and provenance, which belong to [F-03](<03-understand-reviewed-guidance.md>).
 - Content editing in the browser.
 - Personalised advice or saved favourites.
 
 ## Assumptions and open questions
 
-- The selected guidance-list vocabulary is owned by content data and can grow without duplicating the
-  food catalogue.
-- No open question blocks this completed slice. Detail-route content is tracked separately in F-03.
+- The list vocabulary and status labels are authored content, not UI constants.
+- No open question blocks this implemented capability.
 
 ## Acceptance criteria
 
-- A food attached beneath a 1,000-level test hierarchy can be derived by the domain layer without a
-  stack overflow; the readable UI fixture shows its complete category breadcrumb.
-- A food without an applicable pregnancy assessment shows "Not assessed", visually distinct from "OK
-  to eat".
-- A screen-reader user hears the category heading and status label for each food card.
+- A 1,000-level domain tree can be flattened without a stack overflow, while readable UI fixtures
+  expose complete breadcrumbs.
+- A category with direct foods, descendants, assessed guidance, and preparation bands renders every
+  entry in stable editorial order.
+- Collapsing a nested row hides its body and shows a colour-independent aggregate summary; expanding
+  it restores every authored guidance layer.
+- A keyboard and screen-reader user can operate the hierarchy and hear labels, states, breadcrumbs,
+  and status meaning.
 
 ## Validation
 
-Tests retain the repository-wide 100% global statements, branches, functions, and lines coverage
-thresholds for application source. Chromium Playwright coverage verifies the selected guide, visible
-category breadcrumb, status outcomes, food cards, and primary-source links.
+Domain and component tests cover tree derivation, preparation grouping, disclosure state, and
+aggregate summaries. Chromium Playwright covers mobile and desktop browsing, keyboard-operable
+disclosures, breadcrumbs, status meaning, and assessed-category and food links. All tests retain the
+repository-wide coverage and accessibility gates.

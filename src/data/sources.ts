@@ -1,7 +1,7 @@
 import type { Source } from '../domain/schemas'
 
-// ADR: Model guidance sources as attributed peers within a guidance list.
-// See: docs/decisions/2026-08-08 ADR - model guidance sources as attributed peers within a guidance list.md
+// ADR: Model guidance as independent lists and sources.
+// See: docs/decisions/2026-09-21 ADR - model guidance as independent lists and sources.md
 //
 // Declaration order is the tie-break order when two sources reach statuses of equal caution, so it
 // is display determinism rather than a ranking: both positions are still shown and named. New

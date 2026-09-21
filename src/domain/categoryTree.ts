@@ -102,8 +102,8 @@ export const foodsByCategoryId = (foods: Food[]) => {
   return grouped
 }
 
-// ADR: Model preparation as a catalogue dimension.
-// See: docs/decisions/2026-08-10 ADR - model preparation as a catalogue dimension.md
+// ADR: Model catalogue subjects and preparation independently.
+// See: docs/decisions/2026-09-21 ADR - model catalogue subjects and preparation independently.md
 /**
  * One browsable entry: a food in a preparation context. A food declaring preparation states yields
  * one row per state and no preparation-free row, because such a row would need a status standing
@@ -127,8 +127,8 @@ export const catalogueRows = (foods: Food[]): CatalogueRow[] => foods.flatMap((f
  */
 export type CategoryRowGroups = Map<string | undefined, CatalogueRow[]>
 
-// ADR: Model preparation as a catalogue dimension.
-// See: docs/decisions/2026-08-10 ADR - model preparation as a catalogue dimension.md
+// ADR: Model catalogue subjects and preparation independently.
+// See: docs/decisions/2026-09-21 ADR - model catalogue subjects and preparation independently.md
 /**
  * One browsable entry for a category's own guidance, in a preparation context.
  *
@@ -287,8 +287,8 @@ export const rowsByCategoryId = (
   return grouped
 }
 
-// ADR: Model preparation as a catalogue dimension.
-// See: docs/decisions/2026-08-10 ADR - model preparation as a catalogue dimension.md
+// ADR: Model catalogue subjects and preparation independently.
+// See: docs/decisions/2026-09-21 ADR - model catalogue subjects and preparation independently.md
 /**
  * The preparation states in play for each category: the union of the states its foods declare and
  * the states carrying an authored category assessment for it, ordered by the vocabulary's

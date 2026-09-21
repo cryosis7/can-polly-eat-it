@@ -1,14 +1,14 @@
 # Polly's Food Guide
 
-A static React guide for browsing reviewed pregnancy food-safety information. It is general
-information, not medical advice.
+A static React guide for browsing reviewed food guidance, including pregnancy food safety and
+vegetarian suitability. It is general information, not medical advice.
 
 ## Feature planning
 
-The [Feature Register](docs/features/README.md) records each product feature's outcome, lifecycle
-status, dependencies, and acceptance criteria. The [implementation plan](docs/implementation-plan.md)
-sequences high-level delivery; create a detailed technical plan only when a feature is `Planned`.
-Feature-specific plans include targeted validation and a subagent `prepare` check before merging.
+The [Feature Register](docs/features/README.md) records the product's durable capabilities, lifecycle
+status, dependencies, and acceptance criteria. The [Architecture Decision Register](docs/decisions/index.md)
+records only the current durable technical choices. Create a detailed technical plan only for a
+`Planned` feature; include targeted validation and a subagent `prepare` check before merging.
 
 ## Development
 

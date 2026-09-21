@@ -498,8 +498,8 @@ test.describe('Food catalogue', () => {
   })
 })
 
-// ADR: Derive a display-only combined outcome for collapsed-row summaries.
-// See: docs/decisions/2026-08-13 ADR - derive a display-only combined outcome for collapsed-row summaries.md
+// ADR: Resolve guidance conservatively without inference.
+// See: docs/decisions/2026-09-21 ADR - resolve guidance conservatively without inference.md
 test.describe('Collapsed-row summary chips', () => {
   test('summarises a collapsed group and drops the chip once it is opened', async ({ page }) => {
     await page.goto('/?v=1&scope=pregnancy-food-safety')

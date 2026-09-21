@@ -1,7 +1,7 @@
 import type { OutcomeBand } from './schemas'
 
-// ADR: Derive a display-only combined outcome for collapsed-row summaries.
-// See: docs/decisions/2026-08-13 ADR - derive a display-only combined outcome for collapsed-row summaries.md
+// ADR: Resolve guidance conservatively without inference.
+// See: docs/decisions/2026-09-21 ADR - resolve guidance conservatively without inference.md
 /**
  * The summary shown on a collapsed row. It is deliberately not a `StatusDefinition`: no guidance
  * list authored it, it is never persisted, and it disappears the moment the row is expanded and the
@@ -36,8 +36,8 @@ export const combineOutcomesAcrossLists = (bands: OutcomeBand[]): CombinedOutcom
   return assessed.length === bands.length ? 'okay' : 'maybe'
 }
 
-// ADR: Derive a display-only combined outcome for collapsed-row summaries.
-// See: docs/decisions/2026-08-13 ADR - derive a display-only combined outcome for collapsed-row summaries.md
+// ADR: Resolve guidance conservatively without inference.
+// See: docs/decisions/2026-09-21 ADR - resolve guidance conservatively without inference.md
 /**
  * The chip for a collapsed row, folded over every entry the collapse hides: the row's own guidance
  * entry where it has one, and every descendant food and category entry.

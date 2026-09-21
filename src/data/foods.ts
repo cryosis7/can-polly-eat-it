@@ -13,11 +13,11 @@ type FoodGroup = {
   foods: FoodDefinition[]
 }
 
-// ADR: Model preparation as a catalogue dimension.
-// See: docs/decisions/2026-08-10 ADR - model preparation as a catalogue dimension.md
+// ADR: Model catalogue subjects and preparation independently.
+// See: docs/decisions/2026-09-21 ADR - model catalogue subjects and preparation independently.md
 //
 // Which seafood species are eaten raw and smoked in New Zealand. These are structural claims about
-// how people eat, confirmed by the maintainer at the F-18 review gate; they carry no guidance and
+// how people eat, confirmed by the maintainer during preparation-model review; they carry no guidance and
 // no source states them. The guidance shown against a preparation is the group's authored rule.
 //
 // Two tests decided each entry. Everyday practice counts and a fine-dining menu item does not, so

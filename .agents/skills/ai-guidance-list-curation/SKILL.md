@@ -26,7 +26,7 @@ They own the record shape and the resolution rules; this skill does not restate 
 - Never commit, publish, deploy, or approve content from this workflow.
 
 Changing any guardrail above means amending the
-[curation ADR](../../../docs/decisions/2026-08-05%20ADR%20-%20adopt%20AI-assisted%20local%20draft%20curation%20for%20official%20sources.md).
+[curation ADR](../../../docs/decisions/2026-09-21%20ADR%20-%20permit%20review-gated%20AI%20guidance%20drafting.md).
 
 ## Before drafting
 
@@ -60,8 +60,9 @@ The overview owns the record shape; these are the judgement calls it does not ma
   the nearest assessment's status and shows the inherited guidance as a separate attributed layer.
 - **Reason links** — use one only where the source supports the assessed food's own conclusion. It
   must target an existing canonical food, and never supplies a status or citation by itself.
-- **`sourceId`** — required on every assessment in a list declaring two or more sources; absent
-  entirely in a single-source or no-source list, where the list supplies the attribution.
+- **`sourceId`** — required on every assessment in a list declaring two or more sources. A
+  single-source list may omit the redundant ID; if authored, it must name that declared source. A
+  no-source list omits it.
 - **Merging siblings** — propose one category assessment with a `scopeStatement` only where the
   source treats the items identically. Differing conditions, scenarios, or strength of wording are
   distinct advice: keep them as separate records and let the maintainer decide.

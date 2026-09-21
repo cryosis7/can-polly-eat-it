@@ -29,8 +29,8 @@ export type DissentNoticeProps = {
  * signalled by colour alone, and is never hidden behind a hover or an interaction a keyboard or
  * screen-reader user cannot reach.
  */
-// ADR: Model guidance sources as attributed peers within a guidance list.
-// See: docs/decisions/2026-08-08 ADR - model guidance sources as attributed peers within a guidance list.md
+// ADR: Resolve guidance conservatively without inference.
+// See: docs/decisions/2026-09-21 ADR - resolve guidance conservatively without inference.md
 export const DissentNotice = ({ resolved, sources }: DissentNoticeProps) => (
   <>
     {dissentingPositions(resolved).map((position) => {

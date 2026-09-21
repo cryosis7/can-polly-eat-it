@@ -132,8 +132,8 @@ describe('catalogue query', () => {
   })
 })
 
-// ADR: Model preparation as a catalogue dimension.
-// See: docs/decisions/2026-08-10 ADR - model preparation as a catalogue dimension.md
+// ADR: Model catalogue subjects and preparation independently.
+// See: docs/decisions/2026-09-21 ADR - model catalogue subjects and preparation independently.md
 describe('the preparation a food page was opened in', () => {
   it('accepts a known preparation slug and strips an unknown one', () => {
     expect(parsePreparationSlug(new URLSearchParams('v=1&prep=raw'), preparations)).toBe('raw')

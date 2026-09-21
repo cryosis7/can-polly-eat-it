@@ -519,8 +519,8 @@ describe('CataloguePage', () => {
   })
 })
 
-// ADR: Model preparation as a catalogue dimension.
-// See: docs/decisions/2026-08-10 ADR - model preparation as a catalogue dimension.md
+// ADR: Model catalogue subjects and preparation independently.
+// See: docs/decisions/2026-09-21 ADR - model catalogue subjects and preparation independently.md
 describe('browsing a category with a preparation dimension', () => {
   const citation = content.assessments.find((assessment) => assessment.citations.length > 0)!.citations[0]
   const salmon = content.foods.find((food) => food.id === 'farmed-salmon')!
@@ -643,8 +643,8 @@ describe('browsing a category with a preparation dimension', () => {
   })
 })
 
-// ADR: Derive a display-only combined outcome for collapsed-row summaries.
-// See: docs/decisions/2026-08-13 ADR - derive a display-only combined outcome for collapsed-row summaries.md
+// ADR: Resolve guidance conservatively without inference.
+// See: docs/decisions/2026-09-21 ADR - resolve guidance conservatively without inference.md
 describe('CataloguePage collapsed-row chips', () => {
   const rowToggle = (name: string) =>
     screen.getByRole('button', { name: new RegExp(`^${name}, level \\d+`) })
@@ -799,8 +799,8 @@ describe('CataloguePage collapsed-row chips', () => {
   })
 })
 
-// ADR: Derive a display-only combined outcome for collapsed-row summaries.
-// See: docs/decisions/2026-08-13 ADR - derive a display-only combined outcome for collapsed-row summaries.md
+// ADR: Resolve guidance conservatively without inference.
+// See: docs/decisions/2026-09-21 ADR - resolve guidance conservatively without inference.md
 describe('CataloguePage collapsed-row chips across dietary scopes', () => {
   const bothScopes = '/?v=1&scope=pregnancy-food-safety,vegetarian-suitability'
 

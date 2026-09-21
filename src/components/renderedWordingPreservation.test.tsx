@@ -11,8 +11,8 @@ import { GuideEntrySummary } from './GuideEntrySummary'
 const index = createContentIndex(content.categories, content.assessments)
 
 /**
- * ADR: Accumulate inherited guidance through additive assessments.
- * See: docs/decisions/2026-08-07 ADR - accumulate inherited guidance through additive assessments.md
+ * ADR: Resolve guidance conservatively without inference.
+ * See: docs/decisions/2026-09-21 ADR - resolve guidance conservatively without inference.md
  *
  * The resolver keeping every authored layer is worth nothing if a view then shows a subset. This
  * walks every row the catalogue can render and asserts each authored summary actually reaches the

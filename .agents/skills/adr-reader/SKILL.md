@@ -88,8 +88,8 @@ governs. Use it as your map for where a decision lands and what convention new c
 When you implement or modify code guided by an ADR, add a lightweight comment referencing it:
 
 ```ts
-// ADR: Assess categories as first-class subjects with inherited guidance
-// See: docs/decisions/2026-08-06 ADR - assess categories as first-class subjects with inherited guidance.md
+// ADR: Resolve guidance conservatively without inference
+// See: docs/decisions/2026-09-21 ADR - resolve guidance conservatively without inference.md
 ```
 
 One comment at the entry point of the governed area, not on every line. When you spot such a comment

@@ -5,9 +5,9 @@ import { resolveAssessment, type GuidanceLayer } from './assessment'
 import { createContentIndex } from './contentIndex'
 
 /**
- * The F-18 wording-preservation invariant.
+ * The preparation-migration wording-preservation invariant.
  *
- * F-18 retires fifteen categories and moves species between them, so a subject-keyed pin — one that
+ * The migration retired fifteen categories and moved species between them, so a subject-keyed pin — one that
  * fixes each food's resolved outcome to a baseline — cannot survive by construction: the migration
  * exists to re-scope which layer applies to which row. What must not change is what the layers *say*.
  *
@@ -43,11 +43,11 @@ const bodiesAcrossRows = (foodId: string, guidanceListId: string): Set<string> =
   ))
 }
 
-describe('F-18 wording preservation', () => {
+describe('preparation-migration wording preservation', () => {
   it('keeps every authored body every food resolved to before the migration', () => {
     for (const [foodId, byList] of Object.entries(preF18Resolution)) {
       if (!content.foods.some((food) => food.id === foodId)) {
-        throw new Error(`food "${foodId}" disappeared; F-18 retires categories, never foods`)
+        throw new Error(`food "${foodId}" disappeared; the migration retires categories, never foods`)
       }
       for (const [guidanceListId, expectedBodies] of Object.entries(byList)) {
         const actual = bodiesAcrossRows(foodId, guidanceListId)
@@ -57,7 +57,7 @@ describe('F-18 wording preservation', () => {
     }
   })
 
-  it('retires no food, because F-18 moves categories rather than removing guidance subjects', () => {
+  it('retires no food, because the migration moves categories rather than removing guidance subjects', () => {
     const before = new Set(Object.keys(preF18Resolution))
     const after = new Set(content.foods.map((food) => food.id))
 

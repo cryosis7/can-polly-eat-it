@@ -1,7 +1,7 @@
 import type { Assessment } from '../domain/schemas'
 
-// ADR: Model guidance sources as attributed peers within a guidance list.
-// See: docs/decisions/2026-08-08 ADR - model guidance sources as attributed peers within a guidance list.md
+// ADR: Model guidance as independent lists and sources.
+// See: docs/decisions/2026-09-21 ADR - model guidance as independent lists and sources.md
 //
 // Three reviewed tea sources join New Zealand Food Safety inside the pregnancy list. They frequently
 // disagree, and that disagreement is authored rather than resolved here: each source's own advice is
