@@ -1,14 +1,14 @@
 # 2026-09-21 ADR: enforce local quality gates
 
-**Status:** Accepted  
-**Date:** 2026-09-21  
+**Status:** Superseded
+**Date:** 2026-09-21
 **Deciders:** Product owner
 
 ## Context and Problem Statement
 
-This repository is delivered and integrated locally without a remote, pull requests, or CI. The
-application contains safety-relevant branching and accessibility requirements, so its quality gates
-must be reproducible and enforced before local commits and merges.
+This repository was originally delivered and integrated locally without a remote, pull requests, or
+CI. The application contains safety-relevant branching and accessibility requirements, so its
+quality gates must be reproducible and enforced before local commits and merges.
 
 ## Considered Options
 
@@ -51,3 +51,9 @@ Type-checking, linting, and a production build remain required before merging in
 - [x] The pre-commit hook runs coverage and the Chromium Playwright suite.
 - [x] Axe scans enforce WCAG 2.2 AA without exceptions.
 - [x] Local merge preparation includes lint, type-check, tests, and a production build.
+
+## More Information
+
+Superseded by
+[2026-09-23 ADR: enforce local quality gates and fixed-UTC production promotions](<2026-09-23 ADR - enforce local quality gates and fixed-UTC production promotions.md>),
+which retains the local quality gates and adds a limited GitHub Actions release-promotion workflow.

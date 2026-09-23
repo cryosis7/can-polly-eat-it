@@ -26,7 +26,7 @@ Read these rather than assuming; they are authoritative and current.
 
 ## Delivery
 
-- **This repository is local-only. There is no git remote, no `origin`, no pull requests, and no CI.** Never run `git push`, `git fetch`, or `git pull`, never check a remote's state, and never try to open or update a PR. Work is integrated by merging into `main` locally. Where a skill or document says "pre-PR", read it as "before merging into `main`".
+- **Application work is integrated by merging into `main` locally.** Do not run `git push`, `git fetch`, or `git pull`, check a remote's state, or open or update a pull request from this workspace. The only hosted automation is [the production-promotion workflow](../.github/workflows/promote-production.yml), which merges `main` into the `production` release branch daily at 20:00 UTC or when manually dispatched. Where a skill or document says "pre-PR", read it as "before merging into `main`".
 - Application source under `src/` is held at 100% statements, branches, functions, and lines. The pre-commit hook runs coverage and the Playwright suite, so a change that lowers coverage fails the commit rather than review. Write the tests as you go.
 - While working, run the narrowest relevant existing command rather than the full suite.
 - For feature work, a subagent must run the `prepare` skill after targeted validation and before the feature moves to `Done`.

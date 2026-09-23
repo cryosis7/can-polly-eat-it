@@ -1,0 +1,56 @@
+name: Promote production
+
+# ADR: Enforce local quality gates and fixed-UTC production promotions
+# See: docs/decisions/2026-09-23 ADR - enforce local quality gates and fixed-UTC production promotions.md
+on:
+  schedule:
+    # 08:00 NZST / 09:00 NZDT.
+    - cron: "0 20 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: production-promotion
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure Git
+        shell: bash
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Promote main to production
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          repository_url="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git init --initial-branch=main promotion
+          cd promotion
+          git remote add origin "$repository_url"
+          git fetch --no-tags origin main
+
+          if ! git ls-remote --exit-code --heads origin production > /dev/null; then
+            git push origin origin/main:refs/heads/production
+            echo "Created production from main."
+            exit 0
+          fi
+
+          git fetch --no-tags origin production
+
+          if git merge-base --is-ancestor origin/main origin/production; then
+            echo "Production already contains main; nothing to promote."
+            exit 0
+          fi
+
+          git switch --create production --track origin/production
+          git merge --no-edit origin/main
+          git push origin HEAD:refs/heads/production

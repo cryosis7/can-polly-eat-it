@@ -36,6 +36,15 @@ npm run build
 `npm install` configures the Husky pre-commit hook. Each commit runs `npm run test:precommit`, which
 requires both 100% Vitest coverage and the Chromium Playwright suite to pass.
 
+## Releases
+
+Netlify deploys the `production` branch. The
+[production-promotion workflow](.github/workflows/promote-production.yml) merges validated `main`
+changes into that branch at 20:00 UTC every day (08:00 NZST or 09:00 NZDT), or when a maintainer
+manually dispatches it. It creates `production` from `main` on its first run and does nothing when
+the release branch already contains `main`. The workflow needs the repository's `GITHUB_TOKEN` to
+have write permission; it uses no deployment secret.
+
 ## Accessibility
 
 `e2e/accessibility.spec.ts` scans every route and key interaction state with `axe-core` via

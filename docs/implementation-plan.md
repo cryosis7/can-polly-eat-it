@@ -42,8 +42,9 @@ or content behaviour, complete:
 - the Husky pre-commit gate, which reruns coverage and Playwright;
 - a subagent `prepare` skill run for feature work, with every finding resolved or recorded.
 
-The repository is local-only. Do not add remote, pull-request, hosted-CI, or deploy-preview steps to
-feature plans.
+Application work is integrated locally. Feature plans do not add remote, pull-request, hosted-CI,
+or deploy-preview steps; the sole hosted automation is the production-promotion workflow governed
+by the [release-promotion ADR](decisions/2026-09-23%20ADR%20-%20enforce%20local%20quality%20gates%20and%20fixed-UTC%20production%20promotions.md).
 
 ## Deferred decisions
 
