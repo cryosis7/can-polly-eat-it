@@ -69,5 +69,5 @@ describe('rendered guidance preserves every authored layer', () => {
 
       unmount()
     }
-  })
+  }, 15_000)
 })

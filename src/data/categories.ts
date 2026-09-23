@@ -29,7 +29,7 @@ export const categories: Category[] = [
   { id: 'hard-cheese', slug: 'hard-cheese', name: 'Hard cheese', parentId: 'cheese', aliases: [], sortOrder: 2 },
   { id: 'pasteurised-cottage-and-cream-cheese', slug: 'pasteurised-cottage-and-cream-cheese', name: 'Pasteurised cottage cheese, cream cheese, etc', parentId: 'cheese', aliases: [], sortOrder: 3 },
   { id: 'butter', slug: 'butter', name: 'Butter', parentId: 'dairy', aliases: [], sortOrder: 2 },
-  { id: 'cream', slug: 'cream', name: 'Cream', parentId: 'dairy', aliases: ['sour cream', 'whipped cream'], sortOrder: 3 },
+  { id: 'cream', slug: 'cream', name: 'Cream', parentId: 'dairy', aliases: ['whipped cream'], sortOrder: 3 },
   { id: 'custard', slug: 'custard', name: 'Custard', parentId: 'dairy', aliases: [], sortOrder: 4 },
   { id: 'milk', slug: 'milk', name: 'Milk', parentId: 'dairy', aliases: [], sortOrder: 5 },
   { id: 'yoghurt', slug: 'yoghurt', name: 'Yoghurt', parentId: 'dairy', aliases: ['yogurt', 'pasteurised yogurt'], sortOrder: 7 },

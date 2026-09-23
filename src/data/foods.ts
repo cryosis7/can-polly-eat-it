@@ -57,6 +57,14 @@ const foodGroups: FoodGroup[] = [
       { id: 'rice', name: 'Rice' },
       { id: 'pasta', name: 'Pasta' },
       { id: 'fresh-filled-pasta', name: 'Fresh filled pasta', aliases: ['fresh pasta with filling'] },
+      { id: 'instant-noodles-and-flavour-sachets', name: 'Instant noodles and flavour sachets', aliases: ['instant noodles', 'noodle flavour sachets', 'ramen noodles'] },
+      { id: 'risotto-and-prepared-rice-dishes', name: 'Risotto and prepared rice dishes', aliases: ['risotto', 'prepared rice dishes'] },
+    ],
+  },
+  {
+    categoryId: 'cream',
+    foods: [
+      { id: 'sour-cream', name: 'Sour cream' },
     ],
   },
   {
@@ -130,12 +138,18 @@ const foodGroups: FoodGroup[] = [
     foods: [
       { id: 'gelatin', name: 'Gelatin', aliases: ['gelatine'] },
       { id: 'white-sugar', name: 'White sugar' },
+      { id: 'animal-derived-rennet', name: 'Animal-derived rennet', aliases: ['animal rennet'] },
+      { id: 'rennet', name: 'Rennet' },
+      { id: 'isinglass', name: 'Isinglass' },
+      { id: 'lard', name: 'Lard' },
+      { id: 'suet', name: 'Suet' },
+      { id: 'stock-cubes-and-powdered-stock', name: 'Stock cubes and powdered stock', aliases: ['stock cubes', 'powdered stock'] },
     ],
   },
   {
     categoryId: 'soups',
     foods: [
-      { id: 'vegetable-soup', name: 'Vegetable soup', aliases: ['vegetable soups'] },
+      { id: 'miso-soup', name: 'Miso soup' },
     ],
   },
   {
@@ -160,12 +174,16 @@ const foodGroups: FoodGroup[] = [
     categoryId: 'breads',
     foods: [
       { id: 'tortillas', name: 'Tortillas' },
+      { id: 'doughnuts-and-pastries', name: 'Doughnuts and pastries', aliases: ['doughnuts', 'donuts', 'pastries'] },
     ],
   },
   {
     categoryId: 'miscellaneous',
     foods: [
       { id: 'french-fries', name: 'French fries', aliases: ['chips'] },
+      { id: 'kimchi', name: 'Kimchi' },
+      { id: 'refried-beans', name: 'Refried beans' },
+      { id: 'flavoured-potato-chips-and-savoury-snacks', name: 'Flavoured potato chips and savoury snacks', aliases: ['flavoured chips', 'flavored potato chips', 'flavored chips', 'savoury snacks'] },
     ],
   },
   {
@@ -178,6 +196,9 @@ const foodGroups: FoodGroup[] = [
       { id: 'hollandaise-sauce', name: 'Hollandaise sauce', aliases: ['hollandaise'], preparations: ['home-made'] },
       { id: 'caesar-dressing', name: 'Caesar dressing', preparations: ['home-made'] },
       { id: 'worcestershire-sauce', name: 'Worcestershire sauce', preparations: ['store-bought'] },
+      { id: 'curry-paste', name: 'Curry paste', aliases: ['curry pastes'] },
+      { id: 'pesto', name: 'Pesto' },
+      { id: 'gravy', name: 'Gravy' },
     ],
   },
   {
@@ -186,6 +207,7 @@ const foodGroups: FoodGroup[] = [
       { id: 'mousse', name: 'Mousse' },
       { id: 'tiramisu', name: 'Tiramisu' },
       { id: 'panna-cotta', name: 'Panna cotta' },
+      { id: 'cheesecake', name: 'Cheesecake' },
     ],
   },
   {

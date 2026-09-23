@@ -35,7 +35,7 @@ test.describe('Food catalogue', () => {
 
     await expect(page.getByRole('button', { name: 'Dairy, level 1' })).toHaveAttribute('aria-expanded', 'false')
     await expect(page.getByRole('button', { name: 'Cheese, level 2' })).toHaveCount(0)
-    await expect(page.getByText('242 results in the guide')).toBeVisible()
+    await expect(page.getByText('261 results in the guide')).toBeVisible()
 
     const collapsedHeight = await page.evaluate(() => document.body.scrollHeight)
     expect(collapsedHeight).toBeLessThan(6000)
@@ -159,7 +159,7 @@ test.describe('Food catalogue', () => {
     await expect(page.getByRole('checkbox', { name: 'Vegetarian suitability' })).toBeChecked()
     await expect(page.getByRole('checkbox', { name: 'Maybe - see notes' })).toBeChecked()
     await expect(page.getByRole('button', { name: 'Outcome: Maybe - see notes' })).toBeVisible()
-    await expect(page.getByText('1 result in the guide')).toBeVisible()
+    await expect(page.getByText('2 results in the guide')).toBeVisible()
 
     // Each selected scope gets its own callout on the band, so the two lists are never blended.
     const yoghurtBand = page.locator('.preparation-group', { hasText: 'Pasteurised' })
@@ -215,7 +215,7 @@ test.describe('Food catalogue', () => {
     await page.keyboard.press('Tab')
     await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused()
     await expect(page.getByRole('searchbox', { name: 'Search foods' })).toBeVisible()
-    await expect(page.getByText('242 results in the guide')).toBeVisible()
+    await expect(page.getByText('261 results in the guide')).toBeVisible()
     await expect(page.locator('details')).not.toHaveAttribute('open', '')
 
     await page.getByText('Filters', { exact: true }).click()
@@ -297,6 +297,37 @@ test.describe('Food catalogue', () => {
     await expect(page.getByRole('heading', { name: 'Gelatin' })).toBeVisible()
     await expect(page.getByText('Contains animal-derived ingredients')).toBeVisible()
     await expect(page.getByText('Gelatin is an animal-derived gelling ingredient.')).toBeVisible()
+  })
+
+  test('finds maintainer-reviewed vegetarian additions and explains the hidden ingredient', async ({ page }) => {
+    await page.goto('/?v=1&scope=vegetarian-suitability&q=fresh+filled+pasta')
+
+    const pastaCard = foodCard(page, 'Fresh filled pasta')
+    await expect(pastaCard).toBeVisible()
+    await expect(pastaCard.getByText('Check ingredients')).toBeVisible()
+    await expect(pastaCard).toContainText(
+      'Fresh filled pasta can contain cheese made with animal-derived rennet, so check the ingredients.',
+    )
+
+    await pastaCard.getByRole('link', { name: 'Fresh filled pasta' }).click()
+
+    await expect(page.getByRole('heading', { name: 'Why this guidance applies' })).toBeVisible()
+    await expect(page.getByText('Can contain cheese made with animal-derived rennet.')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Animal-derived rennet' })).toHaveAttribute(
+      'href',
+      '/food/animal-derived-rennet?v=1&scope=vegetarian-suitability&q=fresh+filled+pasta',
+    )
+  })
+
+  test('shows the generic soups stock warning on the soups guide entry', async ({ page }) => {
+    await page.goto('/category/soups?v=1&scope=vegetarian-suitability')
+
+    await expect(page.getByText(
+      'Soups can be made with meat or fish stock, so check the stock used.',
+    )).toBeVisible()
+
+    await expect(page.getByRole('heading', { name: 'Soups' })).toBeVisible()
+    await expect(page).toHaveURL('/category/soups?v=1&scope=vegetarian-suitability')
   })
 
   test('browses to a migrated food through the food group it now belongs to', async ({ page }) => {

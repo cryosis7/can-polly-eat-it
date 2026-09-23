@@ -1,4 +1,5 @@
 import type { Assessment } from '../domain/schemas'
+import { maintainerVegetarianAssessments } from './maintainerVegetarianAssessments'
 import { teaAssessments } from './teaAssessments'
 
 type Condition = {
@@ -618,16 +619,6 @@ const vegetarianAssessments: Assessment[] = [
     citations: [],
   },
   {
-    id: 'vegetable-soup-vegetarian',
-    subject: { kind: 'food', foodId: 'vegetable-soup' },
-    guidanceListId: 'vegetarian-suitability',
-    statusId: 'vegetarian-check-ingredients',
-    summary: 'Restaurant vegetable soup can contain chicken broth, so ask about the ingredients.',
-    guidanceScenarios: [],
-    reasonLinks: [],
-    citations: [],
-  },
-  {
     id: 'white-sugar-vegetarian',
     subject: { kind: 'food', foodId: 'white-sugar' },
     guidanceListId: 'vegetarian-suitability',
@@ -683,6 +674,17 @@ const vegetarianCategoryAssessments: Assessment[] = [
     reasonLinks: [],
     citations: [],
   },
+  {
+    id: 'soups-vegetarian',
+    subject: { kind: 'category', categoryId: 'soups' },
+    guidanceListId: 'vegetarian-suitability',
+    statusId: 'vegetarian-check-ingredients',
+    summary: 'Soups can be made with meat or fish stock, so check the stock used.',
+    scopeStatement: 'Applies to all soups.',
+    guidanceScenarios: [],
+    reasonLinks: [],
+    citations: [],
+  },
 ]
 
 // NSW Food Authority additions, drawn from the "Foods to eat or avoid when pregnant" table. These
@@ -732,5 +734,6 @@ export const assessments = [
   ...teaAssessments,
   ...vegetarianAssessments,
   ...vegetarianCategoryAssessments,
+  ...maintainerVegetarianAssessments,
   ...nswFoodAuthorityAssessments,
 ]

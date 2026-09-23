@@ -43,7 +43,7 @@ export const guidanceLists: GuidanceList[] = [
     description: 'Guidance for foods that can contain animal-derived ingredients.',
     citationPolicy: 'optional',
     sourceIds: [],
-    evidentiaryBasis: 'Reflects general vegetarian knowledge.',
+    evidentiaryBasis: 'Reflects general vegetarian knowledge reviewed by maintainers.',
     unassessedStatusId: 'vegetarian-not-assessed',
     statuses: [
       { id: 'vegetarian-suitable', slug: 'vegetarian', label: 'Vegetarian', tone: 'green', outcomeBand: 'okay', sortOrder: 1, filterLabel: 'Vegetarian', summary: 'This food is suitable for vegetarians.' },

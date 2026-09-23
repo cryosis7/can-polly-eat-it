@@ -13,11 +13,15 @@ validation and optional AI drafting that never replaces human judgement.
 
 ## Editorial workflow
 
-1. Select a credible source and define the intended list and catalogue scope.
+1. Define the intended list and catalogue scope. Select a credible source when the list requires
+   citations or a source would materially support the guidance; otherwise confirm that the list's
+   displayed evidentiary basis permits maintainer-reviewed uncited guidance.
 2. Edit typed records directly or ask the curation skill for a local review-ready draft.
-3. Review every subject, preparation, status, source, paraphrase, scenario, condition, and citation.
+3. Review every subject, preparation, status, source, paraphrase, scenario, condition, and citation
+   that applies.
 4. Run schema, relationship, domain, rendering, and relevant browser validation.
-5. Accept the change only after human review of both source evidence and rendered guidance.
+5. Accept the change only after human review of the source evidence or declared evidentiary basis
+   and the rendered guidance.
 
 ## Required behaviour
 

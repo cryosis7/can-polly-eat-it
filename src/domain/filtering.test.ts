@@ -90,14 +90,27 @@ describe('filterFoods', () => {
       categoryId: 'cereals',
       guidanceListIds: ['pregnancy-food-safety'],
       outcomeBands: ['okay'],
-    }).map((row) => row.food.slug)).toEqual(['breakfast-cereals', 'rice', 'pasta'])
+    }).map((row) => row.food.slug)).toEqual([
+      'breakfast-cereals',
+      'rice',
+      'pasta',
+      'instant-noodles-and-flavour-sachets',
+      'risotto-and-prepared-rice-dishes',
+    ])
 
     expect(filterFoods(foods, guidanceLists, index, {
       query: '',
       categoryId: 'cereals',
       guidanceListIds: ['pregnancy-food-safety'],
       outcomeBands: ['okay', 'maybe'],
-    }).map((row) => row.food.slug)).toEqual(['breakfast-cereals', 'rice', 'pasta', 'fresh-filled-pasta'])
+    }).map((row) => row.food.slug)).toEqual([
+      'breakfast-cereals',
+      'rice',
+      'pasta',
+      'fresh-filled-pasta',
+      'instant-noodles-and-flavour-sachets',
+      'risotto-and-prepared-rice-dishes',
+    ])
   })
 
   it('ANDs outcome constraints across selected scopes', () => {

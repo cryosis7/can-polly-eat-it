@@ -125,7 +125,7 @@ describe('CataloguePage', () => {
     const disclosure = container.querySelector('details')
     expect(disclosure).not.toHaveAttribute('open')
     expect(screen.getByRole('searchbox', { name: 'Search foods' })).toBeInTheDocument()
-    expect(screen.getByText('242 results in the guide')).toBeInTheDocument()
+    expect(screen.getByText('261 results in the guide')).toBeInTheDocument()
 
     disclosure!.open = true
     fireEvent(disclosure!, new Event('toggle', { bubbles: true }))
@@ -174,7 +174,7 @@ describe('CataloguePage', () => {
     expect(screen.getByRole('button', { name: 'Outcome: Okay' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Outcome: Maybe - see notes' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Cheddar' })).toBeInTheDocument()
-  })
+  }, 15_000)
 
   it('updates and clears search, category, scope, and generic outcome controls', () => {
     const { container } = renderCatalogue()

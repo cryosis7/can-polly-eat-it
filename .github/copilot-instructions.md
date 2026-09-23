@@ -19,7 +19,9 @@ Read these rather than assuming; they are authoritative and current.
 - Preparation is a dimension that crosses the catalogue, not a shape the tree takes. A food is filed once under what it is and declares the states it is actually eaten in; declaring a state answers "do people in New Zealand eat this food this way" on evidence, never on culinary theory, and never expresses risk.
 - Apply each guidance layer whole. Never merge statuses, summaries, scenarios, conditions, or citations across subject levels, across preparation states, across sources, or across guidance lists. Where sources disagree, the most cautious authored status governs and the dissent is stated in words.
 - `not-assessed` is a neutral fallback. It never means safe, and must never be authored onto an assessment.
-- Guidance text is manually reviewed and paraphrased from cited sources. Do not scrape, fetch, infer, or automatically update advice.
+- Guidance text is manually reviewed. Source-backed guidance is paraphrased from cited sources;
+  uncited guidance is permitted only when its list makes citations optional and displays an
+  evidentiary basis. Do not scrape, fetch, infer, or automatically update advice.
 - Use en-NZ spelling in code, content, and documentation.
 
 ## Delivery

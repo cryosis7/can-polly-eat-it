@@ -39,7 +39,6 @@ const migratedFoods: [string, string][] = [
   ['orange-juice', 'fruit-juice-kombucha-and-cider'],
   ['starburst', 'confectionery'],
   ['tortillas', 'breads'],
-  ['vegetable-soup', 'soups'],
   ['white-sugar', 'ingredients-and-additives'],
   ['wine-and-beer', 'alcoholic-drinks'],
   ['worcestershire-sauce', 'sauces-dressings-and-spreads'],
@@ -61,6 +60,16 @@ describe('retired animal-derived ingredients category', () => {
     }
   })
 
+  it('replaces the retired vegetable soup food with the generic soups guide entry', () => {
+    expect(content.foods.some((food) => food.id === 'vegetable-soup')).toBe(false)
+    expect(categoryById('soups')!.aliases).toEqual([])
+    expect(resolveAssessment(
+      { kind: 'category', category: categoryById('soups')! },
+      vegetarian,
+      index,
+    ).assessment?.summary).toBe('Soups can be made with meat or fish stock, so check the stock used.')
+  })
+
   it('rejects a food left pointing at the retired category', () => {
     expect(() => validateContent({
       ...content,
@@ -70,8 +79,8 @@ describe('retired animal-derived ingredients category', () => {
     })).toThrow()
   })
 
-  it('authors every new browse heading without an assessment of its own', () => {
-    for (const categoryId of ['confectionery', 'ingredients-and-additives', 'soups', 'baked-desserts', 'alcoholic-drinks']) {
+  it('keeps unrelated new browse headings without an assessment of their own', () => {
+    for (const categoryId of ['confectionery', 'ingredients-and-additives', 'baked-desserts', 'alcoholic-drinks']) {
       const category = categoryById(categoryId)!
       expect(category, categoryId).toBeDefined()
       expect(index.assessedCategoryIds.has(categoryId), categoryId).toBe(false)
@@ -143,7 +152,6 @@ describe('retired animal-derived ingredients category', () => {
       ['Orange juice', 'orange-juice'],
       ['Starburst', 'starburst'],
       ['Tortillas', 'tortillas'],
-      ['vegetable soups', 'vegetable-soup'],
       ['White sugar', 'white-sugar'],
       ['wine', 'wine-and-beer'],
       ['beer', 'wine-and-beer'],

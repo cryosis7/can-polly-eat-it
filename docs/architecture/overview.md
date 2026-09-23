@@ -8,9 +8,9 @@ independently maintained lists, including vegetarian suitability, without changi
 catalogue model.
 
 The application presents a browsable, category-grouped catalogue; free-text search; composable
-filters; and a food detail view that makes the rule, its conditions, and source clear.
-It is a personal reference tool, not medical advice. It must link to its source material and direct
-users to a health professional for personal advice.
+filters; and a food detail view that makes the rule, its conditions, and its source or evidentiary
+basis clear. It is a personal reference tool, not medical advice. Source-backed guidance must link
+to its source material, and the guide directs users to a health professional for personal advice.
 
 ## Product boundaries
 

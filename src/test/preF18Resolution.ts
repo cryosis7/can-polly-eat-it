@@ -253,12 +253,6 @@ export const preF18Resolution: Record<string, Record<string, string[]>> = {
       "summary:White sugar can be refined using bone char, so check how it is processed."
     ]
   },
-  "vegetable-soup": {
-    "pregnancy-food-safety": [],
-    "vegetarian-suitability": [
-      "summary:Restaurant vegetable soup can contain chicken broth, so ask about the ingredients."
-    ]
-  },
   "pies-and-other-pastries": {
     "pregnancy-food-safety": [],
     "vegetarian-suitability": [

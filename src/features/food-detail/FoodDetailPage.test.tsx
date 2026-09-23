@@ -126,6 +126,20 @@ describe('FoodDetailPage', () => {
     expect(screen.getAllByRole('link', { name: 'See Sauces, dressings and spreads guidance' })[0]).toBeInTheDocument()
   })
 
+  it('shows the maintainer-reviewed fresh filled pasta guidance and its canonical ingredient link', () => {
+    renderDetail('/food/fresh-filled-pasta?v=1&scope=vegetarian-suitability')
+
+    expect(screen.getByText('Check ingredients')).toBeInTheDocument()
+    expect(screen.getByText(
+      'Fresh filled pasta can contain cheese made with animal-derived rennet, so check the ingredients.',
+    )).toBeInTheDocument()
+    expect(screen.getByText('Can contain cheese made with animal-derived rennet.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Animal-derived rennet' })).toHaveAttribute(
+      'href',
+      '/food/animal-derived-rennet?v=1&scope=vegetarian-suitability',
+    )
+  })
+
   it('renders distinct guidance scenarios, optional facts, and authored reason links', () => {
     renderDetail('/food/fresh-filled-pasta?v=1&scope=pregnancy-food-safety', detailedContent)
 
