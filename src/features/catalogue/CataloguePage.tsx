@@ -7,14 +7,8 @@ import { GuideEntrySummary } from '../../components/GuideEntrySummary'
 import { StatusChip } from '../../components/StatusChip'
 import { resolveAssessment, type AssessmentSubjectRef } from '../../domain/assessment'
 import {
-  combineOutcomesAcrossLists,
-  combinedOutcomeLabel,
-  summariseCollapsedRow,
-  type CombinedOutcome,
-} from '../../domain/collapsedRowSummary'
-import {
-  entryRowsByCategoryId,
   entriesSurfacedByDescendants,
+  entryRowsByCategoryId,
   flattenCategoryRows,
   preparationIdsByCategoryId,
   rowsByCategoryId,
@@ -23,9 +17,15 @@ import {
   type CategoryEntryGroups,
   type CategoryRowGroups,
 } from '../../domain/categoryTree'
+import {
+  combineOutcomesAcrossLists,
+  combinedOutcomeLabel,
+  summariseCollapsedRow,
+  type CombinedOutcome,
+} from '../../domain/collapsedRowSummary'
 import { createContentIndex } from '../../domain/contentIndex'
-import { filterCategoryEntries, filterFoods } from '../../domain/filtering'
 import type { ContentData } from '../../domain/contentValidation'
+import { filterCategoryEntries, filterFoods } from '../../domain/filtering'
 import type { OutcomeBand } from '../../domain/schemas'
 
 type CataloguePageProps = {
@@ -312,7 +312,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
       <section aria-labelledby="guide-title" className="guide-intro">
         <p className="eyebrow">Food guide</p>
         <h1 id="guide-title">Polly&apos;s Food Guide</h1>
-        <p>Find food guidance for the dietary scopes that matter to you.</p>
+        <p>Find food guidance for when you&apos;re cooking for Polly.</p>
       </section>
 
       <section aria-labelledby="catalogue-heading">

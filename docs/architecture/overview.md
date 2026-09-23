@@ -85,9 +85,10 @@ React routes and accessible UI
   URL query parameters      selected scopes, outcomes, search, and filters
 ```
 
-The initial application is entirely client-side. It is deployed on Netlify as an HTTPS static site.
-`public/_redirects` contains `/* /index.html 200` for deep routes, and `netlify.toml` sets a
-short/no-cache policy for `index.html` while Vite's hashed `/assets/*` files use
+The initial application is entirely client-side. It is configured for deployment to Netlify as an
+HTTPS static site. `public/_redirects` contains `/* /index.html 200` for deep routes, and
+`netlify.toml` pins the build to Node.js 24, applies restrictive browser security headers, sets a
+short/no-cache policy for `index.html`, and gives Vite's hashed `/assets/*` files
 `Cache-Control: public, max-age=31536000, immutable`. The router base path is `/`.
 
 ## Target project layout
@@ -548,9 +549,11 @@ preference to misattribution. Like every other authored status it is never the f
 
 ## Deployment and operations
 
-- Deploy the Vite bundle to Netlify using `netlify.toml` and `public/_redirects`; verify the root and
-  direct `/food/<slug>` and `/category/<slug>` routes with the local production preview before
-  merging into `main`.
+- Run `npm run build`, then deploy from the repository root with Netlify CLI so it reads the publish
+  directory and response headers from `netlify.toml`; `public/_redirects` is copied into the Vite
+  bundle for the SPA fallback.
+- Use a draft deploy first and verify the root, a direct `/food/<slug>` route, and a direct
+  `/category/<slug>` route before promoting the same checked build to production.
 - Commit the package lockfile and content data with every release.
 - Run type-checking, data validation, unit tests, UI tests, and a production build locally before
   merging into `main`.
