@@ -1,6 +1,6 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { content } from '../../data'
 import type { ContentData } from '../../domain/contentValidation'
 import { categoryAssessment, dualSourceContent } from '../../test/multiSourceFixture'
@@ -135,6 +135,39 @@ describe('CataloguePage', () => {
     expect(screen.getByRole('group', { name: 'Dietary scopes' })).toBeInTheDocument()
   })
 
+  it('keeps every typed character while settling a multi-word search into catalogue state', async () => {
+    vi.useFakeTimers()
+
+    try {
+      renderCatalogue()
+      const search = screen.getByRole('searchbox', { name: 'Search foods' })
+
+      fireEvent.change(search, { target: { value: 'farmed' } })
+      fireEvent.change(search, { target: { value: 'farmed ' } })
+      expect(search).toHaveValue('farmed ')
+      expect(screen.queryByRole('button', { name: 'Search: farmed' })).not.toBeInTheDocument()
+
+      fireEvent.change(search, { target: { value: 'farmed salmon' } })
+      expect(search).toHaveValue('farmed salmon')
+
+      await act(async () => vi.runAllTimersAsync())
+
+      expect(search).toHaveValue('farmed salmon')
+      expect(screen.getByRole('button', { name: 'Search: farmed salmon' })).toBeInTheDocument()
+      expect(screen.getByText('3 results in the guide')).toBeInTheDocument()
+
+      fireEvent.change(search, { target: { value: '' } })
+      expect(search).toHaveValue('')
+
+      await act(async () => vi.runAllTimersAsync())
+
+      expect(screen.queryByRole('button', { name: /^Search:/ })).not.toBeInTheDocument()
+      expect(screen.getByText('242 results in the guide')).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('applies selected outcomes and labels active chips', () => {
     renderCatalogue('/?v=1&scope=pregnancy-food-safety&outcome=okay,maybe')
 
@@ -148,6 +181,7 @@ describe('CataloguePage', () => {
 
     fireEvent.submit(container.querySelector('form')!)
     fireEvent.change(screen.getByRole('searchbox', { name: 'Search foods' }), { target: { value: 'cheddar' } })
+    fireEvent.submit(container.querySelector('form')!)
     fireEvent.click(screen.getByRole('button', { name: 'Search: cheddar' }))
 
     fireEvent.change(screen.getByRole('combobox', { name: 'Category' }), { target: { value: 'dairy' } })
@@ -449,10 +483,12 @@ describe('CataloguePage', () => {
     const searchField = screen.getByLabelText('Search foods')
 
     fireEvent.change(searchField, { target: { value: 'gouda' } })
+    fireEvent.submit(searchField.closest('form')!)
     expect(screen.getByRole('link', { name: 'Gouda' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^Cheese, level 2/ })).toBeInTheDocument()
 
     fireEvent.change(searchField, { target: { value: '' } })
+    fireEvent.submit(searchField.closest('form')!)
     expect(screen.queryByRole('link', { name: 'Gouda' })).not.toBeInTheDocument()
     // Eggs stays manually expanded, showing the preparation groupings its rules now live on.
     expect(screen.getByRole('heading', { name: 'Raw Eggs' })).toBeInTheDocument()

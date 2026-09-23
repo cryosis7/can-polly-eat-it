@@ -442,6 +442,9 @@ Search normalises case, diacritics, punctuation, and whitespace, then matches ev
 against food names, aliases, and the labels/aliases on the food's category path. A category entry is
 matched against its own name, its aliases, and its ancestor path labels. It must not guess
 equivalent foods from a model or an external service. Empty search returns the normal catalogue.
+The search control keeps uncommitted editing text locally so typing remains immediate, then settles
+the trimmed query into the URL and catalogue after a short pause or form submission. Query-independent
+catalogue indexes remain stable while that URL-backed query changes.
 
 Filter rules are predictable:
 

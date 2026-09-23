@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { buildCatalogueQuery, defaultScopeSlugs, parseCatalogueQuery, withPreparationSlug, type CatalogueQueryState } from '../../app/catalogueQuery'
 import { CollapsedRowChip } from '../../components/CollapsedRowChip'
@@ -32,6 +32,54 @@ type CataloguePageProps = {
   content: ContentData
 }
 
+type SearchControlProps = {
+  onSettledChange: (query: string) => void
+  value: string
+}
+
+const searchSettleDelayMs = 250
+
+const SearchControl = ({ onSettledChange, value }: SearchControlProps) => {
+  const [draftValue, setDraftValue] = useState(value)
+
+  useEffect(() => {
+    // The URL can change independently through direct navigation, history, or a filter chip.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDraftValue(value)
+  }, [value])
+
+  useEffect(() => {
+    const settledValue = draftValue.trim()
+    if (settledValue === value) {
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => onSettledChange(settledValue), searchSettleDelayMs)
+    return () => window.clearTimeout(timeoutId)
+  }, [draftValue, onSettledChange, value])
+
+  return (
+    <form
+      className="search-controls"
+      role="search"
+      onSubmit={(event) => {
+        event.preventDefault()
+        onSettledChange(draftValue.trim())
+      }}
+    >
+      <div className="filter-field filter-search">
+        <label htmlFor="food-search">Search foods</label>
+        <input
+          id="food-search"
+          type="search"
+          value={draftValue}
+          onChange={(event) => setDraftValue(event.target.value)}
+        />
+      </div>
+    </form>
+  )
+}
+
 const primaryOutcomes: { value: OutcomeBand, label: string }[] = [
   { value: 'okay', label: 'Okay' },
   { value: 'maybe', label: 'Maybe - see notes' },
@@ -52,30 +100,49 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
     () => new Set(content.categories.filter((category) => category.parentId === null).map((category) => category.id)),
   )
   const [expandedPreparationBands, setExpandedPreparationBands] = useState(() => new Set<string>())
-  const index = createContentIndex(content.categories, content.assessments)
-  const categoryRows = flattenCategoryRows(index.tree)
-  const categoryBySlug = new Map(content.categories.map((category) => [category.slug, category]))
-  const { state: queryState, unavailableFiltersRemoved } = parseCatalogueQuery(
-    searchParams,
-    content.guidanceLists,
-    new Set(categoryBySlug.keys()),
+  const index = useMemo(
+    () => createContentIndex(content.categories, content.assessments),
+    [content.assessments, content.categories],
   )
-  const selectedGuidanceLists = content.guidanceLists.filter((list) => queryState.scopeSlugs.includes(list.slug))
-  const scopeDefaults = defaultScopeSlugs(content.guidanceLists)
-  const filterState = {
+  const categoryRows = useMemo(() => flattenCategoryRows(index.tree), [index.tree])
+  const categoryBySlug = useMemo(
+    () => new Map(content.categories.map((category) => [category.slug, category])),
+    [content.categories],
+  )
+  const searchParamsString = searchParams.toString()
+  const { state: queryState, unavailableFiltersRemoved } = useMemo(
+    () => parseCatalogueQuery(
+      new URLSearchParams(searchParamsString),
+      content.guidanceLists,
+      new Set(categoryBySlug.keys()),
+    ),
+    [categoryBySlug, content.guidanceLists, searchParamsString],
+  )
+  const selectedGuidanceLists = useMemo(
+    () => content.guidanceLists.filter((list) => queryState.scopeSlugs.includes(list.slug)),
+    [content.guidanceLists, queryState.scopeSlugs],
+  )
+  const scopeDefaults = useMemo(() => defaultScopeSlugs(content.guidanceLists), [content.guidanceLists])
+  const filterState = useMemo(() => ({
     query: queryState.query,
     categoryId: queryState.categorySlug ? categoryBySlug.get(queryState.categorySlug)?.id : undefined,
     guidanceListIds: selectedGuidanceLists.map((list) => list.id),
     outcomeBands: queryState.outcomeBands,
-  }
-  const selectedFoodRows = filterFoods(content.foods, content.guidanceLists, index, filterState)
-  const matchedCategoryRows = filterCategoryEntries(
-    content.categories,
-    content.assessments,
-    content.preparations,
-    content.guidanceLists,
-    index,
-    filterState,
+  }), [categoryBySlug, queryState.categorySlug, queryState.outcomeBands, queryState.query, selectedGuidanceLists])
+  const selectedFoodRows = useMemo(
+    () => filterFoods(content.foods, content.guidanceLists, index, filterState),
+    [content.foods, content.guidanceLists, filterState, index],
+  )
+  const matchedCategoryRows = useMemo(
+    () => filterCategoryEntries(
+      content.categories,
+      content.assessments,
+      content.preparations,
+      content.guidanceLists,
+      index,
+      filterState,
+    ),
+    [content.assessments, content.categories, content.guidanceLists, content.preparations, filterState, index],
   )
   // A rule authored above the foods it governs is stated at the head of each band that holds them,
   // so the parent's own food-less band would repeat it directly above them.
@@ -83,8 +150,14 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
   const selectedCategoryRows = matchedCategoryRows.filter((row) => !surfacedBelow.has(row))
   const matchedCategoryEntryIds = new Set(selectedCategoryRows.map((row) => row.category.id))
   const resultCount = selectedFoodRows.length + selectedCategoryRows.length
-  const preparationById = new Map(content.preparations.map((preparation) => [preparation.id, preparation]))
-  const preparationOrder = preparationIdsByCategoryId(content.foods, content.assessments, content.preparations)
+  const preparationById = useMemo(
+    () => new Map(content.preparations.map((preparation) => [preparation.id, preparation])),
+    [content.preparations],
+  )
+  const preparationOrder = useMemo(
+    () => preparationIdsByCategoryId(content.foods, content.assessments, content.preparations),
+    [content.assessments, content.foods, content.preparations],
+  )
   const rowsInCategory = rowsByCategoryId(selectedFoodRows, preparationOrder)
   const entriesInCategory = entryRowsByCategoryId(selectedCategoryRows, preparationOrder)
   const contentCategoryIds = new Set([...rowsInCategory.keys(), ...matchedCategoryEntryIds])
@@ -205,12 +278,16 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
     }
   }, [unavailableFiltersRemoved])
 
-  const updateQueryState = (
+  const updateQueryState = useCallback((
     update: (current: CatalogueQueryState) => CatalogueQueryState,
     replace = false,
   ) => {
     setSearchParams(buildCatalogueQuery(update(queryState), content.guidanceLists), { replace })
-  }
+  }, [content.guidanceLists, queryState, setSearchParams])
+
+  const updateSearchQuery = useCallback((query: string) => {
+    updateQueryState((current) => ({ ...current, query }), true)
+  }, [updateQueryState])
 
   const returnSearch = buildCatalogueQuery(queryState, content.guidanceLists).toString()
 
@@ -225,20 +302,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
       <section aria-labelledby="catalogue-heading">
         <h2 id="catalogue-heading">Browse foods</h2>
         <div className="catalogue-tools">
-          <form className="search-controls" role="search" onSubmit={(event) => event.preventDefault()}>
-            <div className="filter-field filter-search">
-              <label htmlFor="food-search">Search foods</label>
-              <input
-                id="food-search"
-                type="search"
-                value={queryState.query}
-                onChange={(event) => updateQueryState(
-                  (current) => ({ ...current, query: event.target.value }),
-                  true,
-                )}
-              />
-            </div>
-          </form>
+          <SearchControl onSettledChange={updateSearchQuery} value={queryState.query} />
           <details
             className="filter-disclosure"
             open={isFilterDisclosureOpen}

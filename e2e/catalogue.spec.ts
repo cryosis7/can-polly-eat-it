@@ -77,6 +77,18 @@ test.describe('Food catalogue', () => {
     await expect(page).toHaveURL(/q=yogurt/)
   })
 
+  test('accepts a multi-word query through sequential typing', async ({ page }) => {
+    await page.goto('/')
+
+    const search = page.getByRole('searchbox', { name: 'Search foods' })
+    await search.pressSequentially('farmed salmon', { delay: 25 })
+
+    await expect(search).toHaveValue('farmed salmon')
+    await expect(page).toHaveURL(/q=farmed(?:%20|\+)salmon/)
+    await expect(page.getByText('3 results in the guide')).toBeVisible()
+    await expect(foodCard(page, 'Farmed salmon').first()).toBeVisible()
+  })
+
   test('reaches a migrated alias of a retired food on its merged category entry', async ({ page }) => {
     await page.goto('/?v=1&scope=pregnancy-food-safety&q=poached%20eggs')
 

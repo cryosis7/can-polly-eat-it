@@ -22,6 +22,8 @@ present, and reproduce the same result from its URL.
 
 - Search names, aliases, and category paths with case-, punctuation-, whitespace-, and
   diacritic-insensitive token matching.
+- Keep sequential search editing responsive, including spaces between words, while settling the
+  completed query into the shareable URL.
 - Include a selected category's complete descendant subtree.
 - Default an absent `scope` to pregnancy food safety and vegetarian suitability.
 - Combine selected scopes cumulatively; combine selected generic outcomes as alternatives within
@@ -61,6 +63,6 @@ present, and reproduce the same result from its URL.
 ## Validation
 
 Unit tests cover normalisation, category descendants, row filtering, query parsing, serialisation,
-and invalid values. Catalogue component and Chromium Playwright tests cover combined filters,
-announcements, clear-all, no results, direct filtered URLs, and navigation context under the
-repository-wide coverage and accessibility gates.
+and invalid values. Catalogue component and Chromium Playwright tests cover sequential multi-word
+typing, combined filters, announcements, clear-all, no results, direct filtered URLs, and navigation
+context under the repository-wide coverage and accessibility gates.
