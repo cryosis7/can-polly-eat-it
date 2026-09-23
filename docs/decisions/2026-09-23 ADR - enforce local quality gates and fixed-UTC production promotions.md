@@ -49,8 +49,8 @@ pull-request workflow, or live content API.
 
 ## Implementation Plan
 
-- **Affected paths:** `.github/workflows/promote-production.yml`,
-  `.github/copilot-instructions.md`, `README.md`, and `docs/decisions/`.
+- **Affected paths:** `.github/workflows/promote-production.yml`, `AGENTS.md`, `README.md`, and
+  `docs/decisions/`.
 - **Pattern to follow:** Keep application validation local. The workflow must authenticate only with
   the automatic `GITHUB_TOKEN`, use the single `0 20 * * *` cron expression, and use a normal Git
   merge; it must never force-push `production`.

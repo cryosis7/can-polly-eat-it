@@ -1,16 +1,27 @@
-# Triage Labels
+# Triage labels
 
-The skills speak in terms of five canonical triage roles. This file maps those roles to the local
-status values used in this repo's issue tracker.
+Triage assigns exactly one category role and one state role. This repository uses canonical role
+names as local issue values.
 
-| Label in mattpocock/skills | Local status value | Meaning |
+## Category
+
+Record the category as `Category: <local value>`.
+
+| Canonical role | Local value | Meaning |
 | --- | --- | --- |
-| `needs-triage` | `needs-triage` | Maintainer needs to evaluate this issue |
-| `needs-info` | `needs-info` | Waiting on reporter for more information |
-| `ready-for-agent` | `ready-for-agent` | Fully specified, ready for an AFK agent |
-| `ready-for-human` | `ready-for-human` | Requires human implementation |
+| `bug` | `bug` | Existing behaviour is broken |
+| `enhancement` | `enhancement` | New feature or improvement |
+
+## State
+
+Record the state as `Status: <local value>`.
+
+| Canonical role | Local value | Meaning |
+| --- | --- | --- |
+| `needs-triage` | `needs-triage` | Maintainer evaluation is required |
+| `needs-info` | `needs-info` | Reporter input is required |
+| `ready-for-agent` | `ready-for-agent` | Fully specified for an autonomous agent |
+| `ready-for-human` | `ready-for-human` | Human implementation is required |
 | `wontfix` | `wontfix` | Will not be actioned |
 
-When a skill mentions a role, use the corresponding local status value from this table.
-
-Edit the right-hand column to match any future vocabulary change.
+When a skill names a canonical role, use the corresponding local value from these tables.

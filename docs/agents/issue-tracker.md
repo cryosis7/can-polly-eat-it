@@ -1,4 +1,4 @@
-# Issue tracker: Local Markdown
+# Local issue tracker
 
 Issues and specs for this repo live as Markdown files in `.scratch/`.
 
@@ -7,32 +7,43 @@ Issues and specs for this repo live as Markdown files in `.scratch/`.
 - One feature per directory: `.scratch/<feature-slug>/`
 - The spec is `.scratch/<feature-slug>/spec.md`
 - Implementation issues are one file per ticket at
-  `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`, never a single combined
-  tickets file
-- Triage state is recorded as a `Status:` line near the top of each issue file (see
-  `triage-labels.md` for the role strings)
+  `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`, never a combined tickets file
+- Triage records exactly one `Category:` and one `Status:` line near the top of each issue; use the
+  role strings in [`triage-labels.md`](triage-labels.md)
 - Comments and conversation history append to the bottom of the file under a `## Comments` heading
 
-## When a skill says "publish to the issue tracker"
+## Operations
 
-Create a new file under `.scratch/<feature-slug>/`, creating the directory if needed.
+### Publish to the issue tracker
 
-## When a skill says "fetch the relevant ticket"
+Choose the spec or issue path from the conventions above, create missing parent directories, and
+follow the nearest existing file's headings. A publish is complete when the new file has one
+canonical path, an unambiguous title, and every applicable convention above; an implementation issue
+must include both `Category:` and `Status:`.
 
-Read the file at the referenced path. The user will normally pass the path or issue number directly.
+### Fetch the relevant ticket
+
+Read the referenced path directly. For an issue number, search filenames under `.scratch/`; for a
+title or description, search issue headings and bodies. Fetching is complete when exactly one
+matching file has been read. Ask the user to choose when several files remain plausible.
+
+### Update a ticket
+
+Integrate confirmed changes into the description so it remains current and append dated conversation
+or implementation history under `## Comments`. An update is complete when the requested content and
+dated history are recorded.
 
 ## Wayfinding operations
 
-Used by `/wayfinder`. The **map** is a file with one **child** file per ticket.
+Used by `/wayfinder`. A **map** has one **child** file per ticket.
 
-- **Map**: `.scratch/<effort>/map.md` containing the Notes, Decisions-so-far, and Fog sections
-- **Child ticket**: `.scratch/<effort>/issues/NN-<slug>.md`, numbered from `01`, with the question in
-  the body; a `Type:` line records the ticket type (`research`, `prototype`, `grilling`, or `task`),
-  and a `Status:` line records `claimed` or `resolved`
-- **Blocking**: a `Blocked by: NN, NN` line near the top; a ticket is unblocked when every file it
-  lists is `resolved`
-- **Frontier**: scan `.scratch/<effort>/issues/` for files that are open, unblocked, and unclaimed;
-  first by number wins
-- **Claim**: set `Status: claimed` and save before any work
-- **Resolve**: append the answer under an `## Answer` heading, set `Status: resolved`, then append a
-  context pointer (gist plus link) to the map's Decisions-so-far section in `map.md`
+- **Map**: `.scratch/<effort>/map.md` with Destination, Notes, Decisions so far, Not yet specified,
+  and Out of scope sections
+- **Child**: `.scratch/<effort>/issues/NN-<slug>.md`, numbered from `01`, with the question in the
+  body; `Type:` is `research`, `prototype`, `grilling`, or `task`, and `Status:` is `claimed` or
+  `resolved`
+- **Blocking**: `Blocked by: NN, NN`; a child is unblocked when every listed child is `resolved`
+- **Frontier**: the first numbered child that is open, unblocked, and unclaimed
+- **Claim**: set `Status: claimed` and save before working
+- **Resolve**: append the answer under `## Answer`, set `Status: resolved`, then append a context
+  pointer (gist and link) to the map's Decisions so far section

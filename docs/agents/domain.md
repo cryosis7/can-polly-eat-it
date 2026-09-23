@@ -1,38 +1,27 @@
-# Domain Docs
+# Domain docs
 
-How the engineering skills should consume this repo's domain documentation when exploring the
-codebase.
+This is a single-context repository. Its domain context is
+[`docs/architecture/overview.md`](../architecture/overview.md), accepted decisions are registered in
+[`docs/decisions/index.md`](../decisions/index.md), and feature lifecycle is registered in
+[`docs/features/README.md`](../features/README.md).
 
-## Before exploring, read these
+## Route the task
 
-- **`.github/copilot-instructions.md`**: the authoritative project constraints and pointers to the
-  current domain, architecture, and delivery rules.
-- **`docs/architecture/overview.md`**: the domain model, catalogue, search, filtering, URL contract,
-  and accessibility behaviour. Read the relevant section before changing any of them.
-- **`docs/decisions/index.md`**: scan the register first, then read every relevant Accepted ADR under
-  `docs/decisions/` in full before changing its governed area.
-- **`docs/features/README.md`**: the feature register, lifecycle, and status rules.
+Read every row that matches the task:
 
-This is a single-context repository. Its documentation layout is:
+| Task concerns | Read before acting |
+| --- | --- |
+| Domain model, catalogue, search, filtering, URL contract, or accessibility | The relevant section of [`docs/architecture/overview.md`](../architecture/overview.md) |
+| Architecture, dependencies, data storage, routing, deployment, or domain patterns | [`docs/decisions/index.md`](../decisions/index.md), then every relevant Accepted ADR in full |
+| Feature behaviour, outcome, scope, status, dependencies, acceptance criteria, or delivery | [`docs/features/README.md`](../features/README.md), then every related feature brief |
 
-```text
-/
-├── .github/copilot-instructions.md
-└── docs/
-    ├── architecture/overview.md
-    ├── decisions/
-    │   ├── index.md
-    │   └── <dated ADR>.md
-    └── features/
-        ├── README.md
-        └── <feature>.md
-```
+For each matching row, reading is complete when you can name the governing section, feature brief,
+or Accepted ADR, or confirm from that row's source or register that none exists.
 
 ## Use the project's vocabulary
 
 When an output names a domain concept in an issue title, refactor proposal, hypothesis, or test name,
-use the term defined in `docs/architecture/overview.md` and the relevant feature or ADR. Do not drift
-to synonyms that obscure an established distinction.
+use the term defined by the sources above.
 
 If the concept is not documented, either reconsider whether it belongs to the project or note the
 gap for `/domain-modeling`.
@@ -41,4 +30,4 @@ gap for `/domain-modeling`.
 
 If an output contradicts an existing Accepted ADR, surface the conflict explicitly rather than
 silently overriding it. Name the ADR, state the conflicting decision, and ask whether to conform to
-it or create a superseding decision.
+it, explicitly amend it, or create a superseding decision.
