@@ -188,7 +188,7 @@ describe('FoodDetailPage', () => {
     expect(screen.getByText('Contains animal-derived ingredients')).toBeInTheDocument()
     expect(screen.getByText('Traditional Parmesan uses animal-derived rennet.')).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Pregnancy food safety' })).not.toBeInTheDocument()
-    expect(screen.getByText('Reflects general vegetarian knowledge.')).toBeInTheDocument()
+    expect(screen.getByText('Reflects general vegetarian knowledge reviewed by maintainers.')).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Sources' })).not.toBeInTheDocument()
   })
 
@@ -205,7 +205,7 @@ describe('FoodDetailPage', () => {
     renderDetail('/food/parmesan?v=1&scope=vegetarian-suitability', uncitedVegetarianContent)
 
     expect(screen.getByText('Contains animal-derived ingredients')).toBeInTheDocument()
-    expect(screen.getByText('Reflects general vegetarian knowledge.')).toBeInTheDocument()
+    expect(screen.getByText('Reflects general vegetarian knowledge reviewed by maintainers.')).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Sources' })).not.toBeInTheDocument()
   })
 

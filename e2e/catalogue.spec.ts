@@ -265,7 +265,7 @@ test.describe('Food catalogue', () => {
     })
     await expect(vegetarianGuidance.getByText('Check ingredients')).toBeVisible()
     await expect(vegetarianGuidance.getByText('Some yoghurts use gelatin as a gelling agent, so check the label.')).toBeVisible()
-    await expect(vegetarianGuidance.getByText('Reflects general vegetarian knowledge.')).toBeVisible()
+    await expect(vegetarianGuidance.getByText('Reflects general vegetarian knowledge reviewed by maintainers.')).toBeVisible()
     await expect(vegetarianGuidance.getByRole('heading', { name: 'Sources' })).toHaveCount(0)
 
     await expect(page.getByRole('link', { name: 'Back to the food guide' })).toHaveAttribute(

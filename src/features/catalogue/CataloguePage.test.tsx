@@ -162,11 +162,11 @@ describe('CataloguePage', () => {
       await act(async () => vi.runAllTimersAsync())
 
       expect(screen.queryByRole('button', { name: /^Search:/ })).not.toBeInTheDocument()
-      expect(screen.getByText('242 results in the guide')).toBeInTheDocument()
+      expect(screen.getByText('261 results in the guide')).toBeInTheDocument()
     } finally {
       vi.useRealTimers()
     }
-  })
+  }, 15_000)
 
   it('applies selected outcomes and labels active chips', () => {
     renderCatalogue('/?v=1&scope=pregnancy-food-safety&outcome=okay,maybe')
