@@ -77,12 +77,16 @@ test.describe('Food catalogue', () => {
     await expect(page).toHaveURL(/q=yogurt/)
   })
 
-  test('accepts a multi-word query through sequential typing', async ({ page }) => {
+  test('keeps a pending space while settling a multi-word query', async ({ page }) => {
     await page.goto('/')
 
     const search = page.getByRole('searchbox', { name: 'Search foods' })
-    await search.pressSequentially('farmed salmon', { delay: 25 })
+    await search.pressSequentially('farmed ', { delay: 25 })
 
+    await expect(page).toHaveURL(/q=farmed(?:&|$)/)
+    expect(await search.inputValue()).toBe('farmed ')
+
+    await search.pressSequentially('salmon', { delay: 25 })
     await expect(search).toHaveValue('farmed salmon')
     await expect(page).toHaveURL(/q=farmed(?:%20|\+)salmon/)
     await expect(page.getByText('3 results in the guide')).toBeVisible()

@@ -147,6 +147,11 @@ describe('CataloguePage', () => {
       expect(search).toHaveValue('farmed ')
       expect(screen.queryByRole('button', { name: 'Search: farmed' })).not.toBeInTheDocument()
 
+      await act(async () => vi.advanceTimersByTimeAsync(250))
+
+      expect(search).toHaveValue('farmed ')
+      expect(screen.getByRole('button', { name: 'Search: farmed' })).toBeInTheDocument()
+
       fireEvent.change(search, { target: { value: 'farmed salmon' } })
       expect(search).toHaveValue('farmed salmon')
 
@@ -180,9 +185,11 @@ describe('CataloguePage', () => {
     const { container } = renderCatalogue()
 
     fireEvent.submit(container.querySelector('form')!)
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Search foods' }), { target: { value: 'cheddar' } })
+    const search = screen.getByRole('searchbox', { name: 'Search foods' })
+    fireEvent.change(search, { target: { value: 'cheddar' } })
     fireEvent.submit(container.querySelector('form')!)
     fireEvent.click(screen.getByRole('button', { name: 'Search: cheddar' }))
+    expect(search).toHaveValue('')
 
     fireEvent.change(screen.getByRole('combobox', { name: 'Category' }), { target: { value: 'dairy' } })
     fireEvent.click(screen.getByRole('button', { name: 'Category: Dairy' }))

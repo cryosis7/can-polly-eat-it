@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { buildCatalogueQuery, defaultScopeSlugs, parseCatalogueQuery, withPreparationSlug, type CatalogueQueryState } from '../../app/catalogueQuery'
 import { CollapsedRowChip } from '../../components/CollapsedRowChip'
@@ -41,22 +41,36 @@ const searchSettleDelayMs = 250
 
 const SearchControl = ({ onSettledChange, value }: SearchControlProps) => {
   const [draftValue, setDraftValue] = useState(value)
+  const pendingSettledValue = useRef<string | null>(null)
 
   useEffect(() => {
+    if (pendingSettledValue.current === value) {
+      pendingSettledValue.current = null
+      return
+    }
+    pendingSettledValue.current = null
     // The URL can change independently through direct navigation, history, or a filter chip.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDraftValue(value)
   }, [value])
 
-  useEffect(() => {
+  const settleDraft = useCallback(() => {
     const settledValue = draftValue.trim()
     if (settledValue === value) {
       return
     }
 
-    const timeoutId = window.setTimeout(() => onSettledChange(settledValue), searchSettleDelayMs)
-    return () => window.clearTimeout(timeoutId)
+    pendingSettledValue.current = settledValue
+    onSettledChange(settledValue)
   }, [draftValue, onSettledChange, value])
+
+  useEffect(() => {
+    if (draftValue.trim() === value) {
+      return
+    }
+
+    const timeoutId = window.setTimeout(settleDraft, searchSettleDelayMs)
+    return () => window.clearTimeout(timeoutId)
+  }, [draftValue, settleDraft, value])
 
   return (
     <form
@@ -64,7 +78,7 @@ const SearchControl = ({ onSettledChange, value }: SearchControlProps) => {
       role="search"
       onSubmit={(event) => {
         event.preventDefault()
-        onSettledChange(draftValue.trim())
+        settleDraft()
       }}
     >
       <div className="filter-field filter-search">
@@ -286,7 +300,9 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
   }, [content.guidanceLists, queryState, setSearchParams])
 
   const updateSearchQuery = useCallback((query: string) => {
-    updateQueryState((current) => ({ ...current, query }), true)
+    startTransition(() => {
+      updateQueryState((current) => ({ ...current, query }), true)
+    })
   }, [updateQueryState])
 
   const returnSearch = buildCatalogueQuery(queryState, content.guidanceLists).toString()
