@@ -5,7 +5,6 @@
   --ink: #2c251f;
   --muted-ink: #675c52;
   --line: #cbbba5;
-  --header: #2e3027;
   --accent: #a84328;
   --accent-dark: #7e2f1c;
   --focus: #075d78;
@@ -53,11 +52,7 @@ h3 { font-size: 1.35rem; }
 .content-width { width: min(100% - 2rem, 72rem); margin-inline: auto; }
 .skip-link { background: var(--surface); color: var(--ink); left: var(--space-3); padding: var(--space-2) var(--space-3); position: fixed; top: -5rem; z-index: 2; }
 .skip-link:focus { top: var(--space-3); }
-.site-header { background: var(--header); box-shadow: inset 0 -.25rem 0 var(--accent); color: #fffaf1; padding: var(--space-3) 0; }
-.site-header p { margin-bottom: 0; }
-.site-header .eyebrow a { color: #fffaf1; text-decoration: none; }
 .eyebrow { color: var(--accent-dark); font-size: .78rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
-.site-disclaimer { max-width: 64rem; font-size: .95rem; margin-top: var(--space-1); }
 .page-content { padding-block: var(--space-5) 4rem; }
 .guide-intro { border-bottom: 2px solid var(--line); padding-bottom: var(--space-4); }
 .guide-intro > p:not(.eyebrow) { font-size: 1.12rem; max-width: 60ch; }

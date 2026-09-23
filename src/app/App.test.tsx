@@ -17,7 +17,7 @@ describe('App routes', () => {
 
     expect(screen.getByRole('link', { name: 'Skip to main content' })).toHaveAttribute('href', '#main-content')
     expect(screen.getByRole('main')).toHaveAttribute('id', 'main-content')
-    expect(screen.getByRole('banner')).toHaveTextContent('general information, not medical advice')
+    expect(screen.queryByRole('banner')).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Cheddar' })).toBeInTheDocument()
     expect(screen.getByText('OK to eat')).toBeInTheDocument()
   })

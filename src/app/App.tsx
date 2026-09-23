@@ -1,4 +1,4 @@
-import { BrowserRouter, Link, Route, Routes } from 'react-router'
+import { BrowserRouter, Route, Routes } from 'react-router'
 import { content } from '../data'
 import { CataloguePage } from '../features/catalogue/CataloguePage'
 import { CategoryDetailPage } from '../features/category-detail/CategoryDetailPage'
@@ -17,12 +17,6 @@ export const App = () => (
   <BrowserRouter>
     <div className="app-shell">
       <a className="skip-link" href="#main-content">Skip to main content</a>
-      <header className="site-header">
-        <div className="content-width">
-          <p className="eyebrow"><Link to="/">Polly's Food Guide</Link></p>
-          <p className="site-disclaimer">{disclaimer}</p>
-        </div>
-      </header>
       <Routes>
         <Route path="/" element={<CataloguePage content={content} />} />
         <Route path="/food/:foodSlug" element={<FoodDetailPage content={content} disclaimer={disclaimer} />} />
