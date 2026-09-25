@@ -192,25 +192,6 @@ const governingAssessment = (assessments: Assessment[], guidanceList: GuidanceLi
       : byCaution
   })[0]
 
-/**
- * The one assessment per source whose status counts on this row. Where a source authored both a
- * preparation-qualified assessment and an unqualified one at the same level, the qualified one
- * governs, because the source deliberately said something more specific about this preparation.
- * This is nearest-subject-first extended along the preparation axis, not a merge: the unqualified
- * assessment is still rendered as its own layer.
- */
-const statusBearingAssessments = (assessments: Assessment[]): Assessment[] => {
-  const bySource = new Map<string, Assessment>()
-  for (const assessment of assessments) {
-    const key = assessment.sourceId ?? ''
-    const existing = bySource.get(key)
-    if (!existing || assessment.preparationId !== undefined) {
-      bySource.set(key, assessment)
-    }
-  }
-  return [...bySource.values()]
-}
-
 /** Broadest first within a level: unqualified guidance holds however the subject is prepared. */
 const byBreadth = (assessments: Assessment[]): Assessment[] => [
   ...assessments.filter((assessment) => assessment.preparationId === undefined),
@@ -240,7 +221,9 @@ const resolveWithAncestors = (
   const inherited = levelAssessments.every(isAdditive)
     ? collectAncestorLayers(ancestors, guidanceList, index, nextAncestor, preparationId)
     : []
-  const statusBearing = statusBearingAssessments(levelAssessments)
+  // Every level sits on one preparation axis, and validation allows one assessment per source there,
+  // so each assessment at the level is its source's whole status-bearing position.
+  const statusBearing = levelAssessments
   const governing = governingAssessment(statusBearing, guidanceList)
   const contested = new Set(statusBearing.map((assessment) => assessment.statusId)).size > 1
 

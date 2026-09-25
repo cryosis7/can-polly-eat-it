@@ -3,22 +3,21 @@ import { buildCatalogueQuery, parseCatalogueQuery, parsePreparationSlug } from '
 import { GuidanceSection } from '../../components/GuidanceSection'
 import { resolveAssessment } from '../../domain/assessment'
 import { categoryEntryRows } from '../../domain/categoryTree'
-import { createContentIndex } from '../../domain/contentIndex'
-import type { ContentData } from '../../domain/contentValidation'
+import type { ContentIndex } from '../../domain/contentIndex'
 import type { Preparation } from '../../domain/schemas'
 
 type CategoryDetailPageProps = {
-  content: ContentData
+  index: ContentIndex
   disclaimer: string
 }
 
-export const CategoryDetailPage = ({ content, disclaimer }: CategoryDetailPageProps) => {
+export const CategoryDetailPage = ({ index, disclaimer }: CategoryDetailPageProps) => {
   const { categorySlug } = useParams()
   const [searchParams] = useSearchParams()
-  const category = content.categories.find((candidate) => candidate.slug === categorySlug)
-  const index = createContentIndex(content.categories, content.assessments)
+  // The route always supplies the slug.
+  const category = index.categoryBySlug(categorySlug!)
 
-  if (!category || !index.assessedCategoryIds.has(category.id)) {
+  if (!category || !index.isCategoryAssessed(category.id)) {
     return (
       <main className="page-content content-width" id="main-content" tabIndex={-1}>
         <h1>Category not found</h1>
@@ -30,32 +29,32 @@ export const CategoryDetailPage = ({ content, disclaimer }: CategoryDetailPagePr
 
   const { state: queryState } = parseCatalogueQuery(
     searchParams,
-    content.guidanceLists,
-    new Set(content.categories.map((candidate) => candidate.slug)),
+    index.guidanceLists,
+    new Set(index.categories.map((candidate) => candidate.slug)),
   )
-  const selectedGuidanceLists = content.guidanceLists.filter((guidanceList) =>
+  const selectedGuidanceLists = index.guidanceLists.filter((guidanceList) =>
     queryState.scopeSlugs.includes(guidanceList.slug),
   )
-  const returnSearch = buildCatalogueQuery(queryState, content.guidanceLists).toString()
+  const returnSearch = buildCatalogueQuery(queryState, index.guidanceLists).toString()
   const breadcrumb = index.tree.pathByCategoryId.get(category.id)!
     .map((candidate) => candidate.name)
     .join(' > ')
 
-  const openedPreparationSlug = parsePreparationSlug(searchParams, content.preparations)
-  const preparationById = new Map(content.preparations.map((preparation) => [preparation.id, preparation]))
+  const openedPreparationSlug = parsePreparationSlug(searchParams, index.preparations)
   // A category is a first-class subject, so its guidance has the same two axes a food's does. It
   // must be resolved per axis: resolving without a preparation deliberately ignores qualified
   // assessments, which would render not-assessed over authored rules.
-  const axes = categoryEntryRows([category], content.assessments, content.preparations)
+  const axes = categoryEntryRows(index)
+    .filter((row) => row.category.id === category.id)
     .map((row) => row.preparationId)
   const qualified = axes
     .filter((preparationId): preparationId is string => preparationId !== undefined)
-    .map((preparationId) => preparationById.get(preparationId)!)
+    .map(index.preparationById)
   const hasUnqualified = axes.includes(undefined)
 
   const guidanceFor = (preparation?: Preparation) => selectedGuidanceLists.map((guidanceList) => (
     <GuidanceSection
-      content={content}
+      index={index}
       guidanceList={guidanceList}
       key={guidanceList.id}
       preparation={preparation}

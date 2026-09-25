@@ -1,5 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router'
-import { content } from '../data'
+import { contentIndex } from '../data'
 import { CataloguePage } from '../features/catalogue/CataloguePage'
 import { CategoryDetailPage } from '../features/category-detail/CategoryDetailPage'
 import { FoodDetailPage } from '../features/food-detail/FoodDetailPage'
@@ -18,9 +18,9 @@ export const App = () => (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">Skip to main content</a>
       <Routes>
-        <Route path="/" element={<CataloguePage content={content} />} />
-        <Route path="/food/:foodSlug" element={<FoodDetailPage content={content} disclaimer={disclaimer} />} />
-        <Route path="/category/:categorySlug" element={<CategoryDetailPage content={content} disclaimer={disclaimer} />} />
+        <Route path="/" element={<CataloguePage index={contentIndex} />} />
+        <Route path="/food/:foodSlug" element={<FoodDetailPage index={contentIndex} disclaimer={disclaimer} />} />
+        <Route path="/category/:categorySlug" element={<CategoryDetailPage index={contentIndex} disclaimer={disclaimer} />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </div>

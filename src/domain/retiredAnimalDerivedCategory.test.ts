@@ -16,9 +16,9 @@ const resolveFood = (id: string, list = pregnancy) =>
   resolveAssessment({ kind: 'food', food: foodById(id) }, list, index)
 
 const entriesMatching = (query: string) => [...new Set([
-  ...filterFoods(content.foods, content.guidanceLists, index, { query, guidanceListIds: [], outcomeBands: [] })
+  ...filterFoods(index, { query, guidanceListIds: [], outcomeBands: [] })
     .map((row) => `food:${row.food.id}`),
-  ...filterCategoryEntries(content.categories, content.assessments, content.preparations, content.guidanceLists, index, { query, guidanceListIds: [], outcomeBands: [] })
+  ...filterCategoryEntries(index, { query, guidanceListIds: [], outcomeBands: [] })
     .map((row) => `category:${row.category.id}`),
 ])]
 

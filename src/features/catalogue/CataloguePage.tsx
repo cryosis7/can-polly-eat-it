@@ -10,7 +10,6 @@ import {
   entriesSurfacedByDescendants,
   entryRowsByCategoryId,
   flattenCategoryRows,
-  preparationIdsByCategoryId,
   rowsByCategoryId,
   visibleCategoryRows,
   withAncestorIds,
@@ -23,13 +22,12 @@ import {
   summariseCollapsedRow,
   type CombinedOutcome,
 } from '../../domain/collapsedRowSummary'
-import { createContentIndex } from '../../domain/contentIndex'
-import type { ContentData } from '../../domain/contentValidation'
+import type { ContentIndex } from '../../domain/contentIndex'
 import { filterCategoryEntries, filterFoods } from '../../domain/filtering'
 import type { OutcomeBand } from '../../domain/schemas'
 
 type CataloguePageProps = {
-  content: ContentData
+  index: ContentIndex
 }
 
 type SearchControlProps = {
@@ -107,56 +105,45 @@ const outcomeLabels: Record<OutcomeBand, string> = {
   'not-assessed': 'Not assessed',
 }
 
-export const CataloguePage = ({ content }: CataloguePageProps) => {
+export const CataloguePage = ({ index }: CataloguePageProps) => {
   const [searchParams, setSearchParams] = useSearchParams()
   const [filterRemovalAnnouncement, setFilterRemovalAnnouncement] = useState('')
   const [collapsedCategoryIds, setCollapsedCategoryIds] = useState(
-    () => new Set(content.categories.filter((category) => category.parentId === null).map((category) => category.id)),
+    () => new Set(index.categories.filter((category) => category.parentId === null).map((category) => category.id)),
   )
   const [expandedPreparationBands, setExpandedPreparationBands] = useState(() => new Set<string>())
-  const index = useMemo(
-    () => createContentIndex(content.categories, content.assessments),
-    [content.assessments, content.categories],
-  )
   const categoryRows = useMemo(() => flattenCategoryRows(index.tree), [index.tree])
-  const categoryBySlug = useMemo(
-    () => new Map(content.categories.map((category) => [category.slug, category])),
-    [content.categories],
+  const categorySlugs = useMemo(
+    () => new Set(index.categories.map((category) => category.slug)),
+    [index.categories],
   )
   const searchParamsString = searchParams.toString()
   const { state: queryState, unavailableFiltersRemoved } = useMemo(
     () => parseCatalogueQuery(
       new URLSearchParams(searchParamsString),
-      content.guidanceLists,
-      new Set(categoryBySlug.keys()),
+      index.guidanceLists,
+      categorySlugs,
     ),
-    [categoryBySlug, content.guidanceLists, searchParamsString],
+    [categorySlugs, index.guidanceLists, searchParamsString],
   )
   const selectedGuidanceLists = useMemo(
-    () => content.guidanceLists.filter((list) => queryState.scopeSlugs.includes(list.slug)),
-    [content.guidanceLists, queryState.scopeSlugs],
+    () => index.guidanceLists.filter((list) => queryState.scopeSlugs.includes(list.slug)),
+    [index.guidanceLists, queryState.scopeSlugs],
   )
-  const scopeDefaults = useMemo(() => defaultScopeSlugs(content.guidanceLists), [content.guidanceLists])
+  const scopeDefaults = useMemo(() => defaultScopeSlugs(index.guidanceLists), [index.guidanceLists])
   const filterState = useMemo(() => ({
     query: queryState.query,
-    categoryId: queryState.categorySlug ? categoryBySlug.get(queryState.categorySlug)?.id : undefined,
+    categoryId: queryState.categorySlug ? index.categoryBySlug(queryState.categorySlug)?.id : undefined,
     guidanceListIds: selectedGuidanceLists.map((list) => list.id),
     outcomeBands: queryState.outcomeBands,
-  }), [categoryBySlug, queryState.categorySlug, queryState.outcomeBands, queryState.query, selectedGuidanceLists])
+  }), [index, queryState.categorySlug, queryState.outcomeBands, queryState.query, selectedGuidanceLists])
   const selectedFoodRows = useMemo(
-    () => filterFoods(content.foods, content.guidanceLists, index, filterState),
-    [content.foods, content.guidanceLists, filterState, index],
+    () => filterFoods(index, filterState),
+    [filterState, index],
   )
   const matchedCategoryRows = useMemo(
-    () => filterCategoryEntries(
-      content.categories,
-      content.assessments,
-      content.preparations,
-      content.guidanceLists,
-      index,
-      filterState,
-    ),
-    [content.assessments, content.categories, content.guidanceLists, content.preparations, filterState, index],
+    () => filterCategoryEntries(index, filterState),
+    [filterState, index],
   )
   // A rule authored above the foods it governs is stated at the head of each band that holds them,
   // so the parent's own food-less band would repeat it directly above them.
@@ -164,16 +151,8 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
   const selectedCategoryRows = matchedCategoryRows.filter((row) => !surfacedBelow.has(row))
   const matchedCategoryEntryIds = new Set(selectedCategoryRows.map((row) => row.category.id))
   const resultCount = selectedFoodRows.length + selectedCategoryRows.length
-  const preparationById = useMemo(
-    () => new Map(content.preparations.map((preparation) => [preparation.id, preparation])),
-    [content.preparations],
-  )
-  const preparationOrder = useMemo(
-    () => preparationIdsByCategoryId(content.foods, content.assessments, content.preparations),
-    [content.assessments, content.foods, content.preparations],
-  )
-  const rowsInCategory = rowsByCategoryId(selectedFoodRows, preparationOrder)
-  const entriesInCategory = entryRowsByCategoryId(selectedCategoryRows, preparationOrder)
+  const rowsInCategory = rowsByCategoryId(selectedFoodRows, index)
+  const entriesInCategory = entryRowsByCategoryId(selectedCategoryRows, index)
   const contentCategoryIds = new Set([...rowsInCategory.keys(), ...matchedCategoryEntryIds])
   const rowsWithContent = withAncestorIds(categoryRows, contentCategoryIds)
   const hasNonDefaultScope = queryState.scopeSlugs.length !== scopeDefaults.length ||
@@ -276,11 +255,11 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
   )
 
   useEffect(() => {
-    const canonicalSearch = buildCatalogueQuery(queryState, content.guidanceLists).toString()
+    const canonicalSearch = buildCatalogueQuery(queryState, index.guidanceLists).toString()
     if (canonicalSearch !== searchParams.toString()) {
       setSearchParams(canonicalSearch, { replace: true })
     }
-  }, [content.guidanceLists, queryState, searchParams, setSearchParams])
+  }, [index.guidanceLists, queryState, searchParams, setSearchParams])
 
   useEffect(() => {
     if (unavailableFiltersRemoved) {
@@ -296,8 +275,8 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
     update: (current: CatalogueQueryState) => CatalogueQueryState,
     replace = false,
   ) => {
-    setSearchParams(buildCatalogueQuery(update(queryState), content.guidanceLists), { replace })
-  }, [content.guidanceLists, queryState, setSearchParams])
+    setSearchParams(buildCatalogueQuery(update(queryState), index.guidanceLists), { replace })
+  }, [index.guidanceLists, queryState, setSearchParams])
 
   const updateSearchQuery = useCallback((query: string) => {
     startTransition(() => {
@@ -305,7 +284,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
     })
   }, [updateQueryState])
 
-  const returnSearch = buildCatalogueQuery(queryState, content.guidanceLists).toString()
+  const returnSearch = buildCatalogueQuery(queryState, index.guidanceLists).toString()
 
   return (
     <main className="page-content content-width" id="main-content" tabIndex={-1}>
@@ -344,7 +323,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
               </div>
               <fieldset className="status-filters">
                 <legend>Dietary scopes</legend>
-                {content.guidanceLists.map((list) => {
+                {index.guidanceLists.map((list) => {
                   const isSelected = queryState.scopeSlugs.includes(list.slug)
                   return (
                     <label key={list.id}>
@@ -407,7 +386,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
               <li><button type="button" onClick={() => updateQueryState((current) => ({ ...current, query: '' }))}>Search: {queryState.query}</button></li>
             )}
             {queryState.categorySlug && (
-              <li><button type="button" onClick={() => updateQueryState((current) => ({ ...current, categorySlug: undefined }))}>Category: {categoryBySlug.get(queryState.categorySlug)?.name}</button></li>
+              <li><button type="button" onClick={() => updateQueryState((current) => ({ ...current, categorySlug: undefined }))}>Category: {index.categoryBySlug(queryState.categorySlug)?.name}</button></li>
             )}
             {hasNonDefaultScope && selectedGuidanceLists.map((list) => (
               <li key={list.id}>
@@ -460,7 +439,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
               // A category's own guidance creates a preparation grouping just as a food's
               // declaration does, so a retired preparation category stays browsable after its rule
               // moves onto its parent, even where no food declares that state.
-              const axes = [undefined, ...(preparationOrder.get(category.id) ?? [])]
+              const axes = [undefined, ...index.preparationStatesFor(category.id).map((preparation) => preparation.id)]
                 .filter((preparationId) => rowGroups.has(preparationId) || entryGroups.has(preparationId))
               const hasUnqualifiedEntry = entryGroups.has(undefined)
               const isCollapsed = effectiveCollapsedIds.has(category.id)
@@ -514,7 +493,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                           key={guidanceList.id}
                           resolved={resolveAssessment({ kind: 'category', category }, guidanceList, index)}
                           returnSearch={returnSearch}
-                          sources={content.sources}
+                          index={index}
                         />
                       ))}
                     </div>
@@ -522,7 +501,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                   {!isCollapsed && axes.map((preparationId) => {
                     const preparation = preparationId === undefined
                       ? undefined
-                      : preparationById.get(preparationId)!
+                      : index.preparationById(preparationId)
                     const rows = rowGroups.get(preparationId) ?? []
                     // The unqualified entry renders above the preparation groupings, so only a
                     // preparation-qualified entry belongs inside one.
@@ -601,7 +580,7 @@ export const CataloguePage = ({ content }: CataloguePageProps) => {
                                 key={guidanceList.id}
                                 resolved={resolveAssessment({ kind: 'food', food }, guidanceList, index, preparationId)}
                                 returnSearch={returnSearch}
-                                sources={content.sources}
+                                index={index}
                               />
                             ))}
                           </li>

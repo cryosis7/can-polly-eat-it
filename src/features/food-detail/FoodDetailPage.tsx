@@ -2,20 +2,19 @@ import { Link, useParams, useSearchParams } from 'react-router'
 import { buildCatalogueQuery, parseCatalogueQuery, parsePreparationSlug } from '../../app/catalogueQuery'
 import { GuidanceSection } from '../../components/GuidanceSection'
 import { resolveAssessment } from '../../domain/assessment'
-import { preparationIdsByCategoryId } from '../../domain/categoryTree'
-import { createContentIndex } from '../../domain/contentIndex'
-import type { ContentData } from '../../domain/contentValidation'
+import type { ContentIndex } from '../../domain/contentIndex'
 import type { Preparation } from '../../domain/schemas'
 
 type FoodDetailPageProps = {
-  content: ContentData
+  index: ContentIndex
   disclaimer: string
 }
 
-export const FoodDetailPage = ({ content, disclaimer }: FoodDetailPageProps) => {
+export const FoodDetailPage = ({ index, disclaimer }: FoodDetailPageProps) => {
   const { foodSlug } = useParams()
   const [searchParams] = useSearchParams()
-  const food = content.foods.find((candidate) => candidate.slug === foodSlug)
+  // The route always supplies the slug.
+  const food = index.foodBySlug(foodSlug!)
 
   if (!food) {
     return (
@@ -29,26 +28,20 @@ export const FoodDetailPage = ({ content, disclaimer }: FoodDetailPageProps) => 
 
   const { state: queryState } = parseCatalogueQuery(
     searchParams,
-    content.guidanceLists,
-    new Set(content.categories.map((category) => category.slug)),
+    index.guidanceLists,
+    new Set(index.categories.map((category) => category.slug)),
   )
-  const selectedGuidanceLists = content.guidanceLists.filter((guidanceList) =>
+  const selectedGuidanceLists = index.guidanceLists.filter((guidanceList) =>
     queryState.scopeSlugs.includes(guidanceList.slug),
   )
-  const returnSearch = buildCatalogueQuery(queryState, content.guidanceLists).toString()
-  const index = createContentIndex(content.categories, content.assessments)
-  const openedPreparationSlug = parsePreparationSlug(searchParams, content.preparations)
+  const returnSearch = buildCatalogueQuery(queryState, index.guidanceLists).toString()
+  const openedPreparationSlug = parsePreparationSlug(searchParams, index.preparations)
 
-  const preparationById = new Map(content.preparations.map((preparation) => [preparation.id, preparation]))
-  const declared = [...content.preparations]
-    .sort((left, right) => left.sortOrder - right.sortOrder)
-    .filter((preparation) => food.preparationIds.includes(preparation.id))
+  const declared = index.preparations.filter((preparation) => food.preparationIds.includes(preparation.id))
   // A reader asking about a preparation this food is not eaten in gets the group's authored answer
   // rather than silence, labelled as the group's rule rather than as advice about this food.
-  const undeclared = (preparationIdsByCategoryId(content.foods, content.assessments, content.preparations)
-    .get(food.primaryCategoryId) ?? [])
-    .filter((preparationId) => !food.preparationIds.includes(preparationId))
-    .map((preparationId) => preparationById.get(preparationId)!)
+  const undeclared = index.preparationStatesFor(food.primaryCategoryId)
+    .filter((preparation) => !food.preparationIds.includes(preparation.id))
   // Validation guarantees the food's primary category exists, so its path is always in the tree.
   const breadcrumb = index.tree.pathByCategoryId.get(food.primaryCategoryId)!
     .map((category) => category.name)
@@ -56,7 +49,7 @@ export const FoodDetailPage = ({ content, disclaimer }: FoodDetailPageProps) => 
 
   const guidanceFor = (preparation?: Preparation) => selectedGuidanceLists.map((guidanceList) => (
     <GuidanceSection
-      content={content}
+      index={index}
       guidanceList={guidanceList}
       key={guidanceList.id}
       preparation={preparation}

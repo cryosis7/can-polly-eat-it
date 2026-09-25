@@ -1,16 +1,18 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { describe, expect, it } from 'vitest'
-import { content } from '../../data'
+import { contentIndex } from '../../data'
+import type { ContentData } from '../../domain/contentValidation'
+import { buildContentIndex } from '../../test/buildContentIndex'
 import { categoryAssessment, dualSourceContent } from '../../test/multiSourceFixture'
 import { CategoryDetailPage } from './CategoryDetailPage'
 
 const disclaimer = 'This guide is general information, not medical advice.'
 
-const renderDetail = (path: string, pageContent = content) => render(
+const renderDetail = (path: string, pageContent?: ContentData) => render(
   <MemoryRouter initialEntries={[path]}>
     <Routes>
-      <Route path="/category/:categorySlug" element={<CategoryDetailPage content={pageContent} disclaimer={disclaimer} />} />
+      <Route path="/category/:categorySlug" element={<CategoryDetailPage disclaimer={disclaimer} index={pageContent === undefined ? contentIndex : buildContentIndex(pageContent)} />} />
     </Routes>
   </MemoryRouter>,
 )
@@ -56,10 +58,12 @@ describe('CategoryDetailPage', () => {
     const qualified = dualSourceContent([
       categoryAssessment('shellfish-raw', 'shellfish', 'dual-avoid', {
         preparationId: 'raw',
+        sourceId: 'nzfs',
         summary: 'Do not eat raw shellfish.',
       }),
       categoryAssessment('shellfish-cooked', 'shellfish', 'dual-conditions', {
         preparationId: 'cooked',
+        sourceId: 'nzfs',
         summary: 'Cook shellfish thoroughly and eat it while hot.',
       }),
     ], [])
@@ -76,10 +80,12 @@ describe('CategoryDetailPage', () => {
   it('renders unqualified guidance above the preparation sections when the category holds both', () => {
     const both = dualSourceContent([
       categoryAssessment('shellfish-wide', 'shellfish', 'dual-ok', {
+        sourceId: 'nzfs',
         summary: 'Shellfish is okay to eat.',
       }),
       categoryAssessment('shellfish-raw', 'shellfish', 'dual-avoid', {
         preparationId: 'raw',
+        sourceId: 'nzfs',
         summary: 'Do not eat raw shellfish.',
       }),
     ], [])
@@ -95,6 +101,7 @@ describe('CategoryDetailPage', () => {
     const qualified = dualSourceContent([
       categoryAssessment('shellfish-raw', 'shellfish', 'dual-avoid', {
         preparationId: 'raw',
+        sourceId: 'nzfs',
         summary: 'Do not eat raw shellfish.',
       }),
     ], [])

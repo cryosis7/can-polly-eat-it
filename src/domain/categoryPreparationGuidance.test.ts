@@ -35,32 +35,20 @@ const shellfishWide = categoryAssessment('shellfish-wide', 'shellfish', 'dual-ok
 
 const noFilters = { query: '', guidanceListIds: [], outcomeBands: [] }
 
-const entriesFor = (content: ReturnType<typeof dualSourceContent>) => filterCategoryEntries(
-  content.categories,
-  content.assessments,
-  content.preparations,
-  content.guidanceLists,
-  buildContentIndex(content),
-  noFilters,
-)
+const entriesFor = (content: ReturnType<typeof dualSourceContent>) => filterCategoryEntries(buildContentIndex(content), noFilters)
+
+const entryRowsOf = (categoryId: string, content: ReturnType<typeof dualSourceContent>) =>
+  categoryEntryRows(buildContentIndex(content)).filter((row) => row.category.id === categoryId)
 
 describe('category guidance entries across preparations', () => {
   it('yields one row per axis a category holds guidance on, in vocabulary order', () => {
-    const rows = categoryEntryRows(
-      [{ id: 'shellfish', slug: 'shellfish', name: 'Shellfish', parentId: 'seafood', aliases: [], sortOrder: 1 }],
-      [cookedShellfish, shellfishWide, rawShellfish],
-      fixturePreparations,
-    )
+    const rows = entryRowsOf('shellfish', dualSourceContent([cookedShellfish, shellfishWide, rawShellfish]))
 
     expect(rows.map((row) => row.preparationId)).toEqual([undefined, 'raw', 'cooked'])
   })
 
   it('yields no rows for a category carrying no assessment of its own', () => {
-    expect(categoryEntryRows(
-      [{ id: 'seafood', slug: 'seafood', name: 'Seafood', parentId: null, aliases: [], sortOrder: 1 }],
-      [rawShellfish],
-      fixturePreparations,
-    )).toEqual([])
+    expect(entryRowsOf('seafood', dualSourceContent([rawShellfish]))).toEqual([])
   })
 
   it('returns a row per preparation the category is assessed for', () => {
@@ -75,10 +63,6 @@ describe('category guidance entries across preparations', () => {
     const index = buildContentIndex(content)
 
     const notOkay = filterCategoryEntries(
-      content.categories,
-      content.assessments,
-      content.preparations,
-      content.guidanceLists,
       index,
       { ...noFilters, guidanceListIds: [dualSourceList.id], outcomeBands: ['not-okay'] },
     )
@@ -100,7 +84,7 @@ describe('category guidance entries across preparations', () => {
     const content = dualSourceContent([cookedShellfish, shellfishWide, rawShellfish], [])
     const grouped = entryRowsByCategoryId(
       entriesFor(content),
-      preparationIdsByCategoryId([], content.assessments, content.preparations),
+      buildContentIndex(content),
     )
 
     expect([...grouped.get('shellfish')!.keys()]).toEqual([undefined, 'raw', 'cooked'])

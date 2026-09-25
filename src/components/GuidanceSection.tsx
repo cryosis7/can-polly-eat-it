@@ -1,14 +1,14 @@
 import { Link } from 'react-router'
 import { assessmentSummary, type GuidanceLayer, type ResolvedAssessment } from '../domain/assessment'
-import type { ContentData } from '../domain/contentValidation'
-import type { GuidanceList, Preparation, Source, SourceCitation } from '../domain/schemas'
+import type { ContentIndex } from '../domain/contentIndex'
+import type { GuidanceList, Preparation, SourceCitation } from '../domain/schemas'
 import { DissentNotice } from './DissentNotice'
 import { layerLabel } from './layerLabel'
 
 export type GuidanceSectionProps = {
   guidanceList: GuidanceList
   resolved: ResolvedAssessment
-  content: ContentData
+  index: ContentIndex
   returnSearch: string
   /**
    * The preparation this section is about, where a food page renders one section per preparation.
@@ -39,19 +39,19 @@ const dedupeCitations = (citations: SourceCitation[]) => {
 
 type LayerBodyProps = {
   layer: GuidanceLayer
-  content: ContentData
+  index: ContentIndex
   headingId: string
   returnSearch: string
   isAccumulated: boolean
 }
 
 // Validation guarantees that every source named on an assessment is declared by its guidance list.
-const sourceNames = (sourceIds: string[], sources: Source[]): string =>
-  sourceIds.map((id) => sources.find((source) => source.id === id)!.name).join(' and ')
+const sourceNames = (sourceIds: string[], index: ContentIndex): string =>
+  sourceIds.map((id) => index.sourceById(id).name).join(' and ')
 
 // ADR: Resolve guidance conservatively without inference.
 // See: docs/decisions/2026-09-21 ADR - resolve guidance conservatively without inference.md
-const LayerBody = ({ layer, content, headingId, returnSearch, isAccumulated }: LayerBodyProps) => {
+const LayerBody = ({ layer, index, headingId, returnSearch, isAccumulated }: LayerBodyProps) => {
   const { assessment, origin } = layer
   const ScenarioHeading = isAccumulated ? 'h6' : 'h5'
 
@@ -106,7 +106,7 @@ const LayerBody = ({ layer, content, headingId, returnSearch, isAccumulated }: L
           <h4 id={`reasons-${headingId}`}>Why this guidance applies</h4>
           <ul className="reason-links">
             {assessment.reasonLinks.map((reason) => {
-              const targetFood = content.foods.find((candidate) => candidate.id === reason.targetFoodId)!
+              const targetFood = index.foodById(reason.targetFoodId)
               return (
                 <li key={`${reason.kind}-${reason.targetFoodId}`}>
                   {reason.statement} <Link to={`/food/${targetFood.slug}?${returnSearch}`}>{targetFood.name}</Link>
@@ -125,7 +125,7 @@ const LayerBody = ({ layer, content, headingId, returnSearch, isAccumulated }: L
 export const GuidanceSection = ({
   guidanceList,
   resolved,
-  content,
+  index,
   returnSearch,
   preparation,
 }: GuidanceSectionProps) => {
@@ -147,7 +147,7 @@ export const GuidanceSection = ({
       ) : (
         <p>{guidanceList.unassessedNotice.description}</p>
       )}
-      <DissentNotice resolved={resolved} sources={content.sources} />
+      <DissentNotice index={index} resolved={resolved} />
       {guidanceList.evidentiaryBasis && (
         <p className="evidentiary-basis">{guidanceList.evidentiaryBasis}</p>
       )}
@@ -162,13 +162,13 @@ export const GuidanceSection = ({
               key={position.sourceId}
             >
               <h5 id={`position-${sectionId}-${position.sourceId}`}>
-                {sourceNames([position.sourceId!], content.sources)}: {position.status.label}
+                {sourceNames([position.sourceId!], index)}: {position.status.label}
               </h5>
               {position.layers.map((layer) => (
                 <div className="guidance-layer" key={layer.assessment.id}>
                   <p>{assessmentSummary(layer.assessment, guidanceList)}</p>
                   <LayerBody
-                    content={content}
+                    index={index}
                     headingId={`${sectionId}-${position.sourceId}-${layer.assessment.id}`}
                     isAccumulated
                     layer={layer}
@@ -188,11 +188,11 @@ export const GuidanceSection = ({
                 {layerLabel(layer)}
               </h5>
               {layer.sourceIds.length > 0 && (
-                <p className="layer-source">Stated by {sourceNames(layer.sourceIds, content.sources)}</p>
+                <p className="layer-source">Stated by {sourceNames(layer.sourceIds, index)}</p>
               )}
               <p>{assessmentSummary(layer.assessment, guidanceList)}</p>
               <LayerBody
-                content={content}
+                index={index}
                 headingId={`${sectionId}-${layer.assessment.id}`}
                 isAccumulated
                 layer={layer}
@@ -204,10 +204,10 @@ export const GuidanceSection = ({
       ) : resolved.layers.length === 1 && (
         <>
           {resolved.layers[0].sourceIds.length > 0 && (
-            <p className="layer-source">Stated by {sourceNames(resolved.layers[0].sourceIds, content.sources)}</p>
+            <p className="layer-source">Stated by {sourceNames(resolved.layers[0].sourceIds, index)}</p>
           )}
           <LayerBody
-            content={content}
+            index={index}
             headingId={sectionId}
             isAccumulated={false}
             layer={resolved.layers[0]}

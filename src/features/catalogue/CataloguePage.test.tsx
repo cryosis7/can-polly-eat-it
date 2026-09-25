@@ -1,14 +1,15 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
-import { content } from '../../data'
+import { content, contentIndex } from '../../data'
 import type { ContentData } from '../../domain/contentValidation'
+import { buildContentIndex } from '../../test/buildContentIndex'
 import { categoryAssessment, dualSourceContent } from '../../test/multiSourceFixture'
 import { CataloguePage } from './CataloguePage'
 
-const renderCatalogue = (initialEntry = '/', catalogueContent = content) => render(
+const renderCatalogue = (initialEntry = '/', catalogueContent?: ContentData) => render(
   <MemoryRouter initialEntries={[initialEntry]}>
-    <CataloguePage content={catalogueContent} />
+    <CataloguePage index={catalogueContent === undefined ? contentIndex : buildContentIndex(catalogueContent)} />
   </MemoryRouter>,
 )
 
@@ -312,10 +313,12 @@ describe('CataloguePage', () => {
     const qualifiedOnly = dualSourceContent([
       categoryAssessment('shellfish-raw', 'shellfish', 'dual-avoid', {
         preparationId: 'raw',
+        sourceId: 'nzfs',
         summary: 'Do not eat raw shellfish.',
       }),
       categoryAssessment('shellfish-cooked', 'shellfish', 'dual-conditions', {
         preparationId: 'cooked',
+        sourceId: 'nzfs',
         summary: 'Cook shellfish thoroughly and eat it while hot.',
       }),
     ], [])
@@ -341,8 +344,8 @@ describe('CataloguePage', () => {
 
   it('counts each preparation entry of a food-less category once', () => {
     const qualifiedOnly = dualSourceContent([
-      categoryAssessment('shellfish-raw', 'shellfish', 'dual-avoid', { preparationId: 'raw' }),
-      categoryAssessment('shellfish-cooked', 'shellfish', 'dual-conditions', { preparationId: 'cooked' }),
+      categoryAssessment('shellfish-raw', 'shellfish', 'dual-avoid', { preparationId: 'raw', sourceId: 'nzfs' }),
+      categoryAssessment('shellfish-cooked', 'shellfish', 'dual-conditions', { preparationId: 'cooked', sourceId: 'nzfs' }),
     ], [])
 
     renderCatalogue('/?v=1&scope=dual', qualifiedOnly)

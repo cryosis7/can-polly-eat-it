@@ -20,14 +20,14 @@ const outcomeBandOrder: OutcomeBand[] = ['okay', 'maybe', 'not-okay', 'not-asses
 const defaultScopeSlugCandidates = ['pregnancy-food-safety', 'vegetarian-suitability']
 
 /** The scope slugs selected when a catalogue URL carries no `scope` at all. */
-export const defaultScopeSlugs = (guidanceLists: GuidanceList[]): string[] => {
+export const defaultScopeSlugs = (guidanceLists: readonly GuidanceList[]): string[] => {
   const matches = guidanceLists
     .filter((list) => defaultScopeSlugCandidates.includes(list.slug))
     .map((list) => list.slug)
   return matches.length > 0 ? matches : [guidanceLists[0].slug]
 }
 
-const defaultState = (guidanceLists: GuidanceList[]): CatalogueQueryState => ({
+const defaultState = (guidanceLists: readonly GuidanceList[]): CatalogueQueryState => ({
   scopeSlugs: defaultScopeSlugs(guidanceLists),
   outcomeBands: [],
   query: '',
@@ -35,7 +35,7 @@ const defaultState = (guidanceLists: GuidanceList[]): CatalogueQueryState => ({
 
 export const parseCatalogueQuery = (
   searchParams: URLSearchParams,
-  guidanceLists: GuidanceList[],
+  guidanceLists: readonly GuidanceList[],
   categorySlugs: Set<string>,
 ): ParsedCatalogueQuery => {
   const state = defaultState(guidanceLists)
@@ -92,7 +92,7 @@ export const parseCatalogueQuery = (
 
 export const buildCatalogueQuery = (
   state: CatalogueQueryState,
-  guidanceLists: GuidanceList[],
+  guidanceLists: readonly GuidanceList[],
 ): URLSearchParams => {
   const scopeSlugs = guidanceLists
     .filter((list) => state.scopeSlugs.includes(list.slug))
@@ -123,7 +123,7 @@ export const buildCatalogueQuery = (
  */
 export const parsePreparationSlug = (
   searchParams: URLSearchParams,
-  preparations: Preparation[],
+  preparations: readonly Preparation[],
 ): string | undefined => {
   const slug = searchParams.get('prep')
   return preparations.some((preparation) => preparation.slug === slug) ? slug! : undefined

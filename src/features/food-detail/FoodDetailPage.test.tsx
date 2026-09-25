@@ -1,8 +1,9 @@
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { describe, expect, it } from 'vitest'
-import { content } from '../../data'
+import { content, contentIndex } from '../../data'
 import type { ContentData } from '../../domain/contentValidation'
+import { buildContentIndex } from '../../test/buildContentIndex'
 import { FoodDetailPage } from './FoodDetailPage'
 
 const disclaimer = 'This guide is general information, not medical advice.'
@@ -45,10 +46,10 @@ const detailedContent: ContentData = {
   )),
 }
 
-const renderDetail = (path: string, detailContent = content) => render(
+const renderDetail = (path: string, detailContent?: ContentData) => render(
   <MemoryRouter initialEntries={[path]}>
     <Routes>
-      <Route path="/food/:foodSlug" element={<FoodDetailPage content={detailContent} disclaimer={disclaimer} />} />
+      <Route path="/food/:foodSlug" element={<FoodDetailPage disclaimer={disclaimer} index={detailContent === undefined ? contentIndex : buildContentIndex(detailContent)} />} />
     </Routes>
   </MemoryRouter>,
 )
@@ -276,15 +277,17 @@ describe('a food eaten in several preparations', () => {
       return food.id === sibling.id ? { ...food, preparationIds: ['smoked'] } : food
     }),
     assessments: [
-      ...content.assessments,
+      // The fixture's own species limit stands in for the authored one, since validation rejects two
+      // assessments from one source on the same subject, preparation, and list.
+      ...content.assessments.filter((assessment) => assessment.id !== 'farmed-salmon-pregnancy'),
       {
         id: 'salmon-raw-pregnancy',
         subject: { kind: 'food', foodId: salmon.id },
         guidanceListId: 'pregnancy-food-safety',
         // The pregnancy list declares more than one source, so a fixture assessment names one too.
-        // Naming New Zealand Food Safety also keeps `salmon-mercury-pregnancy` below on the same
-        // axis and source as the authored farmed-salmon rule, which is the collision this fixture
-        // exists to exercise.
+        // Naming New Zealand Food Safety also puts `salmon-mercury-pregnancy` and the group's smoked
+        // rule below under one source, so the food-wide rule has the chance to suppress the group's
+        // preparation rule that this fixture exists to rule out.
         sourceId: 'new-zealand-food-safety',
         statusId: 'pregnancy-avoid',
         preparationId: 'raw',

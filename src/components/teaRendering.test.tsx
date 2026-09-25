@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { describe, expect, it } from 'vitest'
-import { content } from '../data'
+import { contentIndex } from '../data'
 import { FoodDetailPage } from '../features/food-detail/FoodDetailPage'
 
 const scope = 'v=1&scope=pregnancy-food-safety'
@@ -11,7 +11,7 @@ const renderTea = (slug: string) => render(
     <Routes>
       <Route
         path="/food/:foodSlug"
-        element={<FoodDetailPage content={content} disclaimer="Not medical advice." />}
+        element={<FoodDetailPage index={contentIndex} disclaimer="Not medical advice." />}
       />
     </Routes>
   </MemoryRouter>,

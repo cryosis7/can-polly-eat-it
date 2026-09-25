@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
-import { content, contentIndex as index } from '../data'
+import { contentIndex as index } from '../data'
 import { assessmentSummary, resolveAssessment } from '../domain/assessment'
 import { catalogueRows, categoryEntryRows } from '../domain/categoryTree'
 import { GuidanceSection } from './GuidanceSection'
@@ -19,13 +19,13 @@ import { GuideEntrySummary } from './GuideEntrySummary'
  * all, which silently hid every species mercury limit behind its group's cooking rule.
  */
 describe('rendered guidance preserves every authored layer', () => {
-  const rows = content.guidanceLists.flatMap((guidanceList) => [
-    ...catalogueRows(content.foods).map(({ food, preparationId }) => ({
+  const rows = index.guidanceLists.flatMap((guidanceList) => [
+    ...catalogueRows(index).map(({ food, preparationId }) => ({
       name: `${food.name} (${preparationId ?? 'no preparation'}) in ${guidanceList.title}`,
       guidanceList,
       resolved: resolveAssessment({ kind: 'food', food }, guidanceList, index, preparationId),
     })),
-    ...categoryEntryRows(content.categories, content.assessments, content.preparations)
+    ...categoryEntryRows(index)
       .map(({ category, preparationId }) => ({
         name: `${category.name} (${preparationId ?? 'no preparation'}) in ${guidanceList.title}`,
         guidanceList,
@@ -43,14 +43,14 @@ describe('rendered guidance preserves every authored layer', () => {
       <GuideEntrySummary
         guidanceList={row.guidanceList}
         resolved={row.resolved}
+        index={index}
         returnSearch=""
-        sources={content.sources}
       />
     )],
     ['detail section', (row: (typeof rows)[number]) => (
       <GuidanceSection
-        content={content}
         guidanceList={row.guidanceList}
+        index={index}
         resolved={row.resolved}
         returnSearch=""
       />

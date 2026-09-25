@@ -1,3 +1,4 @@
+import type { ContentIndex } from './contentIndex'
 import type { Assessment, Category, Food, Preparation } from './schemas'
 
 export type CategoryTree = {
@@ -114,7 +115,7 @@ export type CatalogueRow = {
   preparationId?: string
 }
 
-export const catalogueRows = (foods: Food[]): CatalogueRow[] => foods.flatMap((food) => (
+export const catalogueRows = (index: ContentIndex): CatalogueRow[] => index.foods.flatMap((food) => (
   food.preparationIds.length === 0
     ? [{ food }]
     : food.preparationIds.map((preparationId) => ({ food, preparationId }))
@@ -148,38 +149,20 @@ export type CategoryRow = {
  * Categories carrying no assessment of their own yield no rows, so a structural parent stays a
  * heading rather than becoming a browsable entry.
  */
-export const categoryEntryRows = (
-  categories: Category[],
-  assessments: Assessment[],
-  preparations: Preparation[],
-): CategoryRow[] => {
-  const axesByCategoryId = new Map<string, Set<string | undefined>>()
-  for (const assessment of assessments) {
-    if (assessment.subject.kind !== 'category') {
-      continue
-    }
-    const { categoryId } = assessment.subject
-    const axes = axesByCategoryId.get(categoryId) ?? new Set<string | undefined>()
-    axes.add(assessment.preparationId)
-    axesByCategoryId.set(categoryId, axes)
+export const categoryEntryRows = (index: ContentIndex): CategoryRow[] => index.categories.flatMap((category) => {
+  if (!index.isCategoryAssessed(category.id)) {
+    return []
   }
-
-  const vocabularyOrder = [...preparations]
-    .sort((left, right) => left.sortOrder - right.sortOrder)
-    .map((preparation) => preparation.id)
-
-  return categories.flatMap((category) => {
-    const axes = axesByCategoryId.get(category.id)
-    if (axes === undefined) {
-      return []
-    }
-    const orderedAxes: (string | undefined)[] = [
-      ...(axes.has(undefined) ? [undefined] : []),
-      ...vocabularyOrder.filter((preparationId) => axes.has(preparationId)),
-    ]
-    return orderedAxes.map((preparationId) => ({ category, preparationId }))
-  })
-}
+  const subject = { kind: 'category', categoryId: category.id } as const
+  // The category's preparation states already include every state it holds a qualified
+  // assessment for, in vocabulary order, so filtering them keeps that order.
+  const holdsGuidance = (preparationId?: string) => index.guidanceLists.some(
+    (guidanceList) => index.assessmentsFor(guidanceList.id, subject, preparationId).length > 0,
+  )
+  return [undefined, ...index.preparationStatesFor(category.id).map((preparation) => preparation.id)]
+    .filter(holdsGuidance)
+    .map((preparationId) => ({ category, preparationId }))
+})
 
 /** Category guidance entries grouped by category then preparation, in vocabulary order. */
 export type CategoryEntryGroups = Map<string | undefined, CategoryRow[]>
@@ -232,9 +215,14 @@ export const entriesSurfacedByDescendants = (
   return surfaced
 }
 
+const preparationOrderFor = (index: ContentIndex, categoryId: string): (string | undefined)[] => [
+  undefined,
+  ...index.preparationStatesFor(categoryId).map((preparation) => preparation.id),
+]
+
 export const entryRowsByCategoryId = (
   rows: CategoryRow[],
-  preparationOrder: Map<string, string[]>,
+  index: ContentIndex,
 ): Map<string, CategoryEntryGroups> => {
   const grouped = new Map<string, CategoryEntryGroups>()
 
@@ -245,9 +233,8 @@ export const entryRowsByCategoryId = (
   }
 
   for (const [categoryId, groups] of grouped) {
-    const order = [undefined, ...(preparationOrder.get(categoryId) ?? [])]
     grouped.set(categoryId, new Map(
-      order
+      preparationOrderFor(index, categoryId)
         .filter((preparationId) => groups.has(preparationId))
         .map((preparationId) => [preparationId, groups.get(preparationId)!]),
     ))
@@ -258,7 +245,7 @@ export const entryRowsByCategoryId = (
 
 export const rowsByCategoryId = (
   rows: CatalogueRow[],
-  preparationOrder: Map<string, string[]>,
+  index: ContentIndex,
 ): Map<string, CategoryRowGroups> => {
   const grouped = new Map<string, CategoryRowGroups>()
 
@@ -272,9 +259,8 @@ export const rowsByCategoryId = (
   }
 
   for (const [categoryId, groups] of grouped) {
-    const order = [undefined, ...(preparationOrder.get(categoryId) ?? [])]
     grouped.set(categoryId, new Map(
-      order
+      preparationOrderFor(index, categoryId)
         .filter((preparationId) => groups.has(preparationId))
         .map((preparationId) => [
           preparationId,

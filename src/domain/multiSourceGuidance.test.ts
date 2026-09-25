@@ -174,9 +174,9 @@ describe('guidance from more than one source', () => {
     ]))
     const filters = { query: '', guidanceListIds: [dualSourceList.id], outcomeBands: [] }
 
-    expect(filterFoods([...index.foods], [...index.guidanceLists], index, { ...filters, outcomeBands: ['not-okay'] })
+    expect(filterFoods(index, { ...filters, outcomeBands: ['not-okay'] })
       .map((row) => row.food.id)).toEqual(['oysters'])
-    expect(filterFoods([...index.foods], [...index.guidanceLists], index, { ...filters, outcomeBands: ['okay'] }))
+    expect(filterFoods(index, { ...filters, outcomeBands: ['okay'] }))
       .toEqual([])
   })
 })

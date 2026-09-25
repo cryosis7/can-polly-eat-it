@@ -1,8 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { describe, expect, it } from 'vitest'
-import { validateContent } from '../domain/contentValidation'
-import { content as authoredContent } from '../data'
+import { contentIndex } from '../data'
 import { CataloguePage } from '../features/catalogue/CataloguePage'
 import { FoodDetailPage } from '../features/food-detail/FoodDetailPage'
 import {
@@ -10,6 +9,7 @@ import {
   dualSourceContent,
   foodAssessment,
 } from '../test/multiSourceFixture'
+import { buildContentIndex } from '../test/buildContentIndex'
 import type { Assessment } from '../domain/schemas'
 
 const nzfsSays = (statusId: string, summary: string, overrides = {}) =>
@@ -23,7 +23,7 @@ const renderDetail = (assessments: Assessment[]) => render(
     <Routes>
       <Route
         path="/food/:foodSlug"
-        element={<FoodDetailPage content={validateContent(dualSourceContent(assessments))} disclaimer="Not medical advice." />}
+        element={<FoodDetailPage index={buildContentIndex(dualSourceContent(assessments))} disclaimer="Not medical advice." />}
       />
     </Routes>
   </MemoryRouter>,
@@ -31,7 +31,7 @@ const renderDetail = (assessments: Assessment[]) => render(
 
 const renderCatalogue = (assessments: Assessment[]) => render(
   <MemoryRouter initialEntries={['/?v=1&scope=dual&q=oysters']}>
-    <CataloguePage content={validateContent(dualSourceContent(assessments))} />
+    <CataloguePage index={buildContentIndex(dualSourceContent(assessments))} />
   </MemoryRouter>,
 )
 
@@ -96,7 +96,7 @@ describe('rendering guidance from more than one source', () => {
         <Routes>
           <Route
             path="/food/:foodSlug"
-            element={<FoodDetailPage content={authoredContent} disclaimer="Not medical advice." />}
+            element={<FoodDetailPage index={contentIndex} disclaimer="Not medical advice." />}
           />
         </Routes>
       </MemoryRouter>,
