@@ -1,7 +1,7 @@
 # Make the content index the one handle on content
 
 Category: enhancement
-Status: ready-for-agent
+Status: done
 Feature: [F-01: Browse the food guide](../../docs/features/01-browse-food-guide.md), [F-04: Maintain trustworthy guidance content](../../docs/features/04-maintain-trustworthy-guidance-content.md)
 Reported: 2026-09-24
 Origin: architecture review of 2026-09-24, candidate 3
@@ -98,3 +98,14 @@ change.
 - Decided: the index owns preparation vocabulary order and per-category preparation states; row derivations stay in the tree module and take the index.
 - Decided: one test-support helper builds a validated index from a partial fixture; raw content stays exported for tests only.
 - Decided: a lint rule forbids importing raw content outside the data entry point, test support, and tests.
+
+### 2026-09-25 - Delivered
+
+- All seven tickets are `done`. Implementation merged into `main` through `fcd97c3`: `9953052`
+  (03), `d114ac5` (04), `7dc38d7` (05), `dfec1da` (06), and `fcd97c3` (07), after `9491309` (01) and
+  `deb38a0` (02).
+- Sequencing changed from the ticket split. Ticket 04 took on the domain functions its pages call,
+  because the index exposes no assessments collection. Ticket 06 deleted the legacy constructor and
+  free lookup once nothing called them.
+- One behaviour-neutral change in resolution: `statusBearingAssessments` was removed. Only an invalid
+  fixture reached it, and it contradicted the architecture overview. See ticket 04.
