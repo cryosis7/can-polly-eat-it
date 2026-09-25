@@ -71,7 +71,7 @@ describe('content index', () => {
     expect(build).toBeTypeOf('function')
   })
 
-  it('builds a 1,000-level category path without recursion', () => {
+  it('builds a 1,000-level category path and outline without recursion', () => {
     const categories = Array.from({ length: 1000 }, (_, level) =>
       category(`level-${level}`, level === 0 ? null : `level-${level - 1}`))
 
@@ -79,6 +79,46 @@ describe('content index', () => {
 
     expect(index.tree.pathByCategoryId.get('level-999')).toHaveLength(1000)
     expect(index.categoryBySlug('level-999-slug')?.parentId).toBe('level-998')
+    expect(index.categoryOutline).toHaveLength(1000)
+    const deepest = index.categoryOutline[999]
+    expect(deepest.category.id).toBe('level-999')
+    expect(deepest.depth).toBe(999)
+    expect(deepest.ancestorIds).toHaveLength(999)
+    expect(deepest.breadcrumb).toMatch(/^level-0 > level-1 > .* > level-999$/)
+  })
+
+  describe('category outline', () => {
+    const index = buildContentIndex({
+      categories: [
+        category('seafood', null, 2),
+        category('shellfish', 'seafood', 2),
+        category('fish', 'seafood', 1),
+        category('smoked-fish', 'fish', 1),
+        category('dairy', null, 1),
+        category('cheese', 'dairy', 1),
+        category('butter', 'dairy', 1),
+      ],
+    })
+    const outlineOf = (id: string) => index.categoryOutline.find((entry) => entry.category.id === id)!
+
+    it('lists every category depth-first in editorial order, ties broken by name', () => {
+      expect(index.categoryOutline.map((entry) => entry.category.id))
+        .toEqual(['dairy', 'butter', 'cheese', 'seafood', 'fish', 'smoked-fish', 'shellfish'])
+    })
+
+    it('gives each category its full breadcrumb, depth, and root-first ancestors', () => {
+      expect(outlineOf('smoked-fish')).toEqual({
+        category: index.categoryById('smoked-fish'),
+        breadcrumb: 'seafood > fish > smoked-fish',
+        depth: 2,
+        ancestorIds: ['seafood', 'fish'],
+      })
+      expect(outlineOf('dairy')).toMatchObject({ breadcrumb: 'dairy', depth: 0, ancestorIds: [] })
+    })
+
+    it('is empty for content without categories', () => {
+      expect(buildContentIndex({}).categoryOutline).toEqual([])
+    })
   })
 
   it('exposes collections in authored order and preparations in vocabulary order', () => {

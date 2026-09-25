@@ -9,7 +9,6 @@ import { resolveAssessment, type AssessmentSubjectRef } from '../../domain/asses
 import {
   entriesSurfacedByDescendants,
   entryRowsByCategoryId,
-  flattenCategoryRows,
   rowsByCategoryId,
   visibleCategoryRows,
   withAncestorIds,
@@ -125,7 +124,7 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
   const [searchParams, setSearchParams] = useSearchParams()
   const [filterRemovalAnnouncement, setFilterRemovalAnnouncement] = useState('')
   const [storedCollapseState, setCollapseState] = useState(() => initialCollapseState(index))
-  const categoryRows = useMemo(() => flattenCategoryRows(index.tree), [index.tree])
+  const categoryRows = index.categoryOutline
   const searchParamsString = searchParams.toString()
   const { state: queryState, unavailableFiltersRemoved } = useMemo(
     () => parseCatalogueQuery(new URLSearchParams(searchParamsString), index),

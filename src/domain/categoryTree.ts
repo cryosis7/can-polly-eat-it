@@ -1,4 +1,4 @@
-import type { ContentIndex } from './contentIndex'
+import type { CategoryOutlineEntry, ContentIndex } from './contentIndex'
 import type { Category, Food } from './schemas'
 
 export type CategoryTree = {
@@ -7,13 +7,6 @@ export type CategoryTree = {
   pathByCategoryId: Map<string, Category[]>
 }
 
-export type CategoryDisplayRow = {
-  category: Category
-  breadcrumb: string
-  depth: number
-  ancestorIds: string[]
-  hasChildCategories: boolean
-}
 
 const sortByEditorialOrder = <T extends { sortOrder: number; name: string }>(items: T[]) =>
   [...items].sort((left, right) => left.sortOrder - right.sortOrder || left.name.localeCompare(right.name))
@@ -48,35 +41,12 @@ export const buildCategoryTree = (categories: Category[]): CategoryTree => {
   return { categoryById, childIdsByParentId, pathByCategoryId }
 }
 
-export const flattenCategoryRows = (tree: CategoryTree): CategoryDisplayRow[] => {
-  const rows: CategoryDisplayRow[] = []
-  const stack = [...(tree.childIdsByParentId.get(null) ?? [])].reverse().map((id) => ({ id, depth: 0 }))
+export const visibleCategoryRows = (
+  rows: readonly CategoryOutlineEntry[],
+  collapsedIds: ReadonlySet<string>,
+) => rows.filter((row) => !row.ancestorIds.some((ancestorId) => collapsedIds.has(ancestorId)))
 
-  while (stack.length > 0) {
-    const { id, depth } = stack.pop()!
-    const category = tree.categoryById.get(id)!
-    const path = tree.pathByCategoryId.get(id)!
-    const children = tree.childIdsByParentId.get(id) ?? []
-    rows.push({
-      category,
-      breadcrumb: path.map((item) => item.name).join(' > '),
-      depth,
-      ancestorIds: path.slice(0, -1).map((item) => item.id),
-      hasChildCategories: children.length > 0,
-    })
-
-    for (let index = children.length - 1; index >= 0; index -= 1) {
-      stack.push({ id: children[index], depth: depth + 1 })
-    }
-  }
-
-  return rows
-}
-
-export const visibleCategoryRows = (rows: CategoryDisplayRow[], collapsedIds: ReadonlySet<string>) =>
-  rows.filter((row) => !row.ancestorIds.some((ancestorId) => collapsedIds.has(ancestorId)))
-
-export const withAncestorIds = (rows: CategoryDisplayRow[], categoryIds: Set<string>) => {
+export const withAncestorIds = (rows: readonly CategoryOutlineEntry[], categoryIds: Set<string>) => {
   const retained = new Set<string>()
   for (const row of rows) {
     if (!categoryIds.has(row.category.id)) {

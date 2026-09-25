@@ -178,8 +178,9 @@ state, commercially or home-prepared?** Everyday community practice counts; a si
 menu item does not. A declaration must never be inferred from a food's name, its siblings, or any
 theory about the food itself, and it never expresses risk — risk lives in the assessment.
 
-A preparation grouping is a rendering construct derived from the declarations and the
-preparation-qualified assessments a category holds. It is never a synthetic category: it does not
+A **preparation band** (not "preparation grouping") is a rendering construct derived from the
+declarations and the preparation-qualified assessments a category holds. It is never a synthetic
+category: it does not
 appear in the category filter, has no route, and is absent from `categoryAndDescendantIds`.
 
 Where a food does not declare a state its group is assessed in, the food page still shows the
@@ -409,9 +410,11 @@ their preparation heading inside the category group.
 
 A rule may be authored higher in the tree than the foods it governs, because a source can state one
 rule for all seafood while the species stay filed under what they are. Each preparation band
-therefore carries a **callout** stating the rule that governs it — resolved, toned by its status,
-and naming the scope it was authored at with a link to its origin category — so it reads as the
-group's advice about that preparation rather than as a category of its own. Where a descendant band
+therefore has a **governing rule**: the band's category resolved for that preparation in each
+selected dietary scope, which may be authored on an ancestor, and exists only for scopes where an
+assessment was found. A **callout** at the head of the band states the governing rule — toned by
+its status, and naming the scope it was authored at with a link to its origin category — so it
+reads as the group's advice about that preparation rather than as a category of its own. Where a descendant band
 carries a rule beside its foods, the ancestor's own food-less band is dropped from the catalogue and
 from the count together, rather than showing a rule with no foods directly above foods with no rule.
 
@@ -421,7 +424,7 @@ subset by origin, depth, or novelty understates authored guidance. A status labe
 the guidance and never a substitute for it, so no view shows a status without the words behind it.
 
 A **collapsed row** — a nested category heading or a preparation band, never a root group — carries an
-**aggregate chip** summarising what the collapse hides, so a reader can skip a group without opening
+**aggregate chip** (not "collapsed-row chip") summarising what the collapse hides, so a reader can skip a group without opening
 it. Collapsing a category hides its own guidance along with its descendants, exactly as collapsing a
 preparation band hides its callout, so the chip is the row's whole answer rather than a summary
 sitting above a restatement of it. It is not a status: no guidance list authors it, it is never persisted, and it disappears on
@@ -438,6 +441,15 @@ correctly tell the reader the group needs attention. A chip never summarises a f
 none renders while a search, category, or outcome filter is active. Selecting a further dietary scope
 is not such a filter: it changes which guidance is shown rather than which entries qualify, leaving
 the result count and the reader's collapse state untouched.
+
+A **match** is a guide entry row that satisfies the active search, category, and outcome filters in
+every selected dietary scope. While any of those filters is active, every group holding a match
+opens, and each category row and preparation band counts its matches ("1 match") rather than its
+entries, so a filtered count never reads as the size of the whole group. A reader may still collapse
+a row during a search; that **search collapse** hides the row without a chip, belongs only to the
+filter it was made under, and is discarded as soon as the search, category, outcomes, or selected
+scopes change, so a new match is never hidden. Clearing the filters restores the reader's own
+browse collapse state exactly as it was before the search.
 
 Search normalises case, diacritics, punctuation, and whitespace, then matches every query token
 against food names, aliases, and the labels/aliases on the food's category path. A category entry is

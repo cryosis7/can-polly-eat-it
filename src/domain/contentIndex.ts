@@ -2,8 +2,24 @@ import { buildCategoryTree, type CategoryTree } from './categoryTree'
 import type { ValidatedContent } from './contentValidation'
 import type { Assessment, AssessmentSubject, Category, Food, GuidanceList, Preparation, Source } from './schemas'
 
+/** One category in the category outline, placed where editorial depth-first order puts it. */
+export type CategoryOutlineEntry = {
+  category: Category
+  /** Every name on the path from the root, joined as "Root > Branch > Leaf". */
+  breadcrumb: string
+  /** 0 for a root category. */
+  depth: number
+  /** Root first, excluding the category itself. */
+  ancestorIds: readonly string[]
+}
+
 export type ContentIndex = {
   tree: CategoryTree
+  /**
+   * Every category in editorial depth-first order. Query-independent, so it is built once with the
+   * index rather than flattened again each time the catalogue is derived.
+   */
+  categoryOutline: readonly CategoryOutlineEntry[]
   foods: readonly Food[]
   categories: readonly Category[]
   guidanceLists: readonly GuidanceList[]
@@ -107,6 +123,32 @@ const derivePreparationStates = (
   ]))
 }
 
+// ADR: Model catalogue subjects and preparation independently.
+// See: docs/decisions/2026-09-21 ADR - model catalogue subjects and preparation independently.md
+/** Iterative, because the tree has no depth limit and a recursive walk would put one back. */
+const buildCategoryOutline = (tree: CategoryTree): CategoryOutlineEntry[] => {
+  const outline: CategoryOutlineEntry[] = []
+  const stack = [...(tree.childIdsByParentId.get(null) ?? [])].reverse().map((id) => ({ id, depth: 0 }))
+
+  while (stack.length > 0) {
+    const { id, depth } = stack.pop()!
+    const path = tree.pathByCategoryId.get(id)!
+    outline.push({
+      category: tree.categoryById.get(id)!,
+      breadcrumb: path.map((item) => item.name).join(' > '),
+      depth,
+      ancestorIds: path.slice(0, -1).map((item) => item.id),
+    })
+
+    const children = tree.childIdsByParentId.get(id) ?? []
+    for (let position = children.length - 1; position >= 0; position -= 1) {
+      stack.push({ id: children[position], depth: depth + 1 })
+    }
+  }
+
+  return outline
+}
+
 export const createContentIndex = (content: ValidatedContent): ContentIndex => {
   const { categories, assessments } = content
   const preparations = [...content.preparations].sort((left, right) => left.sortOrder - right.sortOrder)
@@ -118,9 +160,11 @@ export const createContentIndex = (content: ValidatedContent): ContentIndex => {
       .map((assessment) => (assessment.subject as { kind: 'category', categoryId: string }).categoryId),
   )
   const preparationStatesByCategoryId = derivePreparationStates(content.foods, assessments, preparations)
+  const tree = buildCategoryTree(categories)
 
   return {
-    tree: buildCategoryTree(categories),
+    tree,
+    categoryOutline: buildCategoryOutline(tree),
     foods: content.foods,
     categories,
     guidanceLists: content.guidanceLists,

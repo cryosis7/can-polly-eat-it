@@ -16,7 +16,7 @@ which collapsed areas need attention.
 1. Open the home page with pregnancy food safety and vegetarian suitability selected.
 2. Browse the category hierarchy in editorial order.
 3. Expand a category or preparation band to see its complete guidance and entries.
-4. Use the collapsed-row chip to decide whether a hidden group needs attention.
+4. Use the aggregate chip to decide whether a hidden group needs attention.
 5. Follow a food or assessed-category entry to [F-03](<03-understand-reviewed-guidance.md>).
 
 ## Required behaviour
@@ -61,7 +61,7 @@ which collapsed areas need attention.
 
 ## Validation
 
-Domain and component tests cover tree derivation, preparation grouping, disclosure state, and
+Domain and component tests cover tree derivation, preparation bands, disclosure state, and
 aggregate summaries. Chromium Playwright covers mobile and desktop browsing, keyboard-operable
 disclosures, breadcrumbs, status meaning, and assessed-category and food links. All tests retain the
 repository-wide coverage and accessibility gates.

@@ -63,7 +63,7 @@ change.
 - A new subject guidance module lives in the domain layer.
 - Proposed interface: guidance subject, selected guidance lists, and content index in; an ordered list of axes out. Each axis carries an optional preparation, a basis of own guidance or group rule, and resolved guidance per list.
 - Open question for the deep-dive: whether "group rule" is a basis only a food can have, or whether a category can also show an ancestor's rule for a preparation it holds no rule on. Today only the food page shows group rules.
-- Open question for the deep-dive: whether the catalogue should consume this module per preparation grouping, or whether the catalogue view spec absorbs that use.
+- Open question for the deep-dive: whether the catalogue should consume this module per preparation grouping, or whether the catalogue view spec absorbs that use. Answered 2026-09-25 while grilling the [catalogue listing](../deepen-catalogue-view/spec.md): the listing computes band governing rules itself behind its interface, and this module may later replace that internally without changing the listing's interface.
 - The two current axis derivations in the tree module (per-category preparation states and guide-entry rows) become internal implementation where no other caller needs them.
 - Needs a domain term for the basis distinction. "Group's rule" is the phrase the architecture overview and food page use; confirm it during the deep-dive and add it to the domain docs.
 - Dependency category: in-process.
