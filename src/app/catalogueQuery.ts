@@ -1,4 +1,5 @@
-import type { GuidanceList, OutcomeBand, Preparation } from '../domain/schemas'
+import type { ContentIndex } from '../domain/contentIndex'
+import type { OutcomeBand } from '../domain/schemas'
 
 export type CatalogueQueryState = {
   scopeSlugs: string[]
@@ -20,25 +21,24 @@ const outcomeBandOrder: OutcomeBand[] = ['okay', 'maybe', 'not-okay', 'not-asses
 const defaultScopeSlugCandidates = ['pregnancy-food-safety', 'vegetarian-suitability']
 
 /** The scope slugs selected when a catalogue URL carries no `scope` at all. */
-export const defaultScopeSlugs = (guidanceLists: readonly GuidanceList[]): string[] => {
-  const matches = guidanceLists
+export const defaultScopeSlugs = (index: ContentIndex): string[] => {
+  const matches = index.guidanceLists
     .filter((list) => defaultScopeSlugCandidates.includes(list.slug))
     .map((list) => list.slug)
-  return matches.length > 0 ? matches : [guidanceLists[0].slug]
+  return matches.length > 0 ? matches : [index.guidanceLists[0].slug]
 }
 
-const defaultState = (guidanceLists: readonly GuidanceList[]): CatalogueQueryState => ({
-  scopeSlugs: defaultScopeSlugs(guidanceLists),
+const defaultState = (index: ContentIndex): CatalogueQueryState => ({
+  scopeSlugs: defaultScopeSlugs(index),
   outcomeBands: [],
   query: '',
 })
 
 export const parseCatalogueQuery = (
   searchParams: URLSearchParams,
-  guidanceLists: readonly GuidanceList[],
-  categorySlugs: Set<string>,
+  index: ContentIndex,
 ): ParsedCatalogueQuery => {
-  const state = defaultState(guidanceLists)
+  const state = defaultState(index)
   let unavailableFiltersRemoved = false
   const version = searchParams.get('v')
 
@@ -48,7 +48,7 @@ export const parseCatalogueQuery = (
 
   const requestedScopeSlugs = unique((searchParams.get('scope') ?? '').split(',').filter(Boolean))
   if (requestedScopeSlugs.length > 0) {
-    const validScopeSlugs = requestedScopeSlugs.filter((slug) => guidanceLists.some((list) => list.slug === slug))
+    const validScopeSlugs = requestedScopeSlugs.filter((slug) => index.guidanceListBySlug(slug) !== undefined)
     if (validScopeSlugs.length > 0 && (version === null || version === '1')) {
       state.scopeSlugs = validScopeSlugs
     }
@@ -67,7 +67,7 @@ export const parseCatalogueQuery = (
 
   const categorySlug = searchParams.get('category')
   if (categorySlug) {
-    if (categorySlugs.has(categorySlug)) {
+    if (index.categoryBySlug(categorySlug) !== undefined) {
       state.categorySlug = categorySlug
     } else {
       unavailableFiltersRemoved = true
@@ -92,9 +92,9 @@ export const parseCatalogueQuery = (
 
 export const buildCatalogueQuery = (
   state: CatalogueQueryState,
-  guidanceLists: readonly GuidanceList[],
+  index: ContentIndex,
 ): URLSearchParams => {
-  const scopeSlugs = guidanceLists
+  const scopeSlugs = index.guidanceLists
     .filter((list) => state.scopeSlugs.includes(list.slug))
     .map((list) => list.slug)
   const orderedOutcomes = outcomeBandOrder.filter((outcome) => state.outcomeBands.includes(outcome))
@@ -123,10 +123,10 @@ export const buildCatalogueQuery = (
  */
 export const parsePreparationSlug = (
   searchParams: URLSearchParams,
-  preparations: readonly Preparation[],
+  index: ContentIndex,
 ): string | undefined => {
   const slug = searchParams.get('prep')
-  return preparations.some((preparation) => preparation.slug === slug) ? slug! : undefined
+  return slug !== null && index.preparationBySlug(slug) !== undefined ? slug : undefined
 }
 
 /** The search string for a link into a food in a preparation context. */

@@ -26,16 +26,12 @@ export const FoodDetailPage = ({ index, disclaimer }: FoodDetailPageProps) => {
     )
   }
 
-  const { state: queryState } = parseCatalogueQuery(
-    searchParams,
-    index.guidanceLists,
-    new Set(index.categories.map((category) => category.slug)),
-  )
+  const { state: queryState } = parseCatalogueQuery(searchParams, index)
   const selectedGuidanceLists = index.guidanceLists.filter((guidanceList) =>
     queryState.scopeSlugs.includes(guidanceList.slug),
   )
-  const returnSearch = buildCatalogueQuery(queryState, index.guidanceLists).toString()
-  const openedPreparationSlug = parsePreparationSlug(searchParams, index.preparations)
+  const returnSearch = buildCatalogueQuery(queryState, index).toString()
+  const openedPreparationSlug = parsePreparationSlug(searchParams, index)
 
   const declared = index.preparations.filter((preparation) => food.preparationIds.includes(preparation.id))
   // A reader asking about a preparation this food is not eaten in gets the group's authored answer

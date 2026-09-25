@@ -113,24 +113,16 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
   )
   const [expandedPreparationBands, setExpandedPreparationBands] = useState(() => new Set<string>())
   const categoryRows = useMemo(() => flattenCategoryRows(index.tree), [index.tree])
-  const categorySlugs = useMemo(
-    () => new Set(index.categories.map((category) => category.slug)),
-    [index.categories],
-  )
   const searchParamsString = searchParams.toString()
   const { state: queryState, unavailableFiltersRemoved } = useMemo(
-    () => parseCatalogueQuery(
-      new URLSearchParams(searchParamsString),
-      index.guidanceLists,
-      categorySlugs,
-    ),
-    [categorySlugs, index.guidanceLists, searchParamsString],
+    () => parseCatalogueQuery(new URLSearchParams(searchParamsString), index),
+    [index, searchParamsString],
   )
   const selectedGuidanceLists = useMemo(
     () => index.guidanceLists.filter((list) => queryState.scopeSlugs.includes(list.slug)),
     [index.guidanceLists, queryState.scopeSlugs],
   )
-  const scopeDefaults = useMemo(() => defaultScopeSlugs(index.guidanceLists), [index.guidanceLists])
+  const scopeDefaults = useMemo(() => defaultScopeSlugs(index), [index])
   const filterState = useMemo(() => ({
     query: queryState.query,
     categoryId: queryState.categorySlug ? index.categoryBySlug(queryState.categorySlug)?.id : undefined,
@@ -255,11 +247,11 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
   )
 
   useEffect(() => {
-    const canonicalSearch = buildCatalogueQuery(queryState, index.guidanceLists).toString()
+    const canonicalSearch = buildCatalogueQuery(queryState, index).toString()
     if (canonicalSearch !== searchParams.toString()) {
       setSearchParams(canonicalSearch, { replace: true })
     }
-  }, [index.guidanceLists, queryState, searchParams, setSearchParams])
+  }, [index, queryState, searchParams, setSearchParams])
 
   useEffect(() => {
     if (unavailableFiltersRemoved) {
@@ -275,8 +267,8 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
     update: (current: CatalogueQueryState) => CatalogueQueryState,
     replace = false,
   ) => {
-    setSearchParams(buildCatalogueQuery(update(queryState), index.guidanceLists), { replace })
-  }, [index.guidanceLists, queryState, setSearchParams])
+    setSearchParams(buildCatalogueQuery(update(queryState), index), { replace })
+  }, [index, queryState, setSearchParams])
 
   const updateSearchQuery = useCallback((query: string) => {
     startTransition(() => {
@@ -284,7 +276,7 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
     })
   }, [updateQueryState])
 
-  const returnSearch = buildCatalogueQuery(queryState, index.guidanceLists).toString()
+  const returnSearch = buildCatalogueQuery(queryState, index).toString()
 
   return (
     <main className="page-content content-width" id="main-content" tabIndex={-1}>

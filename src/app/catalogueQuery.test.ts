@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { categories } from '../data/categories'
 import { guidanceLists } from '../data/guidanceLists'
-import { preparations } from '../data/preparations'
+import { sources } from '../data/sources'
+import type { GuidanceList } from '../domain/schemas'
+import { buildContentIndex } from '../test/buildContentIndex'
 import {
   buildCatalogueQuery,
   parseCatalogueQuery,
@@ -9,12 +10,19 @@ import {
   withPreparationSlug,
 } from './catalogueQuery'
 
+const dairy = { id: 'dairy', slug: 'dairy', name: 'Dairy', parentId: null, aliases: [], sortOrder: 1 }
+const raw = { id: 'raw', slug: 'raw', name: 'Raw', sortOrder: 1 }
+
+const indexWith = (lists: GuidanceList[] = guidanceLists) =>
+  buildContentIndex({ categories: [dairy], preparations: [raw], sources, guidanceLists: lists })
+
+const index = indexWith()
+
 describe('catalogue query', () => {
   it('defaults an absent scope to pregnancy and vegetarian suitability', () => {
     const parsed = parseCatalogueQuery(
       new URLSearchParams('v=1&q=hard%20cheese&category=dairy'),
-      guidanceLists,
-      new Set(categories.map((category) => category.slug)),
+      index,
     )
 
     expect(parsed).toEqual({
@@ -36,8 +44,7 @@ describe('catalogue query', () => {
     }
     const parsed = parseCatalogueQuery(
       new URLSearchParams('v=1&scope=alternative-food-safety,pregnancy-food-safety&q=hard%20cheese&category=dairy&outcome=not-okay,maybe'),
-      [guidanceLists[0], alternativeList],
-      new Set(categories.map((category) => category.slug)),
+      indexWith([guidanceLists[0], alternativeList]),
     )
 
     expect(parsed.unavailableFiltersRemoved).toBe(false)
@@ -47,7 +54,7 @@ describe('catalogue query', () => {
       query: 'hard cheese',
       categorySlug: 'dairy',
     })
-    expect(buildCatalogueQuery(parsed.state, [guidanceLists[0], alternativeList]).toString()).toBe(
+    expect(buildCatalogueQuery(parsed.state, indexWith([guidanceLists[0], alternativeList])).toString()).toBe(
       'v=1&scope=pregnancy-food-safety%2Calternative-food-safety&q=hard+cheese&category=dairy&outcome=maybe%2Cnot-okay',
     )
   })
@@ -55,8 +62,7 @@ describe('catalogue query', () => {
   it('keeps valid constraints while defaulting scopes from an unsupported URL version', () => {
     const parsed = parseCatalogueQuery(
       new URLSearchParams('v=2&scope=alternative-food-safety&q=brie&category=dairy&outcome=okay'),
-      guidanceLists,
-      new Set(categories.map((category) => category.slug)),
+      index,
     )
 
     expect(parsed).toEqual({
@@ -73,8 +79,7 @@ describe('catalogue query', () => {
   it('removes unknown and duplicate scopes and outcomes while retaining valid values', () => {
     const parsed = parseCatalogueQuery(
       new URLSearchParams('scope=pregnancy-food-safety,unknown,pregnancy-food-safety&outcome=okay,unknown,okay'),
-      guidanceLists,
-      new Set(categories.map((category) => category.slug)),
+      index,
     )
 
     expect(parsed).toEqual({
@@ -90,8 +95,7 @@ describe('catalogue query', () => {
   it('drops the retired outside-coverage outcome and announces the removal', () => {
     const parsed = parseCatalogueQuery(
       new URLSearchParams('v=1&scope=pregnancy-food-safety&outcome=outside-coverage,not-assessed'),
-      guidanceLists,
-      new Set(categories.map((category) => category.slug)),
+      index,
     )
 
     expect(parsed).toEqual({
@@ -107,8 +111,7 @@ describe('catalogue query', () => {
   it('rejects the unreleased display-list URL contract', () => {
     const parsed = parseCatalogueQuery(
       new URLSearchParams('list=alternative-food-safety&status.alternative-food-safety=okay'),
-      guidanceLists,
-      new Set(categories.map((category) => category.slug)),
+      index,
     )
 
     expect(parsed).toEqual({
@@ -126,8 +129,7 @@ describe('catalogue query', () => {
 
     expect(parseCatalogueQuery(
       new URLSearchParams(),
-      alternativeOnly,
-      new Set(categories.map((category) => category.slug)),
+      indexWith(alternativeOnly),
     ).state.scopeSlugs).toEqual(['alternative-food-safety'])
   })
 })
@@ -136,15 +138,15 @@ describe('catalogue query', () => {
 // See: docs/decisions/2026-09-21 ADR - model catalogue subjects and preparation independently.md
 describe('the preparation a food page was opened in', () => {
   it('accepts a known preparation slug and strips an unknown one', () => {
-    expect(parsePreparationSlug(new URLSearchParams('v=1&prep=raw'), preparations)).toBe('raw')
-    expect(parsePreparationSlug(new URLSearchParams('v=1&prep=poached'), preparations)).toBeUndefined()
-    expect(parsePreparationSlug(new URLSearchParams('v=1'), preparations)).toBeUndefined()
+    expect(parsePreparationSlug(new URLSearchParams('v=1&prep=raw'), index)).toBe('raw')
+    expect(parsePreparationSlug(new URLSearchParams('v=1&prep=poached'), index)).toBeUndefined()
+    expect(parsePreparationSlug(new URLSearchParams('v=1'), index)).toBeUndefined()
   })
 
   it('keeps the catalogue own canonical URL free of a preparation', () => {
     const search = buildCatalogueQuery(
       { scopeSlugs: ['pregnancy-food-safety'], outcomeBands: [], query: '' },
-      guidanceLists,
+      index,
     ).toString()
 
     expect(search).not.toContain('prep')

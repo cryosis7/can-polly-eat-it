@@ -27,20 +27,16 @@ export const CategoryDetailPage = ({ index, disclaimer }: CategoryDetailPageProp
     )
   }
 
-  const { state: queryState } = parseCatalogueQuery(
-    searchParams,
-    index.guidanceLists,
-    new Set(index.categories.map((candidate) => candidate.slug)),
-  )
+  const { state: queryState } = parseCatalogueQuery(searchParams, index)
   const selectedGuidanceLists = index.guidanceLists.filter((guidanceList) =>
     queryState.scopeSlugs.includes(guidanceList.slug),
   )
-  const returnSearch = buildCatalogueQuery(queryState, index.guidanceLists).toString()
+  const returnSearch = buildCatalogueQuery(queryState, index).toString()
   const breadcrumb = index.tree.pathByCategoryId.get(category.id)!
     .map((candidate) => candidate.name)
     .join(' > ')
 
-  const openedPreparationSlug = parsePreparationSlug(searchParams, index.preparations)
+  const openedPreparationSlug = parsePreparationSlug(searchParams, index)
   // A category is a first-class subject, so its guidance has the same two axes a food's does. It
   // must be resolved per axis: resolving without a preparation deliberately ignores qualified
   // assessments, which would render not-assessed over authored rules.
