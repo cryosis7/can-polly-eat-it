@@ -4,10 +4,9 @@ import { categories } from '../data/categories'
 import { foods } from '../data/foods'
 import { guidanceLists } from '../data/guidanceLists'
 import { preparations } from '../data/preparations'
-import { createContentIndex } from './contentIndex'
+import { content, contentIndex as index } from '../data'
+import { buildContentIndex } from '../test/buildContentIndex'
 import { filterCategoryEntries, filterFoods } from './filtering'
-
-const index = createContentIndex(categories, assessments)
 
 describe('filterFoods', () => {
   it('matches aliases and normalised category-path text', () => {
@@ -115,14 +114,18 @@ describe('filterFoods', () => {
 
   it('ANDs outcome constraints across selected scopes', () => {
     const primaryList = guidanceLists[0]
-    const alternativeList = { ...primaryList, id: 'pregnancy-alternative' }
+    const alternativeList = { ...primaryList, id: 'pregnancy-alternative', slug: 'pregnancy-alternative' }
     const freshFilledPasta = assessments.find((assessment) =>
       assessment.subject.kind === 'food' && assessment.subject.foodId === 'fresh-filled-pasta',
     )!
-    const alternativeIndex = createContentIndex(categories, [
-      ...assessments,
-      { ...freshFilledPasta, id: 'fresh-filled-pasta-pregnancy-alternative', guidanceListId: alternativeList.id },
-    ])
+    const alternativeIndex = buildContentIndex({
+      ...content,
+      guidanceLists: [...guidanceLists, alternativeList],
+      assessments: [
+        ...assessments,
+        { ...freshFilledPasta, id: 'fresh-filled-pasta-pregnancy-alternative', guidanceListId: alternativeList.id },
+      ],
+    })
 
     expect(filterFoods(foods, [primaryList, alternativeList], alternativeIndex, {
       query: '',

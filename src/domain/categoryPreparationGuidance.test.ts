@@ -5,9 +5,10 @@ import {
   dualSourceList,
   fixturePreparations,
   makeFood,
+  nzfs,
 } from '../test/multiSourceFixture'
 import { categoryEntryRows, entryRowsByCategoryId, preparationIdsByCategoryId } from './categoryTree'
-import { createContentIndex } from './contentIndex'
+import { buildContentIndex } from '../test/buildContentIndex'
 import { filterCategoryEntries } from './filtering'
 
 /**
@@ -19,13 +20,16 @@ import { filterCategoryEntries } from './filtering'
 
 const rawShellfish = categoryAssessment('shellfish-raw', 'shellfish', 'dual-avoid', {
   preparationId: 'raw',
+  sourceId: nzfs.id,
   summary: 'Do not eat raw shellfish.',
 })
 const cookedShellfish = categoryAssessment('shellfish-cooked', 'shellfish', 'dual-conditions', {
   preparationId: 'cooked',
+  sourceId: nzfs.id,
   summary: 'Cook shellfish thoroughly and eat it while hot.',
 })
 const shellfishWide = categoryAssessment('shellfish-wide', 'shellfish', 'dual-ok', {
+  sourceId: nzfs.id,
   summary: 'Shellfish is okay to eat.',
 })
 
@@ -36,7 +40,7 @@ const entriesFor = (content: ReturnType<typeof dualSourceContent>) => filterCate
   content.assessments,
   content.preparations,
   content.guidanceLists,
-  createContentIndex(content.categories, content.assessments),
+  buildContentIndex(content),
   noFilters,
 )
 
@@ -68,7 +72,7 @@ describe('category guidance entries across preparations', () => {
 
   it('matches an outcome filter on the raw entry without matching the cooked entry', () => {
     const content = dualSourceContent([rawShellfish, cookedShellfish], [])
-    const index = createContentIndex(content.categories, content.assessments)
+    const index = buildContentIndex(content)
 
     const notOkay = filterCategoryEntries(
       content.categories,

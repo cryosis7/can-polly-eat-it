@@ -1,10 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { content } from '../data'
+import { content, contentIndex as index } from '../data'
 import { resolveAssessment } from './assessment'
-import { createContentIndex } from './contentIndex'
 import { matchesSearchQuery } from './search'
 
-const index = createContentIndex(content.categories, content.assessments)
 const pregnancy = content.guidanceLists.find((list) => list.id === 'pregnancy-food-safety')!
 
 const foodNamed = (foodId: string) => content.foods.find((food) => food.id === foodId)!

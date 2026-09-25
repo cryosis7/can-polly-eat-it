@@ -1,14 +1,11 @@
 import { render } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
-import { content } from '../data'
+import { content, contentIndex as index } from '../data'
 import { assessmentSummary, resolveAssessment } from '../domain/assessment'
 import { catalogueRows, categoryEntryRows } from '../domain/categoryTree'
-import { createContentIndex } from '../domain/contentIndex'
 import { GuidanceSection } from './GuidanceSection'
 import { GuideEntrySummary } from './GuideEntrySummary'
-
-const index = createContentIndex(content.categories, content.assessments)
 
 /**
  * ADR: Resolve guidance conservatively without inference.

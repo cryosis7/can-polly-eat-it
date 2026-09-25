@@ -1,11 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { content } from '../data'
+import { content, contentIndex as index } from '../data'
 import { resolveAssessment } from './assessment'
-import { createContentIndex } from './contentIndex'
 import { validateContent } from './contentValidation'
 import { filterCategoryEntries, filterFoods } from './filtering'
 
-const index = createContentIndex(content.categories, content.assessments)
 const pregnancy = content.guidanceLists[0]
 const vegetarian = content.guidanceLists[1]
 

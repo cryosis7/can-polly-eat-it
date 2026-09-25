@@ -1,10 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { content } from '../data'
+import { content, contentIndex as index } from '../data'
 import { resolveAssessment } from './assessment'
-import { createContentIndex } from './contentIndex'
 import { filterCategoryEntries, filterFoods } from './filtering'
 
-const index = createContentIndex(content.categories, content.assessments)
 const pregnancy = content.guidanceLists[0]
 const vegetarian = content.guidanceLists[1]
 
@@ -54,7 +52,7 @@ describe('guidance lifted onto categories', () => {
 
   it('lifts the freshly cooked seafood group rule onto its category so the footnote can add to it', () => {
     expect(content.foods.some((food) => food.id === 'seafood')).toBe(false)
-    expect(index.assessedCategoryIds.has('seafood')).toBe(true)
+    expect(index.isCategoryAssessed('seafood')).toBe(true)
 
     for (const foodId of ['bluff-and-pacific-oysters', 'queen-scallops']) {
       const resolved = resolveFood(foodId)
@@ -140,7 +138,7 @@ describe('guidance lifted onto categories', () => {
 
     for (const [retiredFoodId, categoryId] of retiredWithCategoryEntry) {
       expect(content.foods.some((food) => food.id === retiredFoodId)).toBe(false)
-      expect(index.assessedCategoryIds.has(categoryId), categoryId).toBe(true)
+      expect(index.isCategoryAssessed(categoryId), categoryId).toBe(true)
     }
   })
 })

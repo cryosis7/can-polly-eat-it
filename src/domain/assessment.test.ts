@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { resolveAssessment } from './assessment'
-import { createContentIndex } from './contentIndex'
-import type { Assessment, Category, Food, GuidanceList } from './schemas'
+import { buildContentIndex } from '../test/buildContentIndex'
+import type { Assessment, Category, Food, GuidanceList, Preparation } from './schemas'
 
 const list: GuidanceList = {
   id: 'test-list',
@@ -72,6 +72,11 @@ const foodAssessment = (foodId: string, statusId: string, guidanceListId = list.
   citations: [],
 })
 
+const raw: Preparation = { id: 'raw', slug: 'raw', name: 'Raw', sortOrder: 1 }
+
+const indexOf = (categories: Category[], assessments: Assessment[], foods: Food[] = []) =>
+  buildContentIndex({ categories, foods, preparations: [raw], guidanceLists: [list, otherList], assessments })
+
 describe('resolveAssessment', () => {
   it('uses the nearest assessed ancestor category, not a more distant one', () => {
     const root = category('root', null)
@@ -81,7 +86,7 @@ describe('resolveAssessment', () => {
     const cheese = food('cheese', 'leaf')
 
     const assessments = [categoryAssessment('root', 'avoid'), categoryAssessment('middle', 'ok')]
-    const index = createContentIndex(categories, assessments)
+    const index = indexOf(categories, assessments, [cheese])
 
     const resolved = resolveAssessment({ kind: 'food', food: cheese }, list, index)
     expect(resolved.status.id).toBe('ok')
@@ -94,7 +99,7 @@ describe('resolveAssessment', () => {
     const cheddar = food('cheddar', 'root')
 
     const assessments = [categoryAssessment('root', 'avoid'), foodAssessment('cheddar', 'ok')]
-    const index = createContentIndex(categories, assessments)
+    const index = indexOf(categories, assessments, [cheddar])
 
     const resolved = resolveAssessment({ kind: 'food', food: cheddar }, list, index)
     expect(resolved.status.id).toBe('ok')
@@ -108,7 +113,7 @@ describe('resolveAssessment', () => {
     const item = food('item', 'root')
 
     const assessments = [categoryAssessment('root', 'avoid', otherList.id)]
-    const index = createContentIndex(categories, assessments)
+    const index = indexOf(categories, assessments, [item])
 
     const resolved = resolveAssessment({ kind: 'food', food: item }, list, index)
     expect(resolved.origin).toEqual({ kind: 'not-assessed' })
@@ -122,7 +127,7 @@ describe('resolveAssessment', () => {
     const categories = [root, middle, leaf]
 
     const assessments = [categoryAssessment('root', 'avoid')]
-    const index = createContentIndex(categories, assessments)
+    const index = indexOf(categories, assessments)
 
     const resolved = resolveAssessment({ kind: 'category', category: leaf }, list, index)
     expect(resolved.status.id).toBe('avoid')
@@ -136,7 +141,7 @@ describe('resolveAssessment', () => {
     ))
     const deepFood = food('deep-food', 'level-999')
     const assessments = [categoryAssessment('level-0', 'ok')]
-    const index = createContentIndex(categories, assessments)
+    const index = indexOf(categories, assessments, [deepFood])
 
     const resolved = resolveAssessment({ kind: 'food', food: deepFood }, list, index)
     expect(resolved.status.id).toBe('ok')
@@ -145,7 +150,7 @@ describe('resolveAssessment', () => {
 
   it('treats a food or category whose primary category is outside the index as having no ancestors', () => {
     const root = category('root', null)
-    const index = createContentIndex([root], [categoryAssessment('root', 'ok')])
+    const index = indexOf([root], [categoryAssessment('root', 'ok')])
     const orphanFood = food('orphan-food', 'not-in-tree')
     const orphanCategory = category('orphan-category', null)
 
@@ -156,7 +161,7 @@ describe('resolveAssessment', () => {
   it('falls back to the single not-assessed status for a food with nothing to inherit', () => {
     const root = category('root', null)
     const item = food('item', 'root')
-    const index = createContentIndex([root], [])
+    const index = indexOf([root], [], [item])
 
     const resolved = resolveAssessment({ kind: 'food', food: item }, list, index)
     expect(resolved.status.id).toBe('not-assessed')
@@ -166,7 +171,7 @@ describe('resolveAssessment', () => {
 
   it('falls back to the single not-assessed status for an unassessed category subject', () => {
     const root = category('root', null)
-    const index = createContentIndex([root], [])
+    const index = indexOf([root], [])
 
     const resolved = resolveAssessment({ kind: 'category', category: root }, list, index)
     expect(resolved.status.id).toBe('not-assessed')
@@ -176,7 +181,7 @@ describe('resolveAssessment', () => {
   it('resolves an unassessed food identically under two different parent categories', () => {
     const first = category('first', null)
     const second = category('second', null)
-    const index = createContentIndex([first, second], [])
+    const index = indexOf([first, second], [])
 
     const before = resolveAssessment({ kind: 'food', food: food('item', 'first') }, list, index)
     const after = resolveAssessment({ kind: 'food', food: food('item', 'second') }, list, index)
@@ -190,7 +195,7 @@ describe('accumulating guidance across subject levels', () => {
   it('returns exactly one layer, matching today, when nothing declares an addition', () => {
     const root = category('root', null)
     const cheddar = food('cheddar', 'root')
-    const index = createContentIndex([root], [categoryAssessment('root', 'avoid'), foodAssessment('cheddar', 'ok')])
+    const index = indexOf([root], [categoryAssessment('root', 'avoid'), foodAssessment('cheddar', 'ok')], [cheddar])
 
     const resolved = resolveAssessment({ kind: 'food', food: cheddar }, list, index)
     expect(resolved.layers).toHaveLength(1)
@@ -201,7 +206,7 @@ describe('accumulating guidance across subject levels', () => {
   it('returns two layers, broadest first, for an additive food beneath an assessed category', () => {
     const root = category('root', null)
     const oysters = food('oysters', 'root')
-    const index = createContentIndex([root], [categoryAssessment('root', 'ok'), foodAssessment('oysters', 'avoid', list.id, 'adds-to')])
+    const index = indexOf([root], [categoryAssessment('root', 'ok'), foodAssessment('oysters', 'avoid', list.id, 'adds-to')], [oysters])
 
     const resolved = resolveAssessment({ kind: 'food', food: oysters }, list, index)
     expect(resolved.layers.map((layer) => layer.assessment.id)).toEqual(['root-test-list', 'oysters-test-list'])
@@ -213,11 +218,11 @@ describe('accumulating guidance across subject levels', () => {
     const root = category('root', null)
     const middle = category('middle', 'root')
     const item = food('item', 'middle')
-    const index = createContentIndex([root, middle], [
+    const index = indexOf([root, middle], [
       categoryAssessment('root', 'ok'),
       categoryAssessment('middle', 'ok', list.id, 'adds-to'),
       foodAssessment('item', 'avoid', list.id, 'adds-to'),
-    ])
+    ], [item])
 
     const resolved = resolveAssessment({ kind: 'food', food: item }, list, index)
     expect(resolved.layers.map((layer) => layer.assessment.id)).toEqual([
@@ -231,11 +236,11 @@ describe('accumulating guidance across subject levels', () => {
     const root = category('root', null)
     const middle = category('middle', 'root')
     const item = food('item', 'middle')
-    const index = createContentIndex([root, middle], [
+    const index = indexOf([root, middle], [
       categoryAssessment('root', 'ok'),
       categoryAssessment('middle', 'ok'),
       foodAssessment('item', 'avoid', list.id, 'adds-to'),
-    ])
+    ], [item])
 
     const resolved = resolveAssessment({ kind: 'food', food: item }, list, index)
     expect(resolved.layers.map((layer) => layer.assessment.id)).toEqual(['middle-test-list', 'item-test-list'])
@@ -243,11 +248,14 @@ describe('accumulating guidance across subject levels', () => {
 
   it('never accumulates an assessment authored in another guidance list', () => {
     const root = category('root', null)
-    const item = food('item', 'root')
-    const index = createContentIndex([root], [
+    const item = food('item', 'root', ['raw'])
+    // An addition must add to something in its own list, so the root carries a raw-only rule too. It
+    // sits on another axis, so it never joins this preparation-free resolution.
+    const index = indexOf([root], [
       categoryAssessment('root', 'ok', otherList.id),
+      { ...categoryAssessment('root', 'ok'), id: 'root-raw-test-list', preparationId: 'raw' },
       foodAssessment('item', 'avoid', list.id, 'adds-to'),
-    ])
+    ], [item])
 
     const resolved = resolveAssessment({ kind: 'food', food: item }, list, index)
     expect(resolved.layers.map((layer) => layer.assessment.id)).toEqual(['item-test-list'])
@@ -256,7 +264,7 @@ describe('accumulating guidance across subject levels', () => {
   it('returns no layers when the resolution falls back to not-assessed', () => {
     const root = category('root', null)
     const item = food('item', 'root')
-    const index = createContentIndex([root], [])
+    const index = indexOf([root], [], [item])
 
     expect(resolveAssessment({ kind: 'food', food: item }, list, index).layers).toEqual([])
   })
@@ -264,7 +272,7 @@ describe('accumulating guidance across subject levels', () => {
   it('always takes the status from the nearest assessment, whatever its relation', () => {
     const root = category('root', null)
     const item = food('item', 'root')
-    const index = createContentIndex([root], [categoryAssessment('root', 'ok'), foodAssessment('item', 'avoid', list.id, 'adds-to')])
+    const index = indexOf([root], [categoryAssessment('root', 'ok'), foodAssessment('item', 'avoid', list.id, 'adds-to')], [item])
 
     const resolved = resolveAssessment({ kind: 'food', food: item }, list, index)
     expect(resolved.status.id).toBe('avoid')
@@ -274,7 +282,7 @@ describe('accumulating guidance across subject levels', () => {
   it('accumulates for a category subject through its assessed ancestors', () => {
     const root = category('root', null)
     const leaf = category('leaf', 'root')
-    const index = createContentIndex([root, leaf], [
+    const index = indexOf([root, leaf], [
       categoryAssessment('root', 'ok'),
       categoryAssessment('leaf', 'avoid', list.id, 'adds-to'),
     ])

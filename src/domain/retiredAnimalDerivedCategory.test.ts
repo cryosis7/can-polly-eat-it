@@ -1,12 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { content } from '../data'
+import { content, contentIndex as index } from '../data'
 import { resolveAssessment } from './assessment'
 import { buildCategoryTree } from './categoryTree'
-import { createContentIndex } from './contentIndex'
 import { validateContent } from './contentValidation'
 import { filterCategoryEntries, filterFoods } from './filtering'
 
-const index = createContentIndex(content.categories, content.assessments)
 const pregnancy = content.guidanceLists[0]
 const vegetarian = content.guidanceLists[1]
 
@@ -83,7 +81,7 @@ describe('retired animal-derived ingredients category', () => {
     for (const categoryId of ['confectionery', 'ingredients-and-additives', 'baked-desserts', 'alcoholic-drinks']) {
       const category = categoryById(categoryId)!
       expect(category, categoryId).toBeDefined()
-      expect(index.assessedCategoryIds.has(categoryId), categoryId).toBe(false)
+      expect(index.isCategoryAssessed(categoryId), categoryId).toBe(false)
       expect(category.aliases, categoryId).toEqual([])
       expect(resolveAssessment({ kind: 'category', category }, pregnancy, index).status.outcomeBand, categoryId)
         .toBe('not-assessed')

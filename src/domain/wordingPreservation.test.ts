@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { content } from '../data'
+import { content, contentIndex as index } from '../data'
 import { preF18Resolution } from '../test/preF18Resolution'
 import { resolveAssessment, type GuidanceLayer } from './assessment'
-import { createContentIndex } from './contentIndex'
 
 /**
  * The preparation-migration wording-preservation invariant.
@@ -17,8 +16,6 @@ import { createContentIndex } from './contentIndex'
  * before the migration. Guidance may become more precisely scoped; it may never be lost, reworded,
  * or reattributed.
  */
-
-const index = createContentIndex(content.categories, content.assessments)
 
 const bodiesOf = (layers: GuidanceLayer[]): string[] => layers.flatMap((layer) => [
   ...(layer.assessment.summary === undefined ? [] : [`summary:${layer.assessment.summary}`]),

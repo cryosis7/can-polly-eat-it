@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { assessmentSummary, resolveAssessment } from './assessment'
-import { createContentIndex } from './contentIndex'
+import { buildContentIndex } from '../test/buildContentIndex'
 import { validateContent } from './contentValidation'
 import { filterFoods } from './filtering'
 import {
@@ -13,8 +13,7 @@ import {
 } from '../test/multiSourceFixture'
 
 const resolve = (assessments: ReturnType<typeof foodAssessment>[], food = oysters) => {
-  const content = validateContent(dualSourceContent(assessments))
-  const index = createContentIndex(content.categories, content.assessments)
+  const index = buildContentIndex(dualSourceContent(assessments))
   return resolveAssessment({ kind: 'food', food }, dualSourceList, index)
 }
 
@@ -91,7 +90,7 @@ describe('guidance from more than one source', () => {
   })
 
   it('labels a cross-source inherited layer with the source that stated it', () => {
-    const content = validateContent(dualSourceContent([
+    const index = buildContentIndex(dualSourceContent([
       categoryAssessment('shellfish-nzfs', 'shellfish', 'dual-conditions', {
         sourceId: 'nzfs',
         summary: 'Cook all shellfish thoroughly.',
@@ -102,12 +101,11 @@ describe('guidance from more than one source', () => {
         relation: 'adds-to',
       }),
     ]))
-    const index = createContentIndex(content.categories, content.assessments)
 
     const resolved = resolveAssessment({ kind: 'food', food: oysters }, dualSourceList, index)
     expect(resolved.status.label).toBe('Avoid')
     expect(resolved.layers.map((layer) => layer.sourceIds)).toEqual([['nzfs'], ['nsw-health']])
-    expect(resolved.layers[0].origin).toEqual({ kind: 'inherited', category: content.categories[1] })
+    expect(resolved.layers[0].origin).toEqual({ kind: 'inherited', category: index.categoryById('shellfish') })
   })
 
   it('treats a source that has not assessed a food as silent, not as agreeing or dissenting', () => {
@@ -133,7 +131,7 @@ describe('guidance from more than one source', () => {
   })
 
   it('gives a contested additive position its own inherited layers, labelled by the source that stated them', () => {
-    const content = validateContent(dualSourceContent([
+    const index = buildContentIndex(dualSourceContent([
       categoryAssessment('shellfish-nzfs', 'shellfish', 'dual-conditions', {
         sourceId: 'nzfs',
         summary: 'Cook all shellfish thoroughly.',
@@ -148,7 +146,6 @@ describe('guidance from more than one source', () => {
         summary: 'Do not eat these at all.',
       }),
     ]))
-    const index = createContentIndex(content.categories, content.assessments)
 
     const resolved = resolveAssessment({ kind: 'food', food: oysters }, dualSourceList, index)
     expect(resolved.status.label).toBe('Avoid')
@@ -171,16 +168,15 @@ describe('guidance from more than one source', () => {
   })
 
   it('filters a contested food under its most cautious band only, and counts it once', () => {
-    const content = validateContent(dualSourceContent([
+    const index = buildContentIndex(dualSourceContent([
       nzfsSays('dual-ok', 'Eat freely.'),
       nswSays('dual-avoid', 'Do not eat these.'),
     ]))
-    const index = createContentIndex(content.categories, content.assessments)
     const filters = { query: '', guidanceListIds: [dualSourceList.id], outcomeBands: [] }
 
-    expect(filterFoods(content.foods, content.guidanceLists, index, { ...filters, outcomeBands: ['not-okay'] })
+    expect(filterFoods([...index.foods], [...index.guidanceLists], index, { ...filters, outcomeBands: ['not-okay'] })
       .map((row) => row.food.id)).toEqual(['oysters'])
-    expect(filterFoods(content.foods, content.guidanceLists, index, { ...filters, outcomeBands: ['okay'] }))
+    expect(filterFoods([...index.foods], [...index.guidanceLists], index, { ...filters, outcomeBands: ['okay'] }))
       .toEqual([])
   })
 })

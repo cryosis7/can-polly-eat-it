@@ -1,11 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { content } from '../data'
+import { content, contentIndex as index } from '../data'
 import { resolveAssessment } from './assessment'
-import { createContentIndex } from './contentIndex'
 import { getStatusById, validateContent } from './contentValidation'
 import type { Assessment } from './schemas'
-
-const index = createContentIndex(content.categories, content.assessments)
 
 describe('guide content validation', () => {
   it('accepts the authored fixture content', () => {
@@ -67,8 +64,8 @@ describe('guide content validation', () => {
 
     const hardCheeseOwn = resolveAssessment({ kind: 'category', category: hardCheese }, pregnancyList, index)
     expect(hardCheeseOwn.origin).toEqual({ kind: 'own' })
-    expect(index.assessedCategoryIds.has('hard-cheese')).toBe(true)
-    expect(index.assessedCategoryIds.has('cheese')).toBe(false)
+    expect(index.isCategoryAssessed('hard-cheese')).toBe(true)
+    expect(index.isCategoryAssessed('cheese')).toBe(false)
   })
 
   it('rejects invalid category relationships and food category references', () => {

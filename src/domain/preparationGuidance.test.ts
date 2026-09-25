@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { resolveAssessment } from './assessment'
-import { createContentIndex } from './contentIndex'
-import { validateContent } from './contentValidation'
+import { buildContentIndex } from '../test/buildContentIndex'
 import {
   categoryAssessment,
   dualSourceContent,
@@ -22,8 +21,7 @@ const salmon: Food = makeFood('salmon', 'shellfish', ['raw', 'smoked', 'cooked']
 const plainFood: Food = makeFood('mussels')
 
 const indexFor = (assessments: Assessment[], foods: Food[] = [salmon, plainFood]) => {
-  const content = validateContent(dualSourceContent(assessments, foods))
-  return createContentIndex(content.categories, content.assessments)
+  return buildContentIndex(dualSourceContent(assessments, foods))
 }
 
 const resolveSalmon = (assessments: Assessment[], preparationId?: string) =>
