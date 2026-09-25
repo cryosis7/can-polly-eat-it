@@ -10,6 +10,10 @@ Issues and specs for this repo live as Markdown files in `.scratch/`.
   `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`, never a combined tickets file
 - Triage records exactly one `Category:` and one `Status:` line near the top of each issue; use the
   role strings in [`triage-labels.md`](triage-labels.md)
+- `Status: done` marks a closed ticket or spec; it is the local tracker's closed state, outside the
+  triage roles
+- `Blocked by: NN, NN` lists blocking tickets in the same feature; a ticket is unblocked when every
+  listed ticket is `done`
 - Comments and conversation history append to the bottom of the file under a `## Comments` heading
 
 ## Operations
@@ -32,6 +36,13 @@ matching file has been read. Ask the user to choose when several files remain pl
 Integrate confirmed changes into the description so it remains current and append dated conversation
 or implementation history under `## Comments`. An update is complete when the requested content and
 dated history are recorded.
+
+### Close a ticket
+
+Close a ticket once its acceptance criteria are met and its work is merged into `main`: tick each
+criterion, set `Status: done`, and append a dated comment naming the merge commit. Close a spec the
+same way once every one of its tickets is `done`. Closing is complete when the file shows
+`Status: done`, every criterion ticked, and the dated comment.
 
 ## Wayfinding operations
 
