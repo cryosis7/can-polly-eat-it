@@ -22,6 +22,13 @@ import {
   summariseCollapsedRow,
   type CombinedOutcome,
 } from '../../domain/collapsedRowSummary'
+import {
+  collapsedCategoryIds,
+  initialCollapseState,
+  isFiltering as isFilteringBy,
+  settleCollapseState,
+  toggleCategory as toggleCategoryIn,
+} from '../../domain/collapseState'
 import type { ContentIndex } from '../../domain/contentIndex'
 import { filterCategoryEntries, filterFoods } from '../../domain/filtering'
 import type { OutcomeBand } from '../../domain/schemas'
@@ -108,9 +115,7 @@ const outcomeLabels: Record<OutcomeBand, string> = {
 export const CataloguePage = ({ index }: CataloguePageProps) => {
   const [searchParams, setSearchParams] = useSearchParams()
   const [filterRemovalAnnouncement, setFilterRemovalAnnouncement] = useState('')
-  const [collapsedCategoryIds, setCollapsedCategoryIds] = useState(
-    () => new Set(index.categories.filter((category) => category.parentId === null).map((category) => category.id)),
-  )
+  const [storedCollapseState, setCollapseState] = useState(() => initialCollapseState(index))
   const [expandedPreparationBands, setExpandedPreparationBands] = useState(() => new Set<string>())
   const categoryRows = useMemo(() => flattenCategoryRows(index.tree), [index.tree])
   const searchParamsString = searchParams.toString()
@@ -129,6 +134,12 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
     guidanceListIds: selectedGuidanceLists.map((list) => list.id),
     outcomeBands: queryState.outcomeBands,
   }), [index, queryState.categorySlug, queryState.outcomeBands, queryState.query, selectedGuidanceLists])
+  // Settled during render rather than in an effect, so a search collapse made under another filter
+  // is never painted, and returning to that filter later cannot revive it.
+  const collapseState = settleCollapseState(storedCollapseState, filterState)
+  if (collapseState !== storedCollapseState) {
+    setCollapseState(collapseState)
+  }
   const selectedFoodRows = useMemo(
     () => filterFoods(index, filterState),
     [filterState, index],
@@ -149,14 +160,8 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
   const rowsWithContent = withAncestorIds(categoryRows, contentCategoryIds)
   const hasNonDefaultScope = queryState.scopeSlugs.length !== scopeDefaults.length ||
     !scopeDefaults.every((slug) => queryState.scopeSlugs.includes(slug))
-  // Auto-expansion exists so a search or filter never hides a matching row behind a collapsed
-  // group. A bare scope change matches nothing new — with no outcome bands selected every entry
-  // still qualifies — so it is a lens on the guidance shown, not a filter on the rows, and it
-  // leaves the reader's own collapse state alone.
-  const isFiltering = Boolean(queryState.query || queryState.categorySlug || queryState.outcomeBands.length > 0)
-  const effectiveCollapsedIds = isFiltering
-    ? new Set([...collapsedCategoryIds].filter((id) => !rowsWithContent.has(id)))
-    : collapsedCategoryIds
+  const isFiltering = isFilteringBy(filterState)
+  const effectiveCollapsedIds = collapsedCategoryIds(collapseState, filterState)
   const renderedRows = visibleCategoryRows(
     categoryRows.filter((row) => rowsWithContent.has(row.category.id)),
     effectiveCollapsedIds,
@@ -209,23 +214,12 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
   }
 
   // A chip must never summarise a filtered subset: searching `rice` narrows Cereals to one food,
-  // and a chip folded over what survived would report the whole group as okay. That holds
-  // structurally rather than by a guard here — under an active filter every rendered row has
-  // content, so `effectiveCollapsedIds` excludes it and it renders expanded, and an expanded row is
-  // never chipped. The invariant is asserted directly in the catalogue tests, because a runtime
-  // check for it would be unreachable code rather than a safeguard.
-  const chipFor = (outcomes: CombinedOutcome[]) => summariseCollapsedRow(outcomes)
+  // and a chip folded over what survived would report the whole group as okay. So a row the reader
+  // collapses during a search hides without a chip.
+  const chipFor = (outcomes: CombinedOutcome[]) => isFiltering ? undefined : summariseCollapsedRow(outcomes)
 
   const toggleCategory = (categoryId: string) => {
-    setCollapsedCategoryIds((current) => {
-      const next = new Set(current)
-      if (next.has(categoryId)) {
-        next.delete(categoryId)
-      } else {
-        next.add(categoryId)
-      }
-      return next
-    })
+    setCollapseState((current) => toggleCategoryIn(current, categoryId, filterState))
   }
   const togglePreparationBand = (categoryId: string, preparationId: string) => {
     setExpandedPreparationBands((current) => {

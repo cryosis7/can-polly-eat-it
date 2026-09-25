@@ -73,7 +73,7 @@ export const flattenCategoryRows = (tree: CategoryTree): CategoryDisplayRow[] =>
   return rows
 }
 
-export const visibleCategoryRows = (rows: CategoryDisplayRow[], collapsedIds: Set<string>) =>
+export const visibleCategoryRows = (rows: CategoryDisplayRow[], collapsedIds: ReadonlySet<string>) =>
   rows.filter((row) => !row.ancestorIds.some((ancestorId) => collapsedIds.has(ancestorId)))
 
 export const withAncestorIds = (rows: CategoryDisplayRow[], categoryIds: Set<string>) => {

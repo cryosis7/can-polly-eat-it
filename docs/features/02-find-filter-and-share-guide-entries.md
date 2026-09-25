@@ -38,7 +38,11 @@ present, and reproduce the same result from its URL.
 - Remove unknown or obsolete shared values while retaining valid values and announce that removal.
 - Ignore an unknown detail-only `prep` value, show no highlighted preparation, and omit it from links
   generated from the parsed state; it does not trigger the shared-filter announcement.
-- Auto-expand matching rows so a search or filter cannot hide a result behind a disclosure.
+- Open every group holding a match while a search, category, or outcome filter is active, so no
+  result starts hidden behind a disclosure. A reader may still collapse a row or preparation band
+  during a search; that search collapse shows no aggregate chip, belongs only to the filter it was
+  made under, and is discarded when the search, category, outcomes, or selected scopes change.
+  Clearing the filters restores the reader's browse collapse state as it was before the search.
 
 ## Non-goals
 
@@ -59,6 +63,9 @@ present, and reproduce the same result from its URL.
 - A copied `v=1` URL reproduces the result; unsupported shared values are removed and announced
   without losing valid constraints, while an unsupported `prep` value is safely ignored.
 - Search and filter controls remain labelled, keyboard-operable, and usable at 320px.
+- While filtering, collapsing a matching group hides it without a chip and reports it collapsed;
+  changing any filter reopens every group holding a match, and clearing the filters returns the
+  browse collapse state unchanged.
 
 ## Validation
 

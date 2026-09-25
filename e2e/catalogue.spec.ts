@@ -63,6 +63,29 @@ test.describe('Food catalogue', () => {
     await expect(page.getByText('1 result in the guide')).toBeVisible()
   })
 
+  test('collapses a group during a search and restores the browse state when the search clears', async ({ page }) => {
+    await page.goto('/?v=1&scope=pregnancy-food-safety')
+    await page.getByRole('button', { name: /^Dairy, level 1/ }).click()
+    const search = page.getByRole('searchbox', { name: 'Search foods' })
+
+    await search.fill('rice')
+    await expect(page).toHaveURL(/q=rice/)
+    const drinks = page.getByRole('button', { name: /^Drinks, level 1/ })
+    await expect(drinks).toHaveAttribute('aria-expanded', 'true')
+    await drinks.click()
+
+    await expect(drinks).toHaveAttribute('aria-expanded', 'false')
+    await expect(page.getByRole('button', { name: /^Tea, level 2/ })).toHaveCount(0)
+    await expect(page.locator('.aggregate-chip')).toHaveCount(0)
+
+    await search.fill('')
+    await expect(page).not.toHaveURL(/q=/)
+
+    await expect(drinks).toHaveAttribute('aria-expanded', 'false')
+    await expect(page.getByRole('button', { name: /^Dairy, level 1/ })).toHaveAttribute('aria-expanded', 'true')
+    await expect(page.getByRole('button', { name: /^Breads and cereals, level 1/ })).toHaveAttribute('aria-expanded', 'false')
+  })
+
   test('finds a merged entry through an alias search', async ({ page }) => {
     await page.goto('/')
 

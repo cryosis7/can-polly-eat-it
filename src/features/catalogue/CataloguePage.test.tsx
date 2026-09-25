@@ -487,7 +487,7 @@ describe('CataloguePage', () => {
     expect(screen.getByRole('button', { name: /^Cheese, level 2/ })).toBeInTheDocument()
   })
 
-  it('reveals a match inside a collapsed group and restores manual expansion when the search clears', () => {
+  it('opens a collapsed group holding a match and restores the browse state when the search clears', () => {
     renderCatalogue()
     expandGroup('Eggs')
     const searchField = screen.getByLabelText('Search foods')
@@ -495,11 +495,13 @@ describe('CataloguePage', () => {
     fireEvent.change(searchField, { target: { value: 'gouda' } })
     fireEvent.submit(searchField.closest('form')!)
     expect(screen.getByRole('link', { name: 'Gouda' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Dairy, level 1/ })).toHaveAttribute('aria-expanded', 'true')
     expect(screen.getByRole('button', { name: /^Cheese, level 2/ })).toBeInTheDocument()
 
     fireEvent.change(searchField, { target: { value: '' } })
     fireEvent.submit(searchField.closest('form')!)
     expect(screen.queryByRole('link', { name: 'Gouda' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Dairy, level 1/ })).toHaveAttribute('aria-expanded', 'false')
     // Eggs stays manually expanded, showing the preparation groupings its rules now live on.
     expect(screen.getByRole('heading', { name: 'Raw Eggs' })).toBeInTheDocument()
   })
@@ -869,5 +871,115 @@ describe('CataloguePage collapsed-row chips across dietary scopes', () => {
     fireEvent.click(rowToggle('Hard cheese'))
 
     expect(rowToggle('Hard cheese').querySelector('.aggregate-chip')).toHaveTextContent('Maybe')
+  })
+})
+
+describe('CataloguePage search collapse', () => {
+  const scope = '/?v=1&scope=pregnancy-food-safety'
+
+  const rowToggle = (name: string) =>
+    screen.getByRole('button', { name: new RegExp(`^${name}, level \\d+`) })
+  const groupFor = (name: string) => rowToggle(name).closest('.category-group') as HTMLElement
+  const search = (value: string) => {
+    const field = screen.getByLabelText('Search foods')
+    fireEvent.change(field, { target: { value } })
+    fireEvent.submit(field.closest('form')!)
+  }
+  const everyRowIsOpen = () => screen.getAllByRole('button', { name: /, level \d+/ })
+    .every((toggle) => toggle.getAttribute('aria-expanded') === 'true')
+
+  it('collapses a matching root group for this search, hiding its body without a chip', () => {
+    renderCatalogue(`${scope}&q=rice`)
+    const countBefore = screen.getByText(/results? in the guide/).textContent
+    expect(rowToggle('Drinks')).toHaveAttribute('aria-expanded', 'true')
+    expect(rowToggle('Tea')).toBeInTheDocument()
+
+    fireEvent.click(rowToggle('Drinks'))
+
+    expect(rowToggle('Drinks')).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('button', { name: /^Tea, level \d+/ })).not.toBeInTheDocument()
+    expect(screen.getByText(/results? in the guide/)).toHaveTextContent(countBefore!)
+
+    fireEvent.click(rowToggle('Drinks'))
+
+    expect(rowToggle('Drinks')).toHaveAttribute('aria-expanded', 'true')
+    expect(rowToggle('Tea')).toBeInTheDocument()
+  })
+
+  it('collapses a nested row during a search without a chip, hiding its own matches', () => {
+    renderCatalogue(`${scope}&q=rice`)
+    expect(screen.getByRole('link', { name: 'Rice' })).toBeInTheDocument()
+
+    fireEvent.click(rowToggle('Cereals'))
+
+    expect(rowToggle('Cereals')).toHaveAttribute('aria-expanded', 'false')
+    expect(rowToggle('Cereals').querySelector('.aggregate-chip')).toBeNull()
+    expect(groupFor('Cereals').querySelector('.category-entry')).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Rice' })).not.toBeInTheDocument()
+    expect(document.querySelectorAll('.aggregate-chip')).toHaveLength(0)
+  })
+
+  it('reopens every group holding a match when the search text changes', () => {
+    renderCatalogue(`${scope}&q=rice`)
+    fireEvent.click(rowToggle('Drinks'))
+    fireEvent.click(rowToggle('Cereals'))
+
+    search('ric')
+
+    expect(rowToggle('Drinks')).toHaveAttribute('aria-expanded', 'true')
+    expect(everyRowIsOpen()).toBe(true)
+  })
+
+  it.each<[string, () => void]>([
+    ['category', () => fireEvent.change(screen.getByRole('combobox', { name: 'Category' }), { target: { value: 'drinks' } })],
+    ['outcomes', () => fireEvent.click(screen.getByRole('checkbox', { name: 'Not okay' }))],
+    ['selected scopes', () => fireEvent.click(screen.getByRole('checkbox', { name: 'Vegetarian suitability' }))],
+  ])('reopens every group holding a match when the %s change', (_field, change) => {
+    renderCatalogue(`${scope}&q=tea`)
+    fireEvent.click(rowToggle('Drinks'))
+    expect(rowToggle('Drinks')).toHaveAttribute('aria-expanded', 'false')
+
+    change()
+
+    expect(rowToggle('Drinks')).toHaveAttribute('aria-expanded', 'true')
+    expect(everyRowIsOpen()).toBe(true)
+  })
+
+  it('restores the browse collapse state exactly when the search clears', () => {
+    renderCatalogue(scope)
+    expandGroup('Dairy')
+    search('rice')
+    fireEvent.click(rowToggle('Drinks'))
+    fireEvent.click(rowToggle('Cereals'))
+    fireEvent.click(rowToggle('Breads and cereals'))
+
+    search('')
+
+    expect(rowToggle('Dairy')).toHaveAttribute('aria-expanded', 'true')
+    expect(rowToggle('Drinks')).toHaveAttribute('aria-expanded', 'false')
+    expect(rowToggle('Breads and cereals')).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(rowToggle('Breads and cereals'))
+    expect(rowToggle('Cereals')).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('opens every group again on returning to a search, rather than reviving an earlier collapse', () => {
+    renderCatalogue(scope)
+    search('rice')
+    fireEvent.click(rowToggle('Drinks'))
+
+    search('')
+    search('rice')
+
+    expect(rowToggle('Drinks')).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('leaves the browse collapse state alone when a scope is added without a filter', () => {
+    renderCatalogue(scope)
+    expandGroup('Dairy')
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Vegetarian suitability' }))
+
+    expect(rowToggle('Dairy')).toHaveAttribute('aria-expanded', 'true')
+    expect(rowToggle('Drinks')).toHaveAttribute('aria-expanded', 'false')
   })
 })
