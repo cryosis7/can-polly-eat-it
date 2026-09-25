@@ -663,6 +663,62 @@ describe('browsing a category with a preparation dimension', () => {
     expect(within(cardFor('Cooked')).getByText('Only with conditions')).toBeInTheDocument()
   })
 
+  const bandToggle = (preparationName: string) =>
+    screen.getByRole('button', { name: new RegExp(`^${preparationName} Fish,`) })
+  const bandFor = (preparationName: string) =>
+    screen.getByRole('region', { name: new RegExp(`^${preparationName} Fish`) })
+  const search = (value: string) => {
+    const field = screen.getByLabelText('Search foods')
+    fireEvent.change(field, { target: { value } })
+    fireEvent.submit(field.closest('form')!)
+  }
+
+  it('collapses a band for this search only, hiding its callout and foods without a chip', () => {
+    renderCatalogue(`/?${scope}&q=${salmon.slug}`, preparedContent)
+    const countBefore = screen.getByText(/results? in the guide/).textContent
+    expect(bandFor('Raw').querySelector('.preparation-callout')).not.toBeNull()
+
+    fireEvent.click(bandToggle('Raw'))
+
+    expect(bandToggle('Raw')).toHaveAttribute('aria-expanded', 'false')
+    expect(bandFor('Raw').querySelector('.preparation-callout')).toBeNull()
+    expect(within(bandFor('Raw')).queryByRole('link', { name: salmon.name })).not.toBeInTheDocument()
+    expect(document.querySelectorAll('.aggregate-chip')).toHaveLength(0)
+    expect(bandToggle('Cooked')).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByText(/results? in the guide/)).toHaveTextContent(countBefore!)
+
+    fireEvent.click(bandToggle('Raw'))
+
+    expect(bandToggle('Raw')).toHaveAttribute('aria-expanded', 'true')
+    expect(within(bandFor('Raw')).getByRole('link', { name: salmon.name })).toBeInTheDocument()
+  })
+
+  it('reopens every band when the search changes', () => {
+    renderCatalogue(`/?${scope}&q=${salmon.slug}`, preparedContent)
+    fireEvent.click(bandToggle('Raw'))
+    fireEvent.click(bandToggle('Cooked'))
+
+    search('farmed salmon')
+
+    expect(bandToggle('Raw')).toHaveAttribute('aria-expanded', 'true')
+    expect(bandToggle('Cooked')).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('restores the browse band state when the search clears', () => {
+    renderCatalogue(`/?${scope}`, preparedContent)
+    expandGroup('Seafood')
+    fireEvent.click(bandToggle('Raw'))
+    search(salmon.slug)
+    fireEvent.click(bandToggle('Raw'))
+    fireEvent.click(bandToggle('Cooked'))
+
+    search('')
+
+    expect(bandToggle('Raw')).toHaveAttribute('aria-expanded', 'true')
+    expect(bandToggle('Cooked')).toHaveAttribute('aria-expanded', 'false')
+    expect(bandFor('Cooked').querySelector('.aggregate-chip')).not.toBeNull()
+  })
+
   it('links each row to the food in the preparation the reader was looking at', () => {
     renderCatalogue(`/?${scope}&q=${salmon.slug}`, preparedContent)
 

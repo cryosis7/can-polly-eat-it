@@ -25,9 +25,13 @@ import {
 import {
   collapsedCategoryIds,
   initialCollapseState,
+  isBandCollapsed,
   isFiltering as isFilteringBy,
+  preparationBandKey,
   settleCollapseState,
+  toggleBand,
   toggleCategory as toggleCategoryIn,
+  type PreparationBandKey,
 } from '../../domain/collapseState'
 import type { ContentIndex } from '../../domain/contentIndex'
 import { filterCategoryEntries, filterFoods } from '../../domain/filtering'
@@ -116,7 +120,6 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
   const [searchParams, setSearchParams] = useSearchParams()
   const [filterRemovalAnnouncement, setFilterRemovalAnnouncement] = useState('')
   const [storedCollapseState, setCollapseState] = useState(() => initialCollapseState(index))
-  const [expandedPreparationBands, setExpandedPreparationBands] = useState(() => new Set<string>())
   const categoryRows = useMemo(() => flattenCategoryRows(index.tree), [index.tree])
   const searchParamsString = searchParams.toString()
   const { state: queryState, unavailableFiltersRemoved } = useMemo(
@@ -177,11 +180,11 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
     ))
 
   const outcomesInCategory = new Map<string, CombinedOutcome[]>()
-  const outcomesInBand = new Map<string, CombinedOutcome[]>()
+  const outcomesInBand = new Map<PreparationBandKey, CombinedOutcome[]>()
   const recordOutcome = (categoryId: string, preparationId: string | undefined, outcome: CombinedOutcome) => {
     outcomesInCategory.set(categoryId, [...(outcomesInCategory.get(categoryId) ?? []), outcome])
     if (preparationId !== undefined) {
-      const bandKey = `${categoryId}:${preparationId}`
+      const bandKey = preparationBandKey(categoryId, preparationId)
       outcomesInBand.set(bandKey, [...(outcomesInBand.get(bandKey) ?? []), outcome])
     }
   }
@@ -221,17 +224,8 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
   const toggleCategory = (categoryId: string) => {
     setCollapseState((current) => toggleCategoryIn(current, categoryId, filterState))
   }
-  const togglePreparationBand = (categoryId: string, preparationId: string) => {
-    setExpandedPreparationBands((current) => {
-      const next = new Set(current)
-      const key = `${categoryId}:${preparationId}`
-      if (next.has(key)) {
-        next.delete(key)
-      } else {
-        next.add(key)
-      }
-      return next
-    })
+  const togglePreparationBand = (bandKey: PreparationBandKey) => {
+    setCollapseState((current) => toggleBand(current, bandKey, filterState))
   }
   const hasActiveFilters = Boolean(
     queryState.query || queryState.categorySlug || queryState.outcomeBands.length > 0 || hasNonDefaultScope,
@@ -537,14 +531,13 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
                         ))}
                       </>
                     )
-                    const preparationBandKey = preparation === undefined ? undefined : `${category.id}:${preparation.id}`
-                    const isPreparationExpanded = preparationBandKey === undefined
-                      || isFiltering
-                      || expandedPreparationBands.has(preparationBandKey)
+                    const bandKey = preparation === undefined ? undefined : preparationBandKey(category.id, preparation.id)
+                    const isPreparationExpanded = bandKey === undefined
+                      || !isBandCollapsed(collapseState, bandKey, filterState)
                     const entryCountText = `${entryCount} ${entryCount === 1 ? 'entry' : 'entries'}`
                     const preparationBandLabel = preparation === undefined ? undefined : `${preparation.name} ${category.name}`
-                    const bandChip = preparationBandKey !== undefined && !isPreparationExpanded
-                      ? chipFor(outcomesInBand.get(preparationBandKey)!)
+                    const bandChip = bandKey !== undefined && !isPreparationExpanded
+                      ? chipFor(outcomesInBand.get(bandKey)!)
                       : undefined
                     const bandLabel = bandChip === undefined
                       ? `${preparationBandLabel}, ${entryCountText}`
@@ -587,7 +580,7 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
                             aria-expanded={isPreparationExpanded}
                             aria-label={bandLabel}
                             className="preparation-toggle"
-                            onClick={() => togglePreparationBand(category.id, preparation.id)}
+                            onClick={() => togglePreparationBand(bandKey!)}
                             type="button"
                           >
                             <span aria-hidden="true" className="category-toggle-icon">{isPreparationExpanded ? '-' : '+'}</span>

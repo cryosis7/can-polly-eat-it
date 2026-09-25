@@ -3,10 +3,13 @@ import { contentIndex as index } from '../data'
 import {
   collapsedCategoryIds,
   initialCollapseState,
+  isBandCollapsed,
   isCategoryCollapsed,
   isFiltering,
   isSameFilter,
+  preparationBandKey,
   settleCollapseState,
+  toggleBand,
   toggleCategory,
 } from './collapseState'
 import type { FoodFilterState } from './filtering'
@@ -126,5 +129,64 @@ describe('collapse state', () => {
 
     expect(settleCollapseState(state, searchingRice)).toBe(state)
     expect(settleCollapseState(initialCollapseState(index), searchingRice).search.filter).toBeUndefined()
+  })
+})
+
+describe('preparation band collapse', () => {
+  const smokedFish = preparationBandKey('fish', 'smoked')
+  const rawFish = preparationBandKey('fish', 'raw')
+
+  it('issues one stable key per category and preparation', () => {
+    expect(preparationBandKey('fish', 'smoked')).toBe(smokedFish)
+    expect(new Set([smokedFish, rawFish, preparationBandKey('shellfish', 'smoked')]).size).toBe(3)
+  })
+
+  it('collapses every band while browsing, and none while filtering, by default', () => {
+    const state = initialCollapseState(index)
+
+    expect(isBandCollapsed(state, smokedFish, browsing)).toBe(true)
+    expect(isBandCollapsed(state, smokedFish, searchingRice)).toBe(false)
+  })
+
+  it('expands a band in the browse part only while browsing', () => {
+    const initial = initialCollapseState(index)
+    const state = toggleBand(initial, smokedFish, browsing)
+
+    expect(isBandCollapsed(state, smokedFish, browsing)).toBe(false)
+    expect(isBandCollapsed(state, rawFish, browsing)).toBe(true)
+    expect(state.search).toBe(initial.search)
+    expect(isBandCollapsed(toggleBand(state, smokedFish, browsing), smokedFish, browsing)).toBe(true)
+  })
+
+  it('collapses a band in the search part only while filtering, and restores the browse part when the filters clear', () => {
+    const browsed = toggleBand(initialCollapseState(index), smokedFish, browsing)
+    const searched = toggleBand(toggleBand(browsed, smokedFish, searchingRice), rawFish, searchingRice)
+
+    expect(isBandCollapsed(searched, smokedFish, searchingRice)).toBe(true)
+    expect(isBandCollapsed(searched, rawFish, searchingRice)).toBe(true)
+    expect(searched.browse).toBe(browsed.browse)
+    expect(isBandCollapsed(toggleBand(searched, rawFish, searchingRice), rawFish, searchingRice)).toBe(false)
+    expect(isBandCollapsed(searched, smokedFish, browsing)).toBe(false)
+    expect(isBandCollapsed(searched, rawFish, browsing)).toBe(true)
+  })
+
+  it.each<[string, FoodFilterState]>([
+    ['search text', { ...searchingRice, query: 'rices' }],
+    ['category', { ...searchingRice, categoryId: 'fish' }],
+    ['outcomes', { ...searchingRice, outcomeBands: ['okay'] }],
+    ['selected scopes', { ...searchingRice, guidanceListIds: ['pregnancy-food-safety', 'vegetarian-suitability'] }],
+  ])('ignores a band search collapse once the %s changes', (_field, changed) => {
+    const state = toggleBand(initialCollapseState(index), smokedFish, searchingRice)
+
+    expect(isBandCollapsed(state, smokedFish, changed)).toBe(false)
+    expect(isBandCollapsed(settleCollapseState(state, changed), smokedFish, searchingRice)).toBe(false)
+  })
+
+  it('starts a band toggle under a new filter from an open search part', () => {
+    const changed: FoodFilterState = { ...searchingRice, query: 'fish' }
+    const state = toggleBand(toggleCategory(initialCollapseState(index), 'drinks', searchingRice), rawFish, changed)
+
+    expect(isBandCollapsed(state, rawFish, changed)).toBe(true)
+    expect(isCategoryCollapsed(state, 'drinks', changed)).toBe(false)
   })
 })

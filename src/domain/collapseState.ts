@@ -9,6 +9,8 @@ import type { FoodFilterState } from './filtering'
 export type CollapseState = {
   browse: {
     collapsedCategoryIds: ReadonlySet<string>
+    /** Bands are collapsed while browsing unless the reader has expanded them. */
+    expandedBandKeys: ReadonlySet<PreparationBandKey>
   }
   search: SearchCollapse
 }
@@ -17,9 +19,18 @@ type SearchCollapse = {
   /** The filter the collapse was made under; absent while nothing has been collapsed. */
   filter?: FoodFilterState
   collapsedCategoryIds: ReadonlySet<string>
+  collapsedBandKeys: ReadonlySet<PreparationBandKey>
 }
 
-const emptySearchCollapse: SearchCollapse = { collapsedCategoryIds: new Set() }
+declare const preparationBandKeyBrand: unique symbol
+
+/** Identifies one preparation band: a category shown in one preparation state. */
+export type PreparationBandKey = string & { readonly [preparationBandKeyBrand]: true }
+
+export const preparationBandKey = (categoryId: string, preparationId: string) =>
+  `${categoryId}:${preparationId}` as PreparationBandKey
+
+const emptySearchCollapse: SearchCollapse = { collapsedCategoryIds: new Set(), collapsedBandKeys: new Set() }
 
 /**
  * A search, category, or outcome filter narrows which entries qualify. Selected dietary scopes alone
@@ -33,6 +44,7 @@ export const initialCollapseState = (index: Pick<ContentIndex, 'categories'>): C
     collapsedCategoryIds: new Set(
       index.categories.filter((category) => category.parentId === null).map((category) => category.id),
     ),
+    expandedBandKeys: new Set(),
   },
   search: emptySearchCollapse,
 })
@@ -102,3 +114,23 @@ export const collapsedCategoryIds = (state: CollapseState, filter: FoodFilterSta
 
 export const isCategoryCollapsed = (state: CollapseState, categoryId: string, filter: FoodFilterState) =>
   collapsedCategoryIds(state, filter).has(categoryId)
+
+export const toggleBand = (state: CollapseState, bandKey: PreparationBandKey, filter: FoodFilterState): CollapseState => {
+  if (!isFiltering(filter)) {
+    return {
+      ...state,
+      browse: { ...state.browse, expandedBandKeys: toggled(state.browse.expandedBandKeys, bandKey) },
+    }
+  }
+  const search = searchCollapseFor(state, filter)
+  return {
+    ...state,
+    search: { ...search, filter, collapsedBandKeys: toggled(search.collapsedBandKeys, bandKey) },
+  }
+}
+
+/** While filtering a band is open unless the reader collapsed it for this filter, as a row is. */
+export const isBandCollapsed = (state: CollapseState, bandKey: PreparationBandKey, filter: FoodFilterState) =>
+  isFiltering(filter)
+    ? searchCollapseFor(state, filter).collapsedBandKeys.has(bandKey)
+    : !state.browse.expandedBandKeys.has(bandKey)
