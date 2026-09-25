@@ -62,7 +62,8 @@ const assessment = (
 })
 
 describe('content index', () => {
-  it('builds only from validated content', () => {
+  it('rejects unvalidated content at compile time', () => {
+    // The assertion is the type check below; `tsc -b` fails if unvalidated content is ever accepted.
     const build = (unvalidated: ContentData) =>
       // @ts-expect-error Only content returned by validation can build an index.
       createContentIndex(unvalidated)

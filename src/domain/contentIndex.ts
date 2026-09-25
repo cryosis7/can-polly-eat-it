@@ -54,10 +54,12 @@ const lookupBySlug = <T extends { slug: string }>(items: readonly T[]) => {
 export const subjectKey = (subject: AssessmentSubject): string =>
   subject.kind === 'food' ? `food:${subject.foodId}` : `category:${subject.categoryId}`
 
+const assessmentKey = (guidanceListId: string, subject: AssessmentSubject) => `${guidanceListId}:${subjectKey(subject)}`
+
 const groupAssessments = (assessments: Assessment[]): Map<string, Assessment[]> => {
   const grouped = new Map<string, Assessment[]>()
   for (const assessment of assessments) {
-    const key = `${assessment.guidanceListId}:${subjectKey(assessment.subject)}`
+    const key = assessmentKey(assessment.guidanceListId, assessment.subject)
     const existing = grouped.get(key)
     if (existing) {
       existing.push(assessment)
@@ -109,7 +111,7 @@ export function createContentIndex(first: ValidatedContent | Category[], legacyA
     guidanceListBySlug: lookupBySlug(content.guidanceLists),
     preparationBySlug: lookupBySlug(preparations),
     assessmentsFor: (guidanceListId, subject, preparationId) =>
-      (assessmentsBySubjectKey.get(`${guidanceListId}:${subjectKey(subject)}`) ?? [])
+      (assessmentsBySubjectKey.get(assessmentKey(guidanceListId, subject)) ?? [])
         .filter((assessment) => assessment.preparationId === preparationId),
     preparationStatesFor: (categoryId) => preparationStatesByCategoryId.get(categoryId) ?? [],
     isCategoryAssessed: (categoryId) => assessedCategoryIds.has(categoryId),
