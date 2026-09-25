@@ -24,6 +24,11 @@ export type ContentData = {
   assessments: Assessment[]
 }
 
+declare const validated: unique symbol
+
+/** Content that has passed `validateContent`; the only input the content index is built from. */
+export type ValidatedContent = ContentData & { readonly [validated]: true }
+
 const fail = (message: string): never => {
   throw new Error(`Invalid guide content: ${message}`)
 }
@@ -287,7 +292,7 @@ const validateAssessments = (
   }
 }
 
-export const validateContent = (rawContent: ContentData): ContentData => {
+export const validateContent = (rawContent: ContentData): ValidatedContent => {
   const categories = rawContent.categories.map((record) => categorySchema.parse(record))
   const foods = rawContent.foods.map((record) => foodSchema.parse(record))
   const preparations = rawContent.preparations.map((record) => preparationSchema.parse(record))
@@ -314,7 +319,7 @@ export const validateContent = (rawContent: ContentData): ContentData => {
   validateGuidanceLists(guidanceLists, sources)
   const index = createContentIndex(categories, assessments)
   validateAssessments(assessments, foods, categories, guidanceLists, preparations, index)
-  return { categories, foods, preparations, sources, guidanceLists, assessments }
+  return { categories, foods, preparations, sources, guidanceLists, assessments } as ValidatedContent
 }
 
 export const getStatusById = (guidanceList: GuidanceList, statusId: string): StatusDefinition =>
