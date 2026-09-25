@@ -469,6 +469,23 @@ describe('catalogue listing section contents', () => {
     expect(bandOf(seafood, 'smoked').governingRules.map(({ resolved }) => resolved.origin)).toEqual([{ kind: 'own' }])
   })
 
+  it('keeps an ancestor\'s own band that no descendant lists foods for, and never drops its unqualified entry', () => {
+    const rawSalmonOnly = buildContentIndex({
+      ...guideContent,
+      foods: guideContent.foods.map((listed) => (listed.id === 'salmon' ? { ...listed, preparationIds: ['raw'] } : listed)),
+      assessments: [...guideContent.assessments, assessment('pregnancy', onCategory('seafood'), 'ok')],
+    })
+
+    const listing = listCatalogue(rawSalmonOnly, browsing(), expandedCollapse(rawSalmonOnly))
+    const seafood = sectionOf(listing, 'seafood')
+
+    expect(seafood!.ownEntry).toBeDefined()
+    expect(bandsOf(seafood)).toEqual(['smoked'])
+    expect(bandOf(seafood, 'smoked')).toMatchObject({ hasOwnEntry: true, entryCount: 1, foods: [] })
+    // Six food rows, and the Hard cheese rule with both of Seafood's.
+    expect(listing.resultCount).toBe(9)
+  })
+
   describe('a category holding qualified guidance and no foods', () => {
     const withShellfish = buildContentIndex({
       ...guideContent,

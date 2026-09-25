@@ -6,8 +6,10 @@ import {
   makeFood,
   nzfs,
 } from '../test/multiSourceFixture'
-import { categoryEntryRows, entryRowsByCategoryId } from './categoryTree'
+import { listCatalogue } from './catalogueListing'
+import { categoryEntryRows } from './categoryTree'
 import { buildContentIndex } from '../test/buildContentIndex'
+import { initialCollapseState, toggleCategory } from './collapseState'
 import { filterCategoryEntries } from './filtering'
 
 /**
@@ -75,14 +77,15 @@ describe('category guidance entries across preparations', () => {
     expect(index.preparationStatesFor('shellfish').map((preparation) => preparation.id)).toEqual(['raw', 'cooked'])
   })
 
-  it('groups entry rows under their category in vocabulary order', () => {
-    const content = dualSourceContent([cookedShellfish, shellfishWide, rawShellfish], [])
-    const grouped = entryRowsByCategoryId(
-      entriesFor(content),
-      buildContentIndex(content),
-    )
+  it('lists the unqualified entry on its category and each qualified entry as a band, in vocabulary order', () => {
+    const index = buildContentIndex(dualSourceContent([cookedShellfish, shellfishWide, rawShellfish], []))
+    const filters = { ...noFilters, guidanceListIds: [dualSourceList.id] }
 
-    expect([...grouped.get('shellfish')!.keys()]).toEqual([undefined, 'raw', 'cooked'])
+    const shellfish = listCatalogue(index, filters, toggleCategory(initialCollapseState(index), 'seafood', filters))
+      .sections.find((section) => section.category.id === 'shellfish')!
+
+    expect(shellfish.ownEntry).toBeDefined()
+    expect(shellfish.bands.map((band) => [band.preparation.id, band.hasOwnEntry])).toEqual([['raw', true], ['cooked', true]])
   })
 
   it('keeps each preparation entry countable once', () => {

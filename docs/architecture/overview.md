@@ -73,9 +73,10 @@ Version-controlled content data --> schema and relationship validation
         v                                      v
 React domain/query layer ----------------> validation errors in local checks
         |
-        +--> category tree builder
+        +--> category tree builder and category outline
         +--> search index
         +--> assessment and filter predicates
+        +--> catalogue listing: sections, preparation bands, governing rules, counts, and chips
         |
         v
 React routes and accessible UI
@@ -99,7 +100,7 @@ The first implementation should use these boundaries:
 src/
   app/                 route composition, application shell, URL query parsing
   data/                reviewed category, food, preparation, list, assessment, and source records
-  domain/              types, Zod schemas, validation, tree, search, and filter functions
+  domain/              types, Zod schemas, validation, tree, search, filter, and catalogue listing functions
   features/
     catalogue/         category-grouped list and result cards
     food-detail/       conditions, source citations, and empty/not-assessed states

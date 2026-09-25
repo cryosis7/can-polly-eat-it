@@ -1,5 +1,5 @@
 import { resolveAssessment, type AssessmentSubjectRef, type ResolvedAssessment } from './assessment'
-import { entriesSurfacedByDescendants, entryRowsByCategoryId, rowsByCategoryId, visibleCategoryRows } from './categoryTree'
+import { sortByEditorialOrder, type CatalogueRow, type CategoryRow, type CategoryTree } from './categoryTree'
 import { combineOutcomesAcrossLists, summariseCollapsedRow, type CombinedOutcome } from './collapsedRowSummary'
 import {
   collapsedCategoryIds,
@@ -82,6 +82,70 @@ export type CatalogueListing = {
 
 type ByPreparation<T> = Map<string | undefined, T>
 
+/**
+ * The entry rows whose guidance is already stated where its foods are.
+ *
+ * A rule may be authored higher in the tree than the foods it governs: one "smoked seafood" rule
+ * covers fish, shellfish and crustacea, while the species are filed under what they are. Rendering
+ * that rule on the parent leaves a band holding a rule and no foods, directly above the bands
+ * holding the foods and no rule. Where a descendant band states the rule alongside the foods, the
+ * parent's own band is redundant.
+ *
+ * Only a parent with no rows of its own in that preparation is dropped: a category that lists foods
+ * beside its rule is stating it exactly where it applies.
+ */
+const entriesSurfacedByDescendants = (
+  entryRows: readonly CategoryRow[],
+  foodRows: readonly CatalogueRow[],
+  tree: CategoryTree,
+): Set<CategoryRow> => {
+  const preparationsWithRows = new Map<string, Set<string>>()
+  for (const { food, preparationId } of foodRows) {
+    if (preparationId === undefined) {
+      continue
+    }
+    const preparations = preparationsWithRows.get(food.primaryCategoryId) ?? new Set<string>()
+    preparations.add(preparationId)
+    preparationsWithRows.set(food.primaryCategoryId, preparations)
+  }
+
+  const surfaced = new Set<CategoryRow>()
+  for (const entryRow of entryRows) {
+    const { category, preparationId } = entryRow
+    if (preparationId === undefined || preparationsWithRows.get(category.id)?.has(preparationId)) {
+      continue
+    }
+    const descendantIds = [...(tree.childIdsByParentId.get(category.id) ?? [])]
+    let statedBelow = false
+    while (descendantIds.length > 0 && !statedBelow) {
+      const descendantId = descendantIds.pop()!
+      statedBelow = preparationsWithRows.get(descendantId)?.has(preparationId) ?? false
+      descendantIds.push(...(tree.childIdsByParentId.get(descendantId) ?? []))
+    }
+    if (statedBelow) {
+      surfaced.add(entryRow)
+    }
+  }
+
+  return surfaced
+}
+
+/** Rows grouped by the category they list under, then by preparation, keeping their input order. */
+const groupedByCategory = <Row extends { preparationId?: string }>(
+  rows: readonly Row[],
+  categoryIdOf: (row: Row) => string,
+): Map<string, ByPreparation<Row[]>> => {
+  const grouped = new Map<string, ByPreparation<Row[]>>()
+  for (const row of rows) {
+    const groups = grouped.get(categoryIdOf(row)) ?? new Map<string | undefined, Row[]>()
+    const group = groups.get(row.preparationId) ?? []
+    group.push(row)
+    groups.set(row.preparationId, group)
+    grouped.set(categoryIdOf(row), groups)
+  }
+  return grouped
+}
+
 // ADR: Resolve guidance conservatively without inference.
 // See: docs/decisions/2026-09-21 ADR - resolve guidance conservatively without inference.md
 /**
@@ -116,15 +180,16 @@ export const listCatalogue = (
 
   // Each listed row is resolved once, and that one resolution both renders and folds into chips.
   const foodsIn = new Map<string, ByPreparation<ListedFood[]>>()
-  for (const [categoryId, groups] of rowsByCategoryId(foodRows, index)) {
+  for (const [categoryId, groups] of groupedByCategory(foodRows, ({ food }) => food.primaryCategoryId)) {
     foodsIn.set(categoryId, new Map([...groups].map(([preparationId, rows]) => [
       preparationId,
-      rows.map(({ food }) => ({ food, resolved: resolveInEachList({ kind: 'food', food }, preparationId) })),
+      sortByEditorialOrder(rows.map(({ food }) => food))
+        .map((food) => ({ food, resolved: resolveInEachList({ kind: 'food', food }, preparationId) })),
     ])))
   }
   // A category yields at most one entry row per preparation, so each group holds exactly one.
   const entriesIn = new Map<string, ByPreparation<ListedGuidance>>()
-  for (const [categoryId, groups] of entryRowsByCategoryId(entryRows, index)) {
+  for (const [categoryId, groups] of groupedByCategory(entryRows, ({ category }) => category.id)) {
     entriesIn.set(categoryId, new Map([...groups].map(([preparationId, [{ category }]]) => [
       preparationId,
       { resolved: resolveInEachList({ kind: 'category', category }, preparationId) },
@@ -183,9 +248,10 @@ export const listCatalogue = (
 
   const collapsedIds = collapsedCategoryIds(collapse, filters)
   // A category is listed when its subtree holds an entry, which keeps every ancestor of listed
-  // content as a heading.
-  const listedOutline = outline.filter(({ category }) => outcomesInSubtree.get(category.id)!.length > 0)
-  const sections = visibleCategoryRows(listedOutline, collapsedIds).map(({ category, breadcrumb, depth }): CatalogueSection => {
+  // content as a heading, and while no ancestor of it is collapsed.
+  const listedOutline = outline.filter(({ category, ancestorIds }) =>
+    outcomesInSubtree.get(category.id)!.length > 0 && !ancestorIds.some((ancestorId) => collapsedIds.has(ancestorId)))
+  const sections = listedOutline.map(({ category, breadcrumb, depth }): CatalogueSection => {
     const outcomes = outcomesInSubtree.get(category.id)!
     const collapsed = collapsedIds.has(category.id)
     // A root group spans too much of the catalogue for one chip to say anything useful.
