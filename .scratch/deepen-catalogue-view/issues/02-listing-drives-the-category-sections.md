@@ -1,7 +1,7 @@
 # 02: The listing drives the category sections
 
 Category: enhancement
-Status: ready-for-agent
+Status: done
 Parent: [Deepen the catalogue listing](../spec.md)
 
 **What to build:** The tracer bullet. A new domain catalogue listing takes the content index, the
@@ -16,19 +16,23 @@ result count from the listing. Readers see no change.
 
 ## Acceptance criteria
 
-- [ ] The listing is one function over index, filters, and collapse state, importing no React,
+- [x] The listing is one function over index, filters, and collapse state, importing no React,
   router, or browser modules.
-- [ ] It applies the collapse-state module's rule internally; a chip is returned only on a collapsed,
+- [x] It applies the collapse-state module's rule internally; a chip is returned only on a collapsed,
   non-root section while not filtering.
-- [ ] Sections are flat and depth-first in editorial order; the outcome fold stays deepest-first and
+- [x] Sections are flat and depth-first in editorial order; the outcome fold stays deepest-first and
   iterative.
-- [ ] The result count counts food rows and category entry rows after the surfacing drop, from the
+- [x] The result count counts food rows and category entry rows after the surfacing drop, from the
   same derivation as the sections.
-- [ ] Selected guidance lists come back in the index's order whatever the input order.
-- [ ] The page renders headings, chips, counts, and the result count from the listing and picks
+- [x] Selected guidance lists come back in the index's order whatever the input order.
+- [x] The page renders headings, chips, counts, and the result count from the listing and picks
   "entry" or "match" wording from `filtering`; it still derives bands and foods itself for now.
-- [ ] Page tests that assert which sections, counts, or chip outcomes exist (for example "renders
+- [x] Page tests that assert which sections, counts, or chip outcomes exist (for example "renders
   every ancestor heading", "never chips a root category", "summarises a category holding one
   dissenting food as mixed", "lets a second scope change the summary", "counts matched category
   entries alongside foods") move to listing tests; mixed tests split, keeping one rendering check.
-- [ ] Coverage stays at 100% and every Playwright scenario passes unmodified.
+- [x] Coverage stays at 100% and every Playwright scenario passes unmodified.
+
+## Comments
+
+- 2026-09-25: Implemented and merged into `main` as 90647f3; every acceptance criterion met, coverage at 100%, and all 79 Playwright scenarios pass. The listing lists a category when its subtree holds an entry, which is the same set ancestor retention produced, so it no longer needs `withAncestorIds`. Thirteen page tests moved to `src/domain/catalogueListing.test.ts`; "summarises a uniformly okay category with its own solid chip" stays as the chip rendering check.
