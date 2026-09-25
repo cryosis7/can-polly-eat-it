@@ -6,12 +6,11 @@ import { GuidanceLayers } from '../../components/GuidanceLayers'
 import { GuideEntrySummary } from '../../components/GuideEntrySummary'
 import { StatusChip } from '../../components/StatusChip'
 import { resolveAssessment, type AssessmentSubjectRef } from '../../domain/assessment'
+import { listCatalogue } from '../../domain/catalogueListing'
 import {
   entriesSurfacedByDescendants,
   entryRowsByCategoryId,
   rowsByCategoryId,
-  visibleCategoryRows,
-  withAncestorIds,
   type CategoryEntryGroups,
   type CategoryRowGroups,
 } from '../../domain/categoryTree'
@@ -22,10 +21,8 @@ import {
   type CombinedOutcome,
 } from '../../domain/collapsedRowSummary'
 import {
-  collapsedCategoryIds,
   initialCollapseState,
   isBandCollapsed,
-  isFiltering as isFilteringBy,
   preparationBandKey,
   settleCollapseState,
   toggleBand,
@@ -147,6 +144,12 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
   if (collapseState !== storedCollapseState) {
     setCollapseState(collapseState)
   }
+  const listing = useMemo(
+    () => listCatalogue(index, filterState, collapseState),
+    [collapseState, filterState, index],
+  )
+  const { filtering: isFiltering, resultCount } = listing
+  // Bands and the foods in them are still derived here until the listing returns them.
   const selectedFoodRows = useMemo(
     () => filterFoods(index, filterState),
     [filterState, index],
@@ -159,34 +162,20 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
   // so the parent's own food-less band would repeat it directly above them.
   const surfacedBelow = entriesSurfacedByDescendants(matchedCategoryRows, selectedFoodRows, index.tree)
   const selectedCategoryRows = matchedCategoryRows.filter((row) => !surfacedBelow.has(row))
-  const matchedCategoryEntryIds = new Set(selectedCategoryRows.map((row) => row.category.id))
-  const resultCount = selectedFoodRows.length + selectedCategoryRows.length
   const rowsInCategory = rowsByCategoryId(selectedFoodRows, index)
   const entriesInCategory = entryRowsByCategoryId(selectedCategoryRows, index)
-  const contentCategoryIds = new Set([...rowsInCategory.keys(), ...matchedCategoryEntryIds])
-  const rowsWithContent = withAncestorIds(categoryRows, contentCategoryIds)
   const hasNonDefaultScope = queryState.scopeSlugs.length !== scopeDefaults.length ||
     !scopeDefaults.every((slug) => queryState.scopeSlugs.includes(slug))
-  const isFiltering = isFilteringBy(filterState)
-  const effectiveCollapsedIds = collapsedCategoryIds(collapseState, filterState)
-  const renderedRows = visibleCategoryRows(
-    categoryRows.filter((row) => rowsWithContent.has(row.category.id)),
-    effectiveCollapsedIds,
-  )
 
   // ADR: Resolve guidance conservatively without inference.
   // See: docs/decisions/2026-09-21 ADR - resolve guidance conservatively without inference.md
-  // Folded once per render rather than per row, so a deep branch costs one pass over the entries
-  // rather than one pass per ancestor.
   const combinedOutcomeFor = (subjectRef: AssessmentSubjectRef, preparationId?: string): CombinedOutcome =>
     combineOutcomesAcrossLists(selectedGuidanceLists.map(
       (guidanceList) => resolveAssessment(subjectRef, guidanceList, index, preparationId).status.outcomeBand,
     ))
 
-  const outcomesInCategory = new Map<string, CombinedOutcome[]>()
   const outcomesInBand = new Map<PreparationBandKey, CombinedOutcome[]>()
   const recordOutcome = (categoryId: string, preparationId: string | undefined, outcome: CombinedOutcome) => {
-    outcomesInCategory.set(categoryId, [...(outcomesInCategory.get(categoryId) ?? []), outcome])
     if (preparationId !== undefined) {
       const bandKey = preparationBandKey(categoryId, preparationId)
       outcomesInBand.set(bandKey, [...(outcomesInBand.get(bandKey) ?? []), outcome])
@@ -205,19 +194,6 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
         recordOutcome(categoryId, preparationId, combinedOutcomeFor({ kind: 'food', food }, preparationId))
       }
     }
-  }
-
-  // Deepest first, so each category folds its children's already-folded outcomes in. Iterative
-  // because the tree has no depth limit and a recursive walk would put that limit back. Every
-  // category is visited before any parent that reads it, so a child's entry is always present.
-  const outcomesInSubtree = new Map<string, CombinedOutcome[]>()
-  for (let position = categoryRows.length - 1; position >= 0; position -= 1) {
-    const { category } = categoryRows[position]
-    const outcomes = [...(outcomesInCategory.get(category.id) ?? [])]
-    for (const childId of index.tree.childIdsByParentId.get(category.id) ?? []) {
-      outcomes.push(...outcomesInSubtree.get(childId)!)
-    }
-    outcomesInSubtree.set(category.id, outcomes)
   }
 
   // A chip must never summarise a filtered subset: searching `rice` narrows Cereals to one food,
@@ -417,7 +393,7 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
           <p className="no-results">No foods match these filters. Try clearing a filter or searching for another name.</p>
         ) : (
           <div className="catalogue">
-            {renderedRows.map(({ category, breadcrumb, depth }) => {
+            {listing.sections.map(({ category, breadcrumb, depth, collapsed: isCollapsed, entryCount: categoryEntryCount, chip: categoryChip }) => {
               const rowGroups: CategoryRowGroups = rowsInCategory.get(category.id) ?? new Map()
               const entryGroups: CategoryEntryGroups = entriesInCategory.get(category.id) ?? new Map()
               // A category's own guidance creates a preparation grouping just as a food's
@@ -426,16 +402,6 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
               const axes = [undefined, ...index.preparationStatesFor(category.id).map((preparation) => preparation.id)]
                 .filter((preparationId) => rowGroups.has(preparationId) || entryGroups.has(preparationId))
               const hasUnqualifiedEntry = entryGroups.has(undefined)
-              const isCollapsed = effectiveCollapsedIds.has(category.id)
-              // Every rendered row is collapsible. A row only renders when it holds foods, holds its
-              // own guidance, or is an ancestor of a row that does, and each of those is now hidden
-              // by collapsing it — the category's own guidance included, as with a preparation band.
-              // A root group spans too much of the catalogue for one chip to say anything useful, so
-              // it stays chip-free however it is collapsed.
-              const categoryChip = depth > 0 && isCollapsed
-                ? chipFor(outcomesInSubtree.get(category.id)!)
-                : undefined
-              const categoryEntryCount = outcomesInSubtree.get(category.id)!.length
               const categoryCountText = countText(categoryEntryCount, isFiltering)
               // While filtering every row states its matches, so a filtered count never reads as the
               // size of the whole group; while browsing only a chipped row states its entries.

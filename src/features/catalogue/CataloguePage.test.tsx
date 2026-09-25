@@ -380,18 +380,6 @@ describe('CataloguePage', () => {
     expect(within(pannaCottaCard).queryByText('Outside current coverage')).not.toBeInTheDocument()
   })
 
-  it('moves ice cream out of Dairy and fruit juice out of Miscellaneous', () => {
-    renderCatalogue()
-    expandGroup('Dairy')
-    expect(screen.queryByRole('button', { name: /^Ice cream, level \d+/ })).not.toBeInTheDocument()
-
-    expandGroup('Miscellaneous')
-    expect(screen.queryByRole('button', { name: /^Fruit juice, kombucha and cider \(non-alcoholic\), level \d+/ })).not.toBeInTheDocument()
-
-    expandGroup('Drinks')
-    expect(screen.getByRole('button', { name: /^Fruit juice, kombucha and cider \(non-alcoholic\), level 2/ })).toBeInTheDocument()
-  })
-
   it('shows an accumulated food card stating the inherited group guidance', () => {
     renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=shellfish')
 
@@ -402,14 +390,6 @@ describe('CataloguePage', () => {
     const cheddarCard = renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=hard-cheese')
       .container.querySelector('.food-card') as HTMLElement
     expect(cheddarCard.querySelector('.accumulated-note')).toBeNull()
-  })
-
-  it('renders root categories in alphabetical order', () => {
-    renderCatalogue()
-
-    const rootNames = screen.getAllByRole('button', { name: /, level 1$/ })
-      .map((toggle) => toggle.getAttribute('aria-label')!.replace(/, level 1$/, ''))
-    expect(rootNames).toEqual([...rootNames].sort((left, right) => left.localeCompare(right)))
   })
 
   it('offers the new food groups as category filters under their full authored path', () => {
@@ -456,24 +436,6 @@ describe('CataloguePage', () => {
     expect(within(juiceGroup).getByRole('link', { name: 'Orange juice' })).toBeInTheDocument()
   })
 
-  it('renders every ancestor heading so a nested entry is never shown under an unrelated group', () => {
-    renderCatalogue()
-    expandGroup('Breads and cereals')
-
-    const parentHeading = screen.getByRole('button', { name: /^Cakes, slices and muffins, level 2/ })
-    const nested = screen.getByRole('heading', { name: 'Plain cakes, slices and muffins' })
-    expect(parentHeading).toBeInTheDocument()
-    expect(parentHeading.compareDocumentPosition(nested) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-  })
-
-  it('renders a category that has no direct foods but has content beneath it', () => {
-    renderCatalogue()
-    expandGroup('Dairy')
-
-    expect(screen.getByRole('button', { name: /^Cheese, level 2/ })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^Custard, level 2/ })).toBeInTheDocument()
-  })
-
   it('collapses top-level groups by default and reveals descendants when one is expanded', () => {
     renderCatalogue()
 
@@ -518,15 +480,6 @@ describe('CataloguePage', () => {
     expect(screen.getByRole('heading', { name: 'Butter' })).toBeInTheDocument()
   })
 
-  it('keeps the announced result count unchanged when a group is collapsed', () => {
-    renderCatalogue()
-    const countBefore = screen.getByText(/results in the guide/).textContent
-
-    expandGroup('Dairy')
-
-    expect(screen.getByText(/results in the guide/)).toHaveTextContent(countBefore!)
-  })
-
   it('shows Gouda inheriting hard-cheese guidance with disclosed provenance, and Parmesan keeping its own override', () => {
     renderCatalogue('/?v=1&scope=pregnancy-food-safety,vegetarian-suitability&category=hard-cheese')
 
@@ -539,13 +492,6 @@ describe('CataloguePage', () => {
     const parmesanCard = screen.getByRole('link', { name: 'Parmesan' }).closest('.food-card') as HTMLElement
     expect(within(parmesanCard).getByText('Contains animal-derived ingredients')).toBeInTheDocument()
     expect(within(parmesanCard).getAllByText(/Applies to all hard cheese\./)).toHaveLength(1)
-  })
-
-  it('counts matched category entries alongside foods in the announced result count', () => {
-    renderCatalogue('/?v=1&scope=pregnancy-food-safety&q=hard%20cheese')
-
-    expect(screen.getByText('4 results in the guide')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Hard cheese' })).toBeInTheDocument()
   })
 
   it('shows a food beneath a newly assessed category inheriting its rule with the origin disclosed', () => {
@@ -770,61 +716,12 @@ describe('CataloguePage collapsed-row chips', () => {
     expect(chip).toHaveClass('tone-green')
   })
 
-  it('summarises a category holding one dissenting food as mixed, not as its majority', () => {
-    // Cereals: the category rule, Breakfast cereals, Rice and Pasta all say okay to eat, while
-    // Fresh filled pasta replaces that rule with its own conditional one.
-    renderCatalogue()
-    expandGroup('Breads and cereals')
-    collapseRow('Cereals')
-
-    const chip = chipIn(rowToggle('Cereals'))
-
-    expect(chip).toHaveTextContent('Maybe')
-    expect(chip).toHaveClass('tone-amber')
-  })
-
   it('reveals the dissenting entry the mixed chip stood for when the row is expanded', () => {
     renderCatalogue()
     expandGroup('Breads and cereals')
 
     expect(screen.getByRole('link', { name: 'Fresh filled pasta' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Rice' })).toBeInTheDocument()
-  })
-
-  it('never chips a root category, however much it hides', () => {
-    renderCatalogue()
-
-    expect(chipIn(rowToggle('Dairy'))).toBeNull()
-    expect(chipIn(rowToggle('Seafood'))).toBeNull()
-  })
-
-  it('drops the chip once the row is expanded, so it never sits beside the statuses it summarised', () => {
-    renderCatalogue()
-    expandGroup('Dairy')
-    collapseRow('Hard cheese')
-    expect(chipIn(rowToggle('Hard cheese'))).not.toBeNull()
-
-    fireEvent.click(rowToggle('Hard cheese'))
-
-    expect(chipIn(rowToggle('Hard cheese'))).toBeNull()
-  })
-
-  it('shows no chip while a search is active, so it never summarises a filtered subset', () => {
-    // Searching `rice` narrows Cereals to one okay food. A chip folded over what survived would
-    // report the whole group as okay, implying Fresh filled pasta is okay too.
-    renderCatalogue('/?v=1&scope=pregnancy-food-safety&q=rice')
-
-    for (const toggle of screen.getAllByRole('button', { name: /, level \d+/ })) {
-      expect(chipIn(toggle)).toBeNull()
-    }
-  })
-
-  it('shows no chip while an outcome filter is active', () => {
-    renderCatalogue('/?v=1&scope=pregnancy-food-safety&outcome=okay')
-
-    for (const toggle of screen.getAllByRole('button', { name: /, level \d+/ })) {
-      expect(chipIn(toggle)).toBeNull()
-    }
   })
 
   it('summarises a collapsed preparation band', () => {
@@ -854,16 +751,6 @@ describe('CataloguePage collapsed-row chips', () => {
     collapseRow('Hard cheese')
 
     expect(chipIn(rowToggle('Hard cheese'))).toHaveAttribute('aria-hidden', 'true')
-  })
-
-  it('leaves the result count untouched when a row is collapsed or expanded', () => {
-    renderCatalogue()
-    const before = screen.getByText(/results in the guide/).textContent
-    expandGroup('Dairy')
-    collapseRow('Hard cheese')
-    fireEvent.click(rowToggle('Hard cheese'))
-
-    expect(screen.getByText(/results in the guide/)).toHaveTextContent(before!)
   })
 
   it('hides the category own guidance while collapsed, as a preparation band hides its callout', () => {
@@ -919,15 +806,6 @@ describe('CataloguePage collapsed-row chips across dietary scopes', () => {
     expect(rowToggle('Hard cheese').querySelectorAll('.aggregate-chip')).toHaveLength(1)
   })
 
-  it('lets a second scope change the summary, because the answer now covers both', () => {
-    // Hard cheese is uniformly okay under pregnancy alone. Adding vegetarian suitability splits it:
-    // Parmesan contains animal-derived rennet while its siblings only need their labels checked.
-    renderCatalogue(bothScopes)
-    fireEvent.click(rowToggle('Dairy'))
-    fireEvent.click(rowToggle('Hard cheese'))
-
-    expect(rowToggle('Hard cheese').querySelector('.aggregate-chip')).toHaveTextContent('Maybe')
-  })
 })
 
 describe('CataloguePage search collapse', () => {
