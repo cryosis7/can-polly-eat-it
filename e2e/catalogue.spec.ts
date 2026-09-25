@@ -59,7 +59,7 @@ test.describe('Food catalogue', () => {
     await page.goto('/?v=1&scope=pregnancy-food-safety&q=gouda')
 
     await expect(foodCard(page, 'Gouda')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Cheese, level 2' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Cheese, level 2, 1 match', exact: true })).toBeVisible()
     await expect(page.getByText('1 result in the guide')).toBeVisible()
   })
 
@@ -75,6 +75,7 @@ test.describe('Food catalogue', () => {
     await drinks.click()
 
     await expect(drinks).toHaveAttribute('aria-expanded', 'false')
+    await expect(drinks).toHaveAccessibleName('Drinks, level 1, 1 match')
     await expect(page.getByRole('button', { name: /^Tea, level 2/ })).toHaveCount(0)
     await expect(page.locator('.aggregate-chip')).toHaveCount(0)
 
@@ -82,6 +83,7 @@ test.describe('Food catalogue', () => {
     await expect(page).not.toHaveURL(/q=/)
 
     await expect(drinks).toHaveAttribute('aria-expanded', 'false')
+    await expect(drinks).toHaveAccessibleName('Drinks, level 1')
     await expect(page.getByRole('button', { name: /^Dairy, level 1/ })).toHaveAttribute('aria-expanded', 'true')
     await expect(page.getByRole('button', { name: /^Breads and cereals, level 1/ })).toHaveAttribute('aria-expanded', 'false')
   })

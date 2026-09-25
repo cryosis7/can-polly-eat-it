@@ -116,6 +116,11 @@ const outcomeLabels: Record<OutcomeBand, string> = {
   'not-assessed': 'Not assessed',
 }
 
+/** Under a filter a count covers only the matching subset, so it is worded as matches. */
+const countText = (count: number, isFiltering: boolean) => isFiltering
+  ? `${count} ${count === 1 ? 'match' : 'matches'}`
+  : `${count} ${count === 1 ? 'entry' : 'entries'}`
+
 export const CataloguePage = ({ index }: CataloguePageProps) => {
   const [searchParams, setSearchParams] = useSearchParams()
   const [filterRemovalAnnouncement, setFilterRemovalAnnouncement] = useState('')
@@ -432,10 +437,15 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
                 ? chipFor(outcomesInSubtree.get(category.id)!)
                 : undefined
               const categoryEntryCount = outcomesInSubtree.get(category.id)!.length
-              const categoryCountText = `${categoryEntryCount} ${categoryEntryCount === 1 ? 'entry' : 'entries'}`
-              const categoryLabel = categoryChip === undefined
-                ? `${category.name}, level ${depth + 1}`
-                : `${category.name}, level ${depth + 1}, ${combinedOutcomeLabel[categoryChip]}, ${categoryCountText}`
+              const categoryCountText = countText(categoryEntryCount, isFiltering)
+              // While filtering every row states its matches, so a filtered count never reads as the
+              // size of the whole group; while browsing only a chipped row states its entries.
+              const showsCategoryCount = isFiltering || categoryChip !== undefined
+              const categoryLabel = [
+                `${category.name}, level ${depth + 1}`,
+                ...(categoryChip === undefined ? [] : [combinedOutcomeLabel[categoryChip]]),
+                ...(showsCategoryCount ? [categoryCountText] : []),
+              ].join(', ')
               return (
                 <section
                   aria-labelledby={`category-${category.id}`}
@@ -456,7 +466,7 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
                       <span>{category.name}</span>
                       {categoryChip !== undefined && <CollapsedRowChip outcome={categoryChip} />}
                     </button>
-                    {categoryChip !== undefined && (
+                    {showsCategoryCount && (
                       <span aria-hidden="true" className="category-entry-count">{categoryCountText}</span>
                     )}
                   </h3>
@@ -534,7 +544,7 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
                     const bandKey = preparation === undefined ? undefined : preparationBandKey(category.id, preparation.id)
                     const isPreparationExpanded = bandKey === undefined
                       || !isBandCollapsed(collapseState, bandKey, filterState)
-                    const entryCountText = `${entryCount} ${entryCount === 1 ? 'entry' : 'entries'}`
+                    const entryCountText = countText(entryCount, isFiltering)
                     const preparationBandLabel = preparation === undefined ? undefined : `${preparation.name} ${category.name}`
                     const bandChip = bandKey !== undefined && !isPreparationExpanded
                       ? chipFor(outcomesInBand.get(bandKey)!)

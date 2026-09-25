@@ -95,7 +95,7 @@ describe('CataloguePage', () => {
   it('drops a parent band whose rule its descendants already state beside their foods', () => {
     renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=seafood')
 
-    const seafood = screen.getByRole('button', { name: 'Seafood, level 1' }).closest('.category-group')!
+    const seafood = screen.getByRole('button', { name: /^Seafood, level 1, \d+ matches$/ }).closest('.category-group')!
     expect(within(seafood as HTMLElement).queryByRole('link', { name: 'Seafood guidance' })).not.toBeInTheDocument()
     expect(screen.getAllByRole('region', { name: /^Smoked / }).length).toBeGreaterThan(0)
   })
@@ -657,8 +657,8 @@ describe('browsing a category with a preparation dimension', () => {
   it('keeps matching preparation rows discoverable in filtered result views', () => {
     renderCatalogue(`/?${scope}&q=${salmon.slug}`, preparedContent)
 
-    expect(screen.getByRole('button', { name: 'Raw Fish, 1 entry' })).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByRole('button', { name: 'Cooked Fish, 1 entry' })).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('button', { name: 'Raw Fish, 1 match' })).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('button', { name: 'Cooked Fish, 1 match' })).toHaveAttribute('aria-expanded', 'true')
     expect(within(cardFor('Raw')).getByText('Avoid')).toBeInTheDocument()
     expect(within(cardFor('Cooked')).getByText('Only with conditions')).toBeInTheDocument()
   })
@@ -1037,5 +1037,68 @@ describe('CataloguePage search collapse', () => {
 
     expect(rowToggle('Dairy')).toHaveAttribute('aria-expanded', 'true')
     expect(rowToggle('Drinks')).toHaveAttribute('aria-expanded', 'false')
+  })
+})
+describe('CataloguePage counts while filtering', () => {
+  const rowToggle = (name: string) =>
+    screen.getByRole('button', { name: new RegExp(`^${name}, level \\d+`) })
+  const visibleCountFor = (name: string) =>
+    rowToggle(name).closest('h3')!.querySelector('.category-entry-count')
+  const resultCount = () => Number.parseInt(screen.getByText(/results? in the guide/).textContent!, 10)
+
+  it('counts a single match on a root and a nested row, open or collapsed', () => {
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety&q=gouda')
+
+    expect(rowToggle('Dairy')).toHaveAccessibleName('Dairy, level 1, 1 match')
+    expect(visibleCountFor('Dairy')).toHaveTextContent('1 match')
+    expect(rowToggle('Cheese')).toHaveAccessibleName('Cheese, level 2, 1 match')
+
+    fireEvent.click(rowToggle('Cheese'))
+
+    expect(rowToggle('Cheese')).toHaveAccessibleName('Cheese, level 2, 1 match')
+    expect(visibleCountFor('Cheese')).toHaveTextContent('1 match')
+  })
+
+  it('counts several matches as matches, never as the size of the group', () => {
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=hard-cheese')
+    const matches = resultCount()
+    expect(matches).toBeGreaterThan(1)
+
+    expect(rowToggle('Dairy')).toHaveAccessibleName(`Dairy, level 1, ${matches} matches`)
+    expect(visibleCountFor('Dairy')).toHaveTextContent(`${matches} matches`)
+    expect(rowToggle('Hard cheese')).toHaveAccessibleName(`Hard cheese, level 3, ${matches} matches`)
+  })
+
+  it('counts a band in matches, in its visible text and its accessible name', () => {
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=seafood')
+    const smokedFish = screen.getByRole('button', { name: /^Smoked Fish, \d+ matches$/ })
+    const count = smokedFish.getAttribute('aria-label')!.match(/(\d+) matches$/)![1]
+
+    expect(Number(count)).toBeGreaterThan(1)
+    expect(smokedFish.closest('.preparation-header')!.querySelector('.preparation-count')).toHaveTextContent(`${count} matches`)
+  })
+
+  it('counts a single band match in its visible text', () => {
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety&q=barracouta')
+    const smokedFish = screen.getByRole('button', { name: 'Smoked Fish, 1 match' })
+
+    expect(smokedFish.closest('.preparation-header')!.querySelector('.preparation-count')).toHaveTextContent(/^1 match$/)
+  })
+
+  it('keeps browsing wording when only the dietary scope differs from the default', () => {
+    renderCatalogue('/?v=1&scope=pregnancy-food-safety')
+    expandGroup('Seafood')
+
+    expect(rowToggle('Seafood')).toHaveAccessibleName('Seafood, level 1')
+    expect(visibleCountFor('Seafood')).toBeNull()
+    expect(rowToggle('Fish')).toHaveAccessibleName('Fish, level 2')
+    expect(visibleCountFor('Fish')).toBeNull()
+    const smokedFish = screen.getByRole('button', { name: /^Smoked Fish, .*\d+ entries$/ })
+    expect(smokedFish.closest('.preparation-header')!.querySelector('.preparation-count')).toHaveTextContent(/^\d+ entries$/)
+
+    fireEvent.click(rowToggle('Fish'))
+
+    expect(rowToggle('Fish')).toHaveAccessibleName(/^Fish, level 2, .+, \d+ entries$/)
+    expect(visibleCountFor('Fish')).toHaveTextContent(/^\d+ entries$/)
   })
 })

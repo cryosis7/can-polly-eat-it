@@ -43,6 +43,9 @@ present, and reproduce the same result from its URL.
   during a search; that search collapse shows no aggregate chip, belongs only to the filter it was
   made under, and is discarded when the search, category, outcomes, or selected scopes change.
   Clearing the filters restores the reader's browse collapse state as it was before the search.
+- While filtering, state every category row's and preparation band's count as matches ("1 match",
+  "3 matches") in its visible text and accessible name, so a filtered count never reads as the size
+  of the whole group.
 
 ## Non-goals
 
