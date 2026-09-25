@@ -13,7 +13,7 @@ import {
   type Source,
   type StatusDefinition,
 } from './schemas'
-import { createContentIndex, subjectKey, type ContentIndex } from './contentIndex'
+import { createContentIndex, type ContentIndex } from './contentIndex'
 
 export type ContentData = {
   categories: Category[]
@@ -230,7 +230,7 @@ const validateAssessments = (assessments: Assessment[], index: ContentIndex) => 
   assertUnique(assessments.map((assessment) => assessment.id), 'assessment ID')
   assertUnique(
     assessments.map((assessment) => [
-      subjectKey(assessment.subject),
+      JSON.stringify(assessment.subject),
       assessment.preparationId ?? '',
       assessment.guidanceListId,
       assessment.sourceId ?? '',

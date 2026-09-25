@@ -20,4 +20,19 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // The content index is the one handle on content. Raw content is exported for tests to spread and
+    // edit, and must not become a second handle in application code.
+    files: ['**/*.{ts,tsx}'],
+    ignores: ['src/data/index.ts', 'src/test/**', '**/*.test.{ts,tsx}', 'e2e/**'],
+    rules: {
+      'no-restricted-imports': ['error', {
+        patterns: [{
+          regex: '^(\\.{1,2}/)+(src/)?data(/index(\\.ts)?)?$',
+          importNames: ['content'],
+          message: 'Reach content through `contentIndex`; raw `content` is exported only for tests.',
+        }],
+      }],
+    },
+  },
 ])

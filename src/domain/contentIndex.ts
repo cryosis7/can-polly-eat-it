@@ -4,8 +4,6 @@ import type { Assessment, AssessmentSubject, Category, Food, GuidanceList, Prepa
 
 export type ContentIndex = {
   tree: CategoryTree
-  assessmentsBySubjectKey: Map<string, Assessment[]>
-  assessedCategoryIds: Set<string>
   foods: readonly Food[]
   categories: readonly Category[]
   guidanceLists: readonly GuidanceList[]
@@ -51,7 +49,7 @@ const lookupBySlug = <T extends { slug: string }>(items: readonly T[]) => {
   return (slug: string): T | undefined => itemsBySlug.get(slug)
 }
 
-export const subjectKey = (subject: AssessmentSubject): string =>
+const subjectKey = (subject: AssessmentSubject): string =>
   subject.kind === 'food' ? `food:${subject.foodId}` : `category:${subject.categoryId}`
 
 const assessmentKey = (guidanceListId: string, subject: AssessmentSubject) => `${guidanceListId}:${subjectKey(subject)}`
@@ -123,8 +121,6 @@ export const createContentIndex = (content: ValidatedContent): ContentIndex => {
 
   return {
     tree: buildCategoryTree(categories),
-    assessmentsBySubjectKey,
-    assessedCategoryIds,
     foods: content.foods,
     categories,
     guidanceLists: content.guidanceLists,
