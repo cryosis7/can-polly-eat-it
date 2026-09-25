@@ -1,7 +1,7 @@
 # Deepen the catalogue listing
 
 Category: enhancement
-Status: ready-for-agent
+Status: done
 Feature: [F-01: Browse the food guide](../../docs/features/01-browse-food-guide.md), [F-02: Find, filter, and share guide entries](../../docs/features/02-find-filter-and-share-guide-entries.md)
 Reported: 2026-09-24
 Origin: architecture review of 2026-09-24, candidate 1 (top recommendation)
@@ -198,3 +198,12 @@ the behaviour in place once the [search-collapse fix](../search-collapse/spec.md
 - Decided: the listing returns one top-level `filtering` flag; the page chooses "entry" or "match" wording.
 - Decided: docs update the overview's logical-architecture diagram and project layout only; no ADR.
 - Spec rewritten to these decisions and set to `ready-for-agent`.
+
+### 2026-09-25 - Delivered
+
+- Every ticket is `done`: 01 (6469b61), 02 (90647f3), 03 (84d48e6, with test follow-up db0b8fb),
+  and 04 (dda047a), all merged into `main`. The catalogue page now makes one `listCatalogue` call per
+  render and no longer resolves, filters, groups, or summarises. Derivation tests assert the
+  returned listing in `src/domain/catalogueListing.test.ts`, and the rendered-outline snapshot and
+  all 79 Playwright scenarios pass unmodified. A toggle rebuild at the content budget measured
+  19–36 ms median, so no cache was added (see ticket 04).
