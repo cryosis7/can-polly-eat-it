@@ -5,33 +5,17 @@ import { CollapsedRowChip } from '../../components/CollapsedRowChip'
 import { GuidanceLayers } from '../../components/GuidanceLayers'
 import { GuideEntrySummary } from '../../components/GuideEntrySummary'
 import { StatusChip } from '../../components/StatusChip'
-import { resolveAssessment, type AssessmentSubjectRef } from '../../domain/assessment'
-import { listCatalogue } from '../../domain/catalogueListing'
-import {
-  entriesSurfacedByDescendants,
-  entryRowsByCategoryId,
-  rowsByCategoryId,
-  type CategoryEntryGroups,
-  type CategoryRowGroups,
-} from '../../domain/categoryTree'
-import {
-  combineOutcomesAcrossLists,
-  combinedOutcomeLabel,
-  summariseCollapsedRow,
-  type CombinedOutcome,
-} from '../../domain/collapsedRowSummary'
+import { listCatalogue, type ListedFood } from '../../domain/catalogueListing'
+import { combinedOutcomeLabel } from '../../domain/collapsedRowSummary'
 import {
   initialCollapseState,
-  isBandCollapsed,
-  preparationBandKey,
   settleCollapseState,
   toggleBand,
   toggleCategory as toggleCategoryIn,
   type PreparationBandKey,
 } from '../../domain/collapseState'
 import type { ContentIndex } from '../../domain/contentIndex'
-import { filterCategoryEntries, filterFoods } from '../../domain/filtering'
-import type { OutcomeBand } from '../../domain/schemas'
+import type { OutcomeBand, Preparation } from '../../domain/schemas'
 
 type CataloguePageProps = {
   index: ContentIndex
@@ -149,57 +133,8 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
     [collapseState, filterState, index],
   )
   const { filtering: isFiltering, resultCount } = listing
-  // Bands and the foods in them are still derived here until the listing returns them.
-  const selectedFoodRows = useMemo(
-    () => filterFoods(index, filterState),
-    [filterState, index],
-  )
-  const matchedCategoryRows = useMemo(
-    () => filterCategoryEntries(index, filterState),
-    [filterState, index],
-  )
-  // A rule authored above the foods it governs is stated at the head of each band that holds them,
-  // so the parent's own food-less band would repeat it directly above them.
-  const surfacedBelow = entriesSurfacedByDescendants(matchedCategoryRows, selectedFoodRows, index.tree)
-  const selectedCategoryRows = matchedCategoryRows.filter((row) => !surfacedBelow.has(row))
-  const rowsInCategory = rowsByCategoryId(selectedFoodRows, index)
-  const entriesInCategory = entryRowsByCategoryId(selectedCategoryRows, index)
   const hasNonDefaultScope = queryState.scopeSlugs.length !== scopeDefaults.length ||
     !scopeDefaults.every((slug) => queryState.scopeSlugs.includes(slug))
-
-  // ADR: Resolve guidance conservatively without inference.
-  // See: docs/decisions/2026-09-21 ADR - resolve guidance conservatively without inference.md
-  const combinedOutcomeFor = (subjectRef: AssessmentSubjectRef, preparationId?: string): CombinedOutcome =>
-    combineOutcomesAcrossLists(selectedGuidanceLists.map(
-      (guidanceList) => resolveAssessment(subjectRef, guidanceList, index, preparationId).status.outcomeBand,
-    ))
-
-  const outcomesInBand = new Map<PreparationBandKey, CombinedOutcome[]>()
-  const recordOutcome = (categoryId: string, preparationId: string | undefined, outcome: CombinedOutcome) => {
-    if (preparationId !== undefined) {
-      const bandKey = preparationBandKey(categoryId, preparationId)
-      outcomesInBand.set(bandKey, [...(outcomesInBand.get(bandKey) ?? []), outcome])
-    }
-  }
-  for (const [categoryId, groups] of entriesInCategory) {
-    for (const [preparationId, entryRows] of groups) {
-      for (const { category } of entryRows) {
-        recordOutcome(categoryId, preparationId, combinedOutcomeFor({ kind: 'category', category }, preparationId))
-      }
-    }
-  }
-  for (const [categoryId, groups] of rowsInCategory) {
-    for (const [preparationId, foodRows] of groups) {
-      for (const { food } of foodRows) {
-        recordOutcome(categoryId, preparationId, combinedOutcomeFor({ kind: 'food', food }, preparationId))
-      }
-    }
-  }
-
-  // A chip must never summarise a filtered subset: searching `rice` narrows Cereals to one food,
-  // and a chip folded over what survived would report the whole group as okay. So a row the reader
-  // collapses during a search hides without a chip.
-  const chipFor = (outcomes: CombinedOutcome[]) => isFiltering ? undefined : summariseCollapsedRow(outcomes)
 
   const toggleCategory = (categoryId: string) => {
     setCollapseState((current) => toggleCategoryIn(current, categoryId, filterState))
@@ -384,7 +319,7 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
           {resultCount} {resultCount === 1 ? 'result' : 'results'} in the guide
         </p>
         <p className="visually-hidden" role="status">{filterRemovalAnnouncement}</p>
-        {selectedGuidanceLists.filter((list) => list.evidentiaryBasis).map((list) => (
+        {listing.guidanceLists.filter((list) => list.evidentiaryBasis).map((list) => (
           <p className="evidentiary-basis" key={list.id}>
             {list.title}: {list.evidentiaryBasis}
           </p>
@@ -393,24 +328,45 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
           <p className="no-results">No foods match these filters. Try clearing a filter or searching for another name.</p>
         ) : (
           <div className="catalogue">
-            {listing.sections.map(({ category, breadcrumb, depth, collapsed: isCollapsed, entryCount: categoryEntryCount, chip: categoryChip }) => {
-              const rowGroups: CategoryRowGroups = rowsInCategory.get(category.id) ?? new Map()
-              const entryGroups: CategoryEntryGroups = entriesInCategory.get(category.id) ?? new Map()
-              // A category's own guidance creates a preparation grouping just as a food's
-              // declaration does, so a retired preparation category stays browsable after its rule
-              // moves onto its parent, even where no food declares that state.
-              const axes = [undefined, ...index.preparationStatesFor(category.id).map((preparation) => preparation.id)]
-                .filter((preparationId) => rowGroups.has(preparationId) || entryGroups.has(preparationId))
-              const hasUnqualifiedEntry = entryGroups.has(undefined)
-              const categoryCountText = countText(categoryEntryCount, isFiltering)
+            {listing.sections.map(({ category, breadcrumb, depth, collapsed: isCollapsed, entryCount, chip, ownEntry, unpreparedFoods, bands }) => {
+              const categoryCountText = countText(entryCount, isFiltering)
               // While filtering every row states its matches, so a filtered count never reads as the
               // size of the whole group; while browsing only a chipped row states its entries.
-              const showsCategoryCount = isFiltering || categoryChip !== undefined
+              const showsCategoryCount = isFiltering || chip !== undefined
               const categoryLabel = [
                 `${category.name}, level ${depth + 1}`,
-                ...(categoryChip === undefined ? [] : [combinedOutcomeLabel[categoryChip]]),
+                ...(chip === undefined ? [] : [combinedOutcomeLabel[chip]]),
                 ...(showsCategoryCount ? [categoryCountText] : []),
               ].join(', ')
+              // The preparation heading takes the level beneath the category, so the foods inside it
+              // sit one level deeper and the outline stays unbroken either way.
+              const foodList = (foods: readonly ListedFood[], preparation?: Preparation) => {
+                const FoodHeading = preparation === undefined ? 'h4' : 'h5'
+                return foods.length > 0 && (
+                  <ul className="food-list">
+                    {foods.map(({ food, resolved }) => (
+                      <li className="food-card" key={`${food.id}-${preparation?.id ?? ''}`}>
+                        <div className="food-card-header">
+                          <FoodHeading>
+                            <Link to={`/food/${food.slug}?${withPreparationSlug(returnSearch, preparation?.slug)}`}>
+                              {food.name}
+                            </Link>
+                          </FoodHeading>
+                        </div>
+                        {resolved.map(({ guidanceList, resolved: listResolved }) => (
+                          <GuideEntrySummary
+                            guidanceList={guidanceList}
+                            key={guidanceList.id}
+                            resolved={listResolved}
+                            returnSearch={returnSearch}
+                            index={index}
+                          />
+                        ))}
+                      </li>
+                    ))}
+                  </ul>
+                )
+              }
               return (
                 <section
                   aria-labelledby={`category-${category.id}`}
@@ -429,122 +385,38 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
                     >
                       <span aria-hidden="true" className="category-toggle-icon">{isCollapsed ? '+' : '-'}</span>
                       <span>{category.name}</span>
-                      {categoryChip !== undefined && <CollapsedRowChip outcome={categoryChip} />}
+                      {chip !== undefined && <CollapsedRowChip outcome={chip} />}
                     </button>
                     {showsCategoryCount && (
                       <span aria-hidden="true" className="category-entry-count">{categoryCountText}</span>
                     )}
                   </h3>
-                  {!isCollapsed && hasUnqualifiedEntry && (
+                  {ownEntry !== undefined && (
                     <div className="category-entry">
                       <p className="category-entry-link">
                         <Link to={`/category/${category.slug}?${returnSearch}`}>
                           {category.name} guidance
                         </Link>
                       </p>
-                      {selectedGuidanceLists.map((guidanceList) => (
+                      {ownEntry.resolved.map(({ guidanceList, resolved }) => (
                         <GuideEntrySummary
                           guidanceList={guidanceList}
                           key={guidanceList.id}
-                          resolved={resolveAssessment({ kind: 'category', category }, guidanceList, index)}
+                          resolved={resolved}
                           returnSearch={returnSearch}
                           index={index}
                         />
                       ))}
                     </div>
                   )}
-                  {!isCollapsed && axes.map((preparationId) => {
-                    const preparation = preparationId === undefined
-                      ? undefined
-                      : index.preparationById(preparationId)
-                    const rows = rowGroups.get(preparationId) ?? []
-                    // The unqualified entry renders above the preparation groupings, so only a
-                    // preparation-qualified entry belongs inside one.
-                    const hasEntry = preparation !== undefined && entryGroups.has(preparationId)
-                    const entryCount = rows.length + (hasEntry ? 1 : 0)
-                    if (rows.length === 0 && !hasEntry) {
-                      return null
-                    }
-                    // The preparation heading takes the level beneath the category, so the foods
-                    // inside it sit one level deeper and the outline stays unbroken either way.
-                    const FoodHeading = preparation === undefined ? 'h4' : 'h5'
-                    // The rule governing a band may be authored on an ancestor, because a source can
-                    // state one rule for all seafood while the species are filed under what they
-                    // are. It is called out at the head of every band it governs, naming the scope
-                    // it was authored at, so it reads as the group's rule rather than as a category.
-                    const governing = preparation === undefined ? [] : selectedGuidanceLists
-                      .map((guidanceList) => ({
-                        guidanceList,
-                        resolved: resolveAssessment({ kind: 'category', category }, guidanceList, index, preparationId),
-                      }))
-                      .filter(({ resolved }) => resolved.assessment !== undefined)
-                    const entryContent = (hasEntry || rows.length > 0) && governing.length > 0 && (
-                      <>
-                        {governing.map(({ guidanceList, resolved }) => (
-                          <aside
-                            aria-label={`${preparation!.name} guidance for ${category.name}`}
-                            className={`preparation-callout tone-${resolved.status.tone}`}
-                            key={guidanceList.id}
-                          >
-                            {selectedGuidanceLists.length > 1 && (
-                              <p className="callout-list">{guidanceList.title}</p>
-                            )}
-                            <StatusChip status={resolved.status} />
-                            <GuidanceLayers
-                              guidanceList={guidanceList}
-                              resolved={resolved}
-                              returnSearch={returnSearch}
-                            />
-                            {hasEntry && (
-                              <p className="callout-link">
-                                <Link to={`/category/${category.slug}?${withPreparationSlug(returnSearch, preparation!.slug)}`}>
-                                  {category.name} guidance
-                                </Link>
-                              </p>
-                            )}
-                          </aside>
-                        ))}
-                      </>
-                    )
-                    const bandKey = preparation === undefined ? undefined : preparationBandKey(category.id, preparation.id)
-                    const isPreparationExpanded = bandKey === undefined
-                      || !isBandCollapsed(collapseState, bandKey, filterState)
-                    const entryCountText = countText(entryCount, isFiltering)
-                    const preparationBandLabel = preparation === undefined ? undefined : `${preparation.name} ${category.name}`
-                    const bandChip = bandKey !== undefined && !isPreparationExpanded
-                      ? chipFor(outcomesInBand.get(bandKey)!)
-                      : undefined
+                  {unpreparedFoods.length > 0 && <div>{foodList(unpreparedFoods)}</div>}
+                  {bands.map(({ key, preparation, collapsed: isBandCollapsed, entryCount: bandEntryCount, chip: bandChip, governingRules, hasOwnEntry, foods }) => {
+                    const entryCountText = countText(bandEntryCount, isFiltering)
+                    const preparationBandLabel = `${preparation.name} ${category.name}`
                     const bandLabel = bandChip === undefined
                       ? `${preparationBandLabel}, ${entryCountText}`
                       : `${preparationBandLabel}, ${combinedOutcomeLabel[bandChip]}, ${entryCountText}`
-                    const listContent = rows.length > 0 && (
-                      <ul className="food-list">
-                        {rows.map(({ food }) => (
-                          <li className="food-card" key={`${food.id}-${preparationId ?? ''}`}>
-                            <div className="food-card-header">
-                              <FoodHeading>
-                                <Link to={`/food/${food.slug}?${withPreparationSlug(returnSearch, preparation?.slug)}`}>
-                                  {food.name}
-                                </Link>
-                              </FoodHeading>
-                            </div>
-                            {selectedGuidanceLists.map((guidanceList) => (
-                              <GuideEntrySummary
-                                guidanceList={guidanceList}
-                                key={guidanceList.id}
-                                resolved={resolveAssessment({ kind: 'food', food }, guidanceList, index, preparationId)}
-                                returnSearch={returnSearch}
-                                index={index}
-                              />
-                            ))}
-                          </li>
-                        ))}
-                      </ul>
-                    )
-
-                    return preparation === undefined ? (
-                      <div key="unprepared">{listContent}</div>
-                    ) : (
+                    return (
                       <section
                         aria-labelledby={`preparation-${category.id}-${preparation.id}`}
                         className="preparation-group"
@@ -552,13 +424,13 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
                       >
                         <div className="preparation-header">
                           <button
-                            aria-expanded={isPreparationExpanded}
+                            aria-expanded={!isBandCollapsed}
                             aria-label={bandLabel}
                             className="preparation-toggle"
-                            onClick={() => togglePreparationBand(bandKey!)}
+                            onClick={() => togglePreparationBand(key)}
                             type="button"
                           >
-                            <span aria-hidden="true" className="category-toggle-icon">{isPreparationExpanded ? '-' : '+'}</span>
+                            <span aria-hidden="true" className="category-toggle-icon">{isBandCollapsed ? '+' : '-'}</span>
                           </button>
                           <h4 id={`preparation-${category.id}-${preparation.id}`}>
                             {preparationBandLabel}
@@ -566,10 +438,35 @@ export const CataloguePage = ({ index }: CataloguePageProps) => {
                           </h4>
                           <span aria-hidden="true" className="preparation-count">{entryCountText}</span>
                         </div>
-                        {isPreparationExpanded && (
+                        {!isBandCollapsed && (
                           <>
-                            {entryContent}
-                            {listContent}
+                            {/* Each callout names the scope its rule was authored at, so it reads as
+                                the group's rule about this preparation rather than as a category. */}
+                            {governingRules.map(({ guidanceList, resolved }) => (
+                              <aside
+                                aria-label={`${preparation.name} guidance for ${category.name}`}
+                                className={`preparation-callout tone-${resolved.status.tone}`}
+                                key={guidanceList.id}
+                              >
+                                {listing.guidanceLists.length > 1 && (
+                                  <p className="callout-list">{guidanceList.title}</p>
+                                )}
+                                <StatusChip status={resolved.status} />
+                                <GuidanceLayers
+                                  guidanceList={guidanceList}
+                                  resolved={resolved}
+                                  returnSearch={returnSearch}
+                                />
+                                {hasOwnEntry && (
+                                  <p className="callout-link">
+                                    <Link to={`/category/${category.slug}?${withPreparationSlug(returnSearch, preparation.slug)}`}>
+                                      {category.name} guidance
+                                    </Link>
+                                  </p>
+                                )}
+                              </aside>
+                            ))}
+                            {foodList(foods, preparation)}
                           </>
                         )}
                       </section>

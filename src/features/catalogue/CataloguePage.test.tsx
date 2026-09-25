@@ -92,14 +92,6 @@ describe('CataloguePage', () => {
     }
   })
 
-  it('drops a parent band whose rule its descendants already state beside their foods', () => {
-    renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=seafood')
-
-    const seafood = screen.getByRole('button', { name: /^Seafood, level 1, \d+ matches$/ }).closest('.category-group')!
-    expect(within(seafood as HTMLElement).queryByRole('link', { name: 'Seafood guidance' })).not.toBeInTheDocument()
-    expect(screen.getAllByRole('region', { name: /^Smoked / }).length).toBeGreaterThan(0)
-  })
-
   it('defaults to pregnancy and vegetarian scopes and renders their list-specific card guidance', () => {
     renderCatalogue()
     expandGroup('Dairy')
@@ -342,34 +334,6 @@ describe('CataloguePage', () => {
     )
   })
 
-  it('counts each preparation entry of a food-less category once', () => {
-    const qualifiedOnly = dualSourceContent([
-      categoryAssessment('shellfish-raw', 'shellfish', 'dual-avoid', { preparationId: 'raw', sourceId: 'nzfs' }),
-      categoryAssessment('shellfish-cooked', 'shellfish', 'dual-conditions', { preparationId: 'cooked', sourceId: 'nzfs' }),
-    ], [])
-
-    renderCatalogue('/?v=1&scope=dual', qualifiedOnly)
-
-    expect(screen.getByText('2 results in the guide')).toBeInTheDocument()
-  })
-
-  it('splits sauces into store-bought and home-made groups without either showing the other rule', () => {
-    renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=sauces-dressings-and-spreads')
-
-    const storeBought = screen.getByRole('heading', { name: 'Store-bought Sauces, dressings and spreads' })
-      .closest('.preparation-group') as HTMLElement
-    expect(within(storeBought).getAllByText(/follow their manufacturer storage and heating instructions/).length)
-      .toBeGreaterThan(0)
-    expect(within(storeBought).queryByText(/contains raw egg/)).not.toBeInTheDocument()
-    expect(within(storeBought).getByRole('link', { name: 'Worcestershire sauce' })).toBeInTheDocument()
-
-    const homeMade = screen.getByRole('heading', { name: 'Home-made Sauces, dressings and spreads' })
-      .closest('.preparation-group') as HTMLElement
-    expect(within(homeMade).getAllByText(/check whether this one contains raw egg/).length).toBeGreaterThan(0)
-    expect(within(homeMade).queryByText(/manufacturer storage/)).not.toBeInTheDocument()
-    expect(within(homeMade).getByRole('link', { name: 'Mayonnaise' })).toBeInTheDocument()
-  })
-
   it('shows an unassessed cold dessert inheriting the amber group rule with its origin named', () => {
     renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=cold-desserts')
 
@@ -405,35 +369,6 @@ describe('CataloguePage', () => {
       'Drinks > Alcoholic drinks',
     ]))
     expect(options.some((option) => option?.includes('animal-derived'))).toBe(false)
-  })
-
-  it('shows the retired animal-derived heading nowhere, and its foods under real food groups', () => {
-    renderCatalogue()
-
-    const rootNames = screen.getAllByRole('button', { name: /, level 1$/ })
-      .map((toggle) => toggle.getAttribute('aria-label')!.replace(/, level 1$/, ''))
-    expect(rootNames).not.toContain('Foods that may contain animal-derived ingredients')
-    expect(rootNames).toEqual(expect.arrayContaining(['Confectionery', 'Ingredients and additives', 'Soups']))
-
-    expandGroup('Confectionery')
-    for (const name of ['Gummy bears', 'Jelly', 'Marshmallows', 'Starburst']) {
-      expect(screen.getByRole('link', { name })).toBeInTheDocument()
-    }
-
-    expandGroup('Ingredients and additives')
-    expect(screen.getByRole('link', { name: 'Gelatin' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'White sugar' })).toBeInTheDocument()
-  })
-
-  it('shows orange juice once, on the juice group rather than either pasteurisation child', () => {
-    renderCatalogue('/?v=1&scope=pregnancy-food-safety&category=drinks')
-
-    const orangeJuiceLinks = screen.getAllByRole('link', { name: 'Orange juice' })
-    expect(orangeJuiceLinks).toHaveLength(1)
-
-    const juiceGroup = screen.getByRole('button', { name: /^Fruit juice, kombucha and cider \(non-alcoholic\), level \d+/ })
-      .closest('.category-group') as HTMLElement
-    expect(within(juiceGroup).getByRole('link', { name: 'Orange juice' })).toBeInTheDocument()
   })
 
   it('collapses top-level groups by default and reveals descendants when one is expanded', () => {
@@ -590,16 +525,6 @@ describe('browsing a category with a preparation dimension', () => {
     expect(screen.getByText(/results in the guide/)).toHaveTextContent(countBefore!)
   })
 
-  it('groups the food under each preparation, each row showing one status', () => {
-    renderCatalogue(`/?${scope}&q=${salmon.slug}`, preparedContent)
-
-    // Raw takes the avoid rule; cooked keeps the group's food-wide rule, which is more cautious
-    // than the cooked-only rule and applies however the fish is prepared.
-    expect(within(cardFor('Raw')).getByText('Avoid')).toBeInTheDocument()
-    expect(within(cardFor('Cooked')).getByText('Only with conditions')).toBeInTheDocument()
-    expect(screen.getByText('2 results in the guide')).toBeInTheDocument()
-  })
-
   it('keeps matching preparation rows discoverable in filtered result views', () => {
     renderCatalogue(`/?${scope}&q=${salmon.slug}`, preparedContent)
 
@@ -672,14 +597,6 @@ describe('browsing a category with a preparation dimension', () => {
       .toHaveAttribute('href', expect.stringContaining('prep=raw'))
     expect(within(cardFor('Cooked')).getByRole('link', { name: salmon.name }))
       .toHaveAttribute('href', expect.stringContaining('prep=cooked'))
-  })
-
-  it('returns one preparation row of a food under an outcome filter and not the other', () => {
-    renderCatalogue(`/?${scope}&q=${salmon.slug}&outcome=not-okay`, preparedContent)
-
-    expect(screen.getByRole('heading', { name: 'Raw Fish' })).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Cooked Fish' })).not.toBeInTheDocument()
-    expect(screen.getByText('1 result in the guide')).toBeInTheDocument()
   })
 
   it('renders a category with no preparation dimension exactly as before', () => {

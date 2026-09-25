@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { contentIndex } from '../data'
 import { buildContentIndex } from '../test/buildContentIndex'
-import { listCatalogue, type CatalogueListing } from './catalogueListing'
-import { initialCollapseState, toggleCategory, type CollapseState } from './collapseState'
+import { listCatalogue, type CatalogueListing, type CatalogueSection, type ListedGuidance } from './catalogueListing'
+import { initialCollapseState, preparationBandKey, toggleBand, toggleCategory, type CollapseState } from './collapseState'
 import type { ContentIndex } from './contentIndex'
 import type { FoodFilterState } from './filtering'
 import type { Assessment, AssessmentSubject, Category, Food, GuidanceList, Preparation } from './schemas'
@@ -321,5 +321,207 @@ describe('catalogue listing over the guide content', () => {
     const listing = listCatalogue(contentIndex, defaultScopes, collapsing(['cereals'], defaultScopes, expandedGuide()))
 
     expect(sectionOf(listing, 'cereals')!.chip).toBe('maybe')
+  })
+
+  const listedFoodIds = (section: CatalogueSection) => [
+    ...foodIds(section.unpreparedFoods),
+    ...section.bands.flatMap((band) => foodIds(band.foods)),
+  ]
+
+  it('lists orange juice once, on the juice group rather than under either pasteurisation band', () => {
+    const listing = listCatalogue(contentIndex, { ...browsing(['pregnancy-food-safety']), categoryId: 'drinks' }, initialCollapseState(contentIndex))
+
+    const holding = listing.sections.filter((section) => listedFoodIds(section).includes('orange-juice'))
+    expect(holding.map((section) => section.category.id)).toEqual(['fruit-juice-kombucha-and-cider'])
+    expect(foodIds(holding[0].unpreparedFoods).filter((id) => id === 'orange-juice')).toHaveLength(1)
+  })
+
+  it('lists no retired animal-derived heading, and files its foods under real food groups', () => {
+    const listing = listCatalogue(contentIndex, defaultScopes, expandedGuide())
+
+    expect(listing.sections.some((section) => section.category.name.includes('animal-derived'))).toBe(false)
+    expect(foodIds(sectionOf(listing, 'confectionery')!.unpreparedFoods))
+      .toEqual(expect.arrayContaining(['gummy-bears', 'jelly', 'marshmallows', 'starburst']))
+    expect(foodIds(sectionOf(listing, 'ingredients-and-additives')!.unpreparedFoods))
+      .toEqual(expect.arrayContaining(['gelatin', 'white-sugar']))
+  })
+
+  it('splits sauces into home-made and store-bought bands, each governed by its own rule only', () => {
+    const pregnancyOnly = browsing(['pregnancy-food-safety'])
+    const sauces = sectionOf(listCatalogue(contentIndex, { ...pregnancyOnly, categoryId: 'sauces-dressings-and-spreads' }, initialCollapseState(contentIndex)), 'sauces-dressings-and-spreads')
+    const ruleText = (preparationId: string) => JSON.stringify(bandOf(sauces, preparationId).governingRules.map(({ resolved }) => resolved.layers))
+
+    expect(bandsOf(sauces)).toEqual(['home-made', 'store-bought'])
+    expect(ruleText('store-bought')).toMatch(/follow their manufacturer storage and heating instructions/)
+    expect(ruleText('store-bought')).not.toMatch(/raw egg/)
+    expect(ruleText('home-made')).toMatch(/check whether this one contains raw egg/)
+    expect(ruleText('home-made')).not.toMatch(/manufacturer storage/)
+    expect(foodIds(bandOf(sauces, 'store-bought').foods)).toContain('worcestershire-sauce')
+    expect(foodIds(bandOf(sauces, 'home-made').foods)).toEqual(expect.arrayContaining(['mayonnaise']))
+    expect(foodIds(bandOf(sauces, 'home-made').foods)).not.toContain('worcestershire-sauce')
+  })
+})
+
+const bandsOf = (section: CatalogueSection | undefined) => section!.bands.map((band) => band.preparation.id)
+const bandOf = (section: CatalogueSection | undefined, preparationId: string) =>
+  section!.bands.find((band) => band.preparation.id === preparationId)!
+const foodIds = (foods: readonly { food: { id: string } }[]) => foods.map(({ food: { id } }) => id)
+const statuses = ({ resolved }: ListedGuidance) =>
+  resolved.map(({ guidanceList, resolved: { status } }) => `${guidanceList.id}:${status.outcomeBand}`)
+const expandingBands = (keys: [string, string][], from: CollapseState = expandedCollapse()) =>
+  keys.reduce((state, [categoryId, preparationId]) =>
+    toggleBand(state, preparationBandKey(categoryId, preparationId), browsing()), from)
+
+describe('catalogue listing section contents', () => {
+  const bothScopes = browsing(['pregnancy', 'vegetarian'])
+
+  it('returns a section\'s own guide entry and its foods declaring no preparation, in editorial order', () => {
+    const hardCheese = sectionOf(listCatalogue(index, bothScopes, expandedCollapse()), 'hard-cheese')!
+
+    expect(statuses(hardCheese.ownEntry!)).toEqual(['pregnancy:okay', 'vegetarian:okay'])
+    expect(foodIds(hardCheese.unpreparedFoods)).toEqual(['cheddar', 'parmesan'])
+    expect(statuses(hardCheese.unpreparedFoods[1])).toEqual(['pregnancy:okay', 'vegetarian:not-okay'])
+    expect(hardCheese.bands).toEqual([])
+  })
+
+  it('omits the own entry, foods, and bands while a section is collapsed', () => {
+    const listing = listCatalogue(index, browsing(), collapsing(['hard-cheese', 'fish'], browsing()))
+
+    for (const categoryId of ['hard-cheese', 'fish']) {
+      const section = sectionOf(listing, categoryId)!
+      expect(section.ownEntry, categoryId).toBeUndefined()
+      expect(section, categoryId).toMatchObject({ unpreparedFoods: [], bands: [] })
+    }
+  })
+
+  it('omits the own entry of a category holding none, so a structural heading stays a heading', () => {
+    expect(sectionOf(listCatalogue(index, browsing(), expandedCollapse()), 'cheese')!.ownEntry).toBeUndefined()
+  })
+
+  it('orders bands by the preparation vocabulary rather than by declaration', () => {
+    // Salmon declares smoked before raw.
+    expect(bandsOf(sectionOf(listCatalogue(index, browsing(), expandedCollapse()), 'fish'))).toEqual(['raw', 'smoked'])
+  })
+
+  it('starts bands collapsed while browsing, with their counts and chips but not their foods', () => {
+    const fish = sectionOf(listCatalogue(index, browsing(), expandedCollapse()), 'fish')
+
+    expect(fish!.bands.map(({ key, collapsed, entryCount, chip, foods }) => ({ key, collapsed, entryCount, chip, foods })))
+      .toEqual([
+        { key: preparationBandKey('fish', 'raw'), collapsed: true, entryCount: 1, chip: 'not-okay', foods: [] },
+        { key: preparationBandKey('fish', 'smoked'), collapsed: true, entryCount: 1, chip: 'maybe', foods: [] },
+      ])
+  })
+
+  it('lists an expanded band\'s foods resolved for that preparation, without a chip', () => {
+    const fish = sectionOf(listCatalogue(index, browsing(), expandingBands([['fish', 'raw'], ['fish', 'smoked']])), 'fish')
+
+    expect(bandOf(fish, 'raw')).toMatchObject({ collapsed: false, chip: undefined })
+    expect(statuses(bandOf(fish, 'raw').foods[0])).toEqual(['pregnancy:not-okay'])
+    expect(statuses(bandOf(fish, 'smoked').foods[0])).toEqual(['pregnancy:maybe'])
+  })
+
+  it('opens every band holding a match while filtering, and counts its matches', () => {
+    const fish = sectionOf(listCatalogue(index, { ...browsing(), query: 'salmon' }, initialCollapseState(index)), 'fish')
+
+    expect(fish!.bands.map(({ collapsed, entryCount, chip }) => ({ collapsed, entryCount, chip })))
+      .toEqual([{ collapsed: false, entryCount: 1, chip: undefined }, { collapsed: false, entryCount: 1, chip: undefined }])
+    expect(foodIds(bandOf(fish, 'raw').foods)).toEqual(['salmon'])
+  })
+
+  it('returns one band of a food under an outcome filter and not the other', () => {
+    const listing = listCatalogue(index, { ...browsing(), outcomeBands: ['not-okay'] }, initialCollapseState(index))
+
+    expect(bandsOf(sectionOf(listing, 'fish'))).toEqual(['raw'])
+    expect(listing.resultCount).toBe(1)
+  })
+
+  it('states a governing rule authored on an ancestor, only for lists that assessed it', () => {
+    const smoked = bandOf(sectionOf(listCatalogue(index, bothScopes, expandedCollapse()), 'fish'), 'smoked')
+
+    expect(smoked.hasOwnEntry).toBe(false)
+    expect(smoked.governingRules.map(({ guidanceList, resolved }) => ({
+      list: guidanceList.id,
+      outcome: resolved.status.outcomeBand,
+      origin: resolved.origin,
+    }))).toEqual([{ list: 'pregnancy', outcome: 'maybe', origin: { kind: 'inherited', category: index.categoryById('seafood') } }])
+  })
+
+  it('states no governing rule for a band nobody assessed as a group', () => {
+    // Salmon's raw rule is its own, not the group's.
+    expect(bandOf(sectionOf(listCatalogue(index, bothScopes, expandedCollapse()), 'fish'), 'raw').governingRules).toEqual([])
+  })
+
+  it('drops an ancestor\'s own band whose rule its descendants already state beside their foods', () => {
+    const seafood = sectionOf(listCatalogue(index, browsing(), expandedCollapse()), 'seafood')
+
+    expect(seafood!.bands).toEqual([])
+    expect(seafood!.ownEntry).toBeUndefined()
+  })
+
+  it('keeps an ancestor\'s own band beside the foods it lists in that preparation', () => {
+    const withSmokedMussels = buildContentIndex({ ...guideContent, foods: [...guideContent.foods, food('mussels', 'seafood', ['smoked'])] })
+
+    const seafood = sectionOf(listCatalogue(withSmokedMussels, browsing(), expandedCollapse(withSmokedMussels)), 'seafood')
+
+    expect(bandOf(seafood, 'smoked')).toMatchObject({ hasOwnEntry: true, entryCount: 2 })
+    expect(bandOf(seafood, 'smoked').governingRules.map(({ resolved }) => resolved.origin)).toEqual([{ kind: 'own' }])
+  })
+
+  describe('a category holding qualified guidance and no foods', () => {
+    const withShellfish = buildContentIndex({
+      ...guideContent,
+      categories: [...guideContent.categories, category('shellfish', 'Shellfish', 'seafood', 2)],
+      assessments: [
+        ...guideContent.assessments,
+        assessment('vegetarian', onCategory('shellfish'), 'avoid', 'raw'),
+        assessment('pregnancy', onCategory('shellfish'), 'avoid', 'raw'),
+        assessment('pregnancy', onCategory('shellfish'), 'conditions', 'smoked'),
+      ],
+    })
+    const shellfishIn = (filters: FoodFilterState) =>
+      sectionOf(listCatalogue(withShellfish, filters, expandedCollapse(withShellfish)), 'shellfish')
+
+    it('lists a band for each preparation it holds guidance on, stating its own rule', () => {
+      const shellfish = shellfishIn(bothScopes)
+
+      expect(bandsOf(shellfish)).toEqual(['raw', 'smoked'])
+      expect(shellfish!.bands.map(({ hasOwnEntry, entryCount, foods }) => ({ hasOwnEntry, entryCount, foods })))
+        .toEqual([{ hasOwnEntry: true, entryCount: 1, foods: [] }, { hasOwnEntry: true, entryCount: 1, foods: [] }])
+      expect(bandOf(shellfish, 'smoked').governingRules.map(({ guidanceList }) => guidanceList.id)).toEqual(['pregnancy'])
+    })
+
+    it('counts each preparation entry once', () => {
+      expect(listCatalogue(withShellfish, browsing(), expandedCollapse(withShellfish)).resultCount).toBe(10)
+    })
+
+    it('resolves governing rules in the content index\'s list order, whatever the input order', () => {
+      expect(bandOf(shellfishIn(browsing(['vegetarian', 'pregnancy'])), 'raw').governingRules.map(({ guidanceList }) => guidanceList.id))
+        .toEqual(['pregnancy', 'vegetarian'])
+    })
+  })
+
+  it('resolves every listed entry in the content index\'s list order, whatever the input order', () => {
+    const hardCheese = sectionOf(listCatalogue(index, browsing(['vegetarian', 'pregnancy']), expandedCollapse()), 'hard-cheese')!
+
+    expect(hardCheese.ownEntry!.resolved.map(({ guidanceList }) => guidanceList.id)).toEqual(['pregnancy', 'vegetarian'])
+    expect(hardCheese.unpreparedFoods[0].resolved.map(({ guidanceList }) => guidanceList.id)).toEqual(['pregnancy', 'vegetarian'])
+  })
+})
+
+// ADR: Resolve guidance conservatively without inference.
+// See: docs/decisions/2026-09-21 ADR - resolve guidance conservatively without inference.md
+describe('catalogue listing keeps not-assessed neutral', () => {
+  const bothScopes = browsing(['pregnancy', 'vegetarian'])
+  const drinks = sectionOf(listCatalogue(index, bothScopes, expandedCollapse()), 'soft-drinks')!
+  const juice = sectionOf(listCatalogue(index, bothScopes, expandedCollapse()), 'juice')!
+
+  it('resolves an entry nobody assessed to each list\'s neutral fallback, with no assessment behind it', () => {
+    expect(drinks.unpreparedFoods[0].resolved.map(({ resolved }) => [resolved.status.id, resolved.assessment]))
+      .toEqual([['pregnancy-not-assessed', undefined], ['vegetarian-not-assessed', undefined]])
+  })
+
+  it('never carries one list\'s answer into another list that is silent', () => {
+    expect(statuses(juice.unpreparedFoods[0])).toEqual(['pregnancy:okay', 'vegetarian:not-assessed'])
   })
 })
