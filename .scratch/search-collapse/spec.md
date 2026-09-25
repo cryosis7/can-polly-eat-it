@@ -1,7 +1,7 @@
 # Honour a collapse made during a search
 
 Category: bug
-Status: ready-for-agent
+Status: done
 Feature: [F-01: Browse the food guide](../../docs/features/01-browse-food-guide.md), [F-02: Find, filter, and share guide entries](../../docs/features/02-find-filter-and-share-guide-entries.md)
 Reported: 2026-09-25
 Origin: grilling of [Deepen the catalogue view](../deepen-catalogue-view/spec.md), 2026-09-25
@@ -132,3 +132,4 @@ and renders it. The later [catalogue listing](../deepen-catalogue-view/spec.md) 
 - 2026-09-25: Product owner confirmed that a stale search collapse is discarded rather than only
   ignored, so returning to an earlier filter (for example `rice` → clear → `rice`) opens every group.
   Implementation Decisions updated to match.
+- 2026-09-25: Closed. Tickets 01–03 merged into `main` as e8d632f, dbfbd70, and ee6a57f.

@@ -1,7 +1,7 @@
 # 02: Search-collapse a preparation band
 
 Category: bug
-Status: ready-for-agent
+Status: done
 Parent: [Honour a collapse made during a search](../spec.md)
 
 **What to build:** While filtering, a reader can collapse and reopen a preparation band for this
@@ -14,14 +14,18 @@ strings itself.
 
 ## Acceptance criteria
 
-- [ ] The collapse-state module issues band keys and answers whether a band is collapsed, for both
+- [x] The collapse-state module issues band keys and answers whether a band is collapsed, for both
   browse and search parts; the page builds no band key strings.
-- [ ] The search part records collapsed bands; bands default to open while filtering.
-- [ ] While filtering, a search-collapsed band hides its callout and foods, reports
+- [x] The search part records collapsed bands; bands default to open while filtering.
+- [x] While filtering, a search-collapsed band hides its callout and foods, reports
   `aria-expanded="false"`, and shows no aggregate chip.
-- [ ] Changing any of search text, category, outcomes, or selected scopes reopens every band.
-- [ ] Clearing the filters restores the browse band state from before the search.
-- [ ] Browsing behaviour is unchanged: bands default collapsed, and a collapsed band shows its chip.
-- [ ] Domain tests cover band keys and band collapse through the module's interface; page tests
+- [x] Changing any of search text, category, outcomes, or selected scopes reopens every band.
+- [x] Clearing the filters restores the browse band state from before the search.
+- [x] Browsing behaviour is unchanged: bands default collapsed, and a collapsed band shows its chip.
+- [x] Domain tests cover band keys and band collapse through the module's interface; page tests
   cover the rendering above.
-- [ ] Coverage stays at 100% and every Playwright scenario passes.
+- [x] Coverage stays at 100% and every Playwright scenario passes.
+
+## Comments
+
+- 2026-09-25: Implemented and merged into `main` as dbfbd70; every acceptance criterion met, coverage at 100%, and all 79 Playwright scenarios pass.
