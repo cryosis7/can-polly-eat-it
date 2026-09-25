@@ -1,4 +1,4 @@
-import { findAssessments, type ContentIndex } from './contentIndex'
+import type { ContentIndex } from './contentIndex'
 import { getStatusById } from './contentValidation'
 import type { Assessment, Category, Food, GuidanceList, StatusDefinition } from './schemas'
 
@@ -126,8 +126,7 @@ const collectAncestorLayers = (
   const layers: GuidanceLayer[] = []
   for (let position = from; position >= 0; position -= 1) {
     const category = ancestors[position]
-    const assessments = findAssessments(
-      index,
+    const assessments = index.assessmentsFor(
       guidanceList.id,
       { kind: 'category', categoryId: category.id },
       preparationId,
@@ -158,8 +157,7 @@ const findNearestLevel = (
   }
   for (let position = ancestors.length - 1; position >= 0; position -= 1) {
     const category = ancestors[position]
-    const assessments = findAssessments(
-      index,
+    const assessments = index.assessmentsFor(
       guidanceList.id,
       { kind: 'category', categoryId: category.id },
       preparationId,
@@ -265,7 +263,7 @@ const resolveOnAxis = (
   if (subjectRef.kind === 'food') {
     const { food } = subjectRef
     return resolveWithAncestors(
-      findAssessments(index, guidanceList.id, { kind: 'food', foodId: food.id }, preparationId),
+      index.assessmentsFor(guidanceList.id, { kind: 'food', foodId: food.id }, preparationId),
       index.tree.pathByCategoryId.get(food.primaryCategoryId) ?? [],
       guidanceList,
       index,
@@ -275,7 +273,7 @@ const resolveOnAxis = (
 
   const { category } = subjectRef
   return resolveWithAncestors(
-    findAssessments(index, guidanceList.id, { kind: 'category', categoryId: category.id }, preparationId),
+    index.assessmentsFor(guidanceList.id, { kind: 'category', categoryId: category.id }, preparationId),
     (index.tree.pathByCategoryId.get(category.id) ?? []).slice(0, -1),
     guidanceList,
     index,

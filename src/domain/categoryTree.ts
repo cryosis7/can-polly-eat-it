@@ -1,5 +1,5 @@
 import type { ContentIndex } from './contentIndex'
-import type { Assessment, Category, Food, Preparation } from './schemas'
+import type { Category, Food } from './schemas'
 
 export type CategoryTree = {
   categoryById: Map<string, Category>
@@ -271,48 +271,4 @@ export const rowsByCategoryId = (
   }
 
   return grouped
-}
-
-// ADR: Model catalogue subjects and preparation independently.
-// See: docs/decisions/2026-09-21 ADR - model catalogue subjects and preparation independently.md
-/**
- * The preparation states in play for each category: the union of the states its foods declare and
- * the states carrying an authored category assessment for it, ordered by the vocabulary's
- * `sortOrder`. Derived on every build rather than authored, so a category cannot drift out of step
- * with the foods in it and adding a food needs one edit rather than two. A category with no
- * preparation dimension is absent from the map and renders no preparation level.
- */
-export const preparationIdsByCategoryId = (
-  foods: Food[],
-  assessments: Assessment[],
-  preparations: Preparation[],
-): Map<string, string[]> => {
-  const idsByCategory = new Map<string, Set<string>>()
-  const add = (categoryId: string, preparationId: string) => {
-    const existing = idsByCategory.get(categoryId) ?? new Set<string>()
-    existing.add(preparationId)
-    idsByCategory.set(categoryId, existing)
-  }
-
-  for (const food of foods) {
-    for (const preparationId of food.preparationIds) {
-      add(food.primaryCategoryId, preparationId)
-    }
-  }
-  for (const assessment of assessments) {
-    if (assessment.subject.kind === 'category' && assessment.preparationId !== undefined) {
-      add(assessment.subject.categoryId, assessment.preparationId)
-    }
-  }
-
-  const vocabularyOrder = [...preparations]
-    .sort((left, right) => left.sortOrder - right.sortOrder)
-    .map((preparation) => preparation.id)
-
-  return new Map(
-    [...idsByCategory].map(([categoryId, ids]) => [
-      categoryId,
-      vocabularyOrder.filter((preparationId) => ids.has(preparationId)),
-    ]),
-  )
 }

@@ -197,6 +197,18 @@ describe('content index', () => {
       expect(ids(index.preparationStatesFor('seafood'))).toEqual(['smoked', 'cooked'])
     })
 
+    it('makes a grouping appear when a food declaring a new state is added, with no other edit', () => {
+      const fishWith = (foods: Food[]) => buildContentIndex({
+        categories: [category('fish')],
+        foods,
+        preparations: [preparation('cooked', 3), preparation('raw', 1)],
+      })
+      const existing = [food('salmon', 'fish', ['cooked'])]
+
+      expect(ids(fishWith(existing).preparationStatesFor('fish'))).toEqual(['cooked'])
+      expect(ids(fishWith([...existing, food('tuna', 'fish', ['raw'])]).preparationStatesFor('fish'))).toEqual(['raw', 'cooked'])
+    })
+
     it('gives a category whose foods declare nothing no preparation states', () => {
       expect(index.preparationStatesFor('cereals')).toEqual([])
     })

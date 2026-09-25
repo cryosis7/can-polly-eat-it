@@ -3,11 +3,10 @@ import {
   categoryAssessment,
   dualSourceContent,
   dualSourceList,
-  fixturePreparations,
   makeFood,
   nzfs,
 } from '../test/multiSourceFixture'
-import { categoryEntryRows, entryRowsByCategoryId, preparationIdsByCategoryId } from './categoryTree'
+import { categoryEntryRows, entryRowsByCategoryId } from './categoryTree'
 import { buildContentIndex } from '../test/buildContentIndex'
 import { filterCategoryEntries } from './filtering'
 
@@ -71,13 +70,9 @@ describe('category guidance entries across preparations', () => {
   })
 
   it('derives a category grouping for a preparation only its own assessment carries', () => {
-    const groupings = preparationIdsByCategoryId(
-      [makeFood('paua')],
-      [rawShellfish, cookedShellfish],
-      fixturePreparations,
-    )
+    const index = buildContentIndex(dualSourceContent([rawShellfish, cookedShellfish], [makeFood('paua')]))
 
-    expect(groupings.get('shellfish')).toEqual(['raw', 'cooked'])
+    expect(index.preparationStatesFor('shellfish').map((preparation) => preparation.id)).toEqual(['raw', 'cooked'])
   })
 
   it('groups entry rows under their category in vocabulary order', () => {

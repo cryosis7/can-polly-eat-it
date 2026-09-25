@@ -1,5 +1,5 @@
-import { buildCategoryTree, preparationIdsByCategoryId, type CategoryTree } from './categoryTree'
-import type { ContentData, ValidatedContent } from './contentValidation'
+import { buildCategoryTree, type CategoryTree } from './categoryTree'
+import type { ValidatedContent } from './contentValidation'
 import type { Assessment, AssessmentSubject, Category, Food, GuidanceList, Preparation, Source } from './schemas'
 
 export type ContentIndex = {
@@ -70,13 +70,46 @@ const groupAssessments = (assessments: Assessment[]): Map<string, Assessment[]> 
   return grouped
 }
 
-export function createContentIndex(content: ValidatedContent): ContentIndex
-/** Retiring: builds over partly validated content and holds no foods, preparations, sources, or lists. */
-export function createContentIndex(categories: Category[], assessments: Assessment[]): ContentIndex
-export function createContentIndex(first: ValidatedContent | Category[], legacyAssessments?: Assessment[]): ContentIndex {
-  const content: ContentData = Array.isArray(first)
-    ? { categories: first, assessments: legacyAssessments!, foods: [], preparations: [], sources: [], guidanceLists: [] }
-    : first
+// ADR: Model catalogue subjects and preparation independently.
+// See: docs/decisions/2026-09-21 ADR - model catalogue subjects and preparation independently.md
+/**
+ * The preparation states in play for each category: the union of the states its foods declare and
+ * the states carrying an authored category assessment for it, in vocabulary order. Derived on every
+ * build rather than authored, so a category cannot drift out of step with the foods in it and adding
+ * a food needs one edit rather than two. A category with no preparation dimension is absent and
+ * renders no preparation level. Filtering the vocabulary rather than looking states up means
+ * validation can build an index before it has checked every preparation qualifier.
+ */
+const derivePreparationStates = (
+  foods: readonly Food[],
+  assessments: readonly Assessment[],
+  vocabulary: readonly Preparation[],
+): Map<string, Preparation[]> => {
+  const idsByCategory = new Map<string, Set<string>>()
+  const add = (categoryId: string, preparationId: string) => {
+    const existing = idsByCategory.get(categoryId) ?? new Set<string>()
+    existing.add(preparationId)
+    idsByCategory.set(categoryId, existing)
+  }
+
+  for (const food of foods) {
+    for (const preparationId of food.preparationIds) {
+      add(food.primaryCategoryId, preparationId)
+    }
+  }
+  for (const assessment of assessments) {
+    if (assessment.subject.kind === 'category' && assessment.preparationId !== undefined) {
+      add(assessment.subject.categoryId, assessment.preparationId)
+    }
+  }
+
+  return new Map([...idsByCategory].map(([categoryId, ids]) => [
+    categoryId,
+    vocabulary.filter((preparation) => ids.has(preparation.id)),
+  ]))
+}
+
+export const createContentIndex = (content: ValidatedContent): ContentIndex => {
   const { categories, assessments } = content
   const preparations = [...content.preparations].sort((left, right) => left.sortOrder - right.sortOrder)
   const preparationById = lookupById(preparations, 'preparation')
@@ -86,12 +119,7 @@ export function createContentIndex(first: ValidatedContent | Category[], legacyA
       .filter((assessment) => assessment.subject.kind === 'category')
       .map((assessment) => (assessment.subject as { kind: 'category', categoryId: string }).categoryId),
   )
-  const preparationStatesByCategoryId = new Map(
-    [...preparationIdsByCategoryId(content.foods, assessments, preparations)].map(([categoryId, preparationIds]) => [
-      categoryId,
-      preparationIds.map(preparationById),
-    ]),
-  )
+  const preparationStatesByCategoryId = derivePreparationStates(content.foods, assessments, preparations)
 
   return {
     tree: buildCategoryTree(categories),
@@ -117,10 +145,3 @@ export function createContentIndex(first: ValidatedContent | Category[], legacyA
     isCategoryAssessed: (categoryId) => assessedCategoryIds.has(categoryId),
   }
 }
-
-export const findAssessments = (
-  index: ContentIndex,
-  guidanceListId: string,
-  subject: AssessmentSubject,
-  preparationId?: string,
-): Assessment[] => index.assessmentsFor(guidanceListId, subject, preparationId)

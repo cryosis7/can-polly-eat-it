@@ -13,7 +13,7 @@ import {
   type Source,
   type StatusDefinition,
 } from './schemas'
-import { createContentIndex, findAssessments, subjectKey, type ContentIndex } from './contentIndex'
+import { createContentIndex, subjectKey, type ContentIndex } from './contentIndex'
 
 export type ContentData = {
   categories: Category[]
@@ -122,21 +122,20 @@ const validateAdditiveAssessment = (
   assessment: Assessment,
   guidanceList: GuidanceList,
   index: ContentIndex,
-  foodsById: Map<string, Food>,
 ) => {
   const { subject } = assessment
-  // Both references are already validated above, so the tree always holds the subject's path.
+  // Both references are already validated above, so the lookups resolve and the tree always holds
+  // the subject's path.
   const path = subject.kind === 'food'
-    ? index.tree.pathByCategoryId.get(foodsById.get(subject.foodId)!.primaryCategoryId)!
+    ? index.tree.pathByCategoryId.get(index.foodById(subject.foodId).primaryCategoryId)!
     : index.tree.pathByCategoryId.get(subject.categoryId)!.slice(0, -1)
   const declaredAxes = subject.kind === 'food' && assessment.preparationId === undefined
-    ? foodsById.get(subject.foodId)!.preparationIds
+    ? index.foodById(subject.foodId).preparationIds
     : []
 
   let hasAncestorGuidance = false
   for (let position = path.length - 1; position >= 0; position -= 1) {
-    const ancestors = findAssessments(
-      index,
+    const ancestors = index.assessmentsFor(
       guidanceList.id,
       { kind: 'category', categoryId: path[position].id },
       assessment.preparationId,
@@ -163,7 +162,7 @@ const validateAdditiveAssessment = (
   // each row with the more cautious of the two authored statuses.
   if (!hasAncestorGuidance) {
     hasAncestorGuidance = declaredAxes.some((preparationId) => path.some((ancestor) =>
-      findAssessments(index, guidanceList.id, { kind: 'category', categoryId: ancestor.id }, preparationId).length > 0,
+      index.assessmentsFor(guidanceList.id, { kind: 'category', categoryId: ancestor.id }, preparationId).length > 0,
     ))
   }
   if (!hasAncestorGuidance) {
@@ -189,7 +188,7 @@ const validatePreparations = (preparations: Preparation[]) => {
  */
 const validatePreparationQualifier = (
   assessment: Assessment,
-  foods: Food[],
+  index: ContentIndex,
   preparationIds: Set<string>,
 ) => {
   const { preparationId, subject } = assessment
@@ -201,7 +200,7 @@ const validatePreparationQualifier = (
   }
   if (subject.kind === 'food') {
     // The food reference is already validated above, so the lookup always resolves.
-    if (!foods.find((food) => food.id === subject.foodId)!.preparationIds.includes(preparationId)) {
+    if (!index.foodById(subject.foodId).preparationIds.includes(preparationId)) {
       fail(`assessment "${assessment.id}" is qualified by a preparation its food does not declare.`)
     }
   }
@@ -227,14 +226,7 @@ const validateAttribution = (assessment: Assessment, guidanceList: GuidanceList)
   }
 }
 
-const validateAssessments = (
-  assessments: Assessment[],
-  foods: Food[],
-  categories: Category[],
-  guidanceLists: GuidanceList[],
-  preparations: Preparation[],
-  index: ContentIndex,
-) => {
+const validateAssessments = (assessments: Assessment[], index: ContentIndex) => {
   assertUnique(assessments.map((assessment) => assessment.id), 'assessment ID')
   assertUnique(
     assessments.map((assessment) => [
@@ -245,11 +237,10 @@ const validateAssessments = (
     ].join(':')),
     'subject/preparation/list/source assessment pair',
   )
-  const foodIds = new Set(foods.map((food) => food.id))
-  const categoryIds = new Set(categories.map((category) => category.id))
-  const foodsById = new Map(foods.map((food) => [food.id, food]))
-  const listsById = new Map(guidanceLists.map((list) => [list.id, list]))
-  const preparationIds = new Set(preparations.map((preparation) => preparation.id))
+  const foodIds = new Set(index.foods.map((food) => food.id))
+  const categoryIds = new Set(index.categories.map((category) => category.id))
+  const listsById = new Map(index.guidanceLists.map((list) => [list.id, list]))
+  const preparationIds = new Set(index.preparations.map((preparation) => preparation.id))
 
   for (const assessment of assessments) {
     const { subject } = assessment
@@ -265,7 +256,7 @@ const validateAssessments = (
     if (subject.kind === 'food' && assessment.scopeStatement) {
       fail(`assessment "${assessment.id}" is for a food subject and must not declare a scopeStatement.`)
     }
-    validatePreparationQualifier(assessment, foods, preparationIds)
+    validatePreparationQualifier(assessment, index, preparationIds)
     const guidanceList = listsById.get(assessment.guidanceListId)
     if (!guidanceList) {
       fail(`assessment "${assessment.id}" references an unknown guidance list.`)
@@ -279,7 +270,7 @@ const validateAssessments = (
       }
       validateAttribution(assessment, guidanceList)
       if (assessment.relation === 'adds-to') {
-        validateAdditiveAssessment(assessment, guidanceList, index, foodsById)
+        validateAdditiveAssessment(assessment, guidanceList, index)
       }
     }
     assertUnique(assessment.reasonLinks.map((link) => `${link.kind}:${link.targetFoodId}`), `reason link in "${assessment.id}"`)
@@ -317,9 +308,12 @@ export const validateContent = (rawContent: ContentData): ValidatedContent => {
   }
   validateSources(sources)
   validateGuidanceLists(guidanceLists, sources)
-  const index = createContentIndex(categories, assessments)
-  validateAssessments(assessments, foods, categories, guidanceLists, preparations, index)
-  return { categories, foods, preparations, sources, guidanceLists, assessments } as ValidatedContent
+  const content = { categories, foods, preparations, sources, guidanceLists, assessments } as ValidatedContent
+  // Only assessments remain unchecked here. Building the index over them never throws, and the
+  // lookups used below resolve only references already validated, so the brand is safe to assert
+  // before the last step.
+  validateAssessments(assessments, createContentIndex(content))
+  return content
 }
 
 export const getStatusById = (guidanceList: GuidanceList, statusId: string): StatusDefinition =>

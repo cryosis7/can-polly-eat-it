@@ -1,7 +1,6 @@
 import { writeFileSync } from 'node:fs'
-import { content } from '../src/data'
+import { contentIndex as index } from '../src/data'
 import { resolveAssessment, type GuidanceLayer } from '../src/domain/assessment'
-import { createContentIndex } from '../src/domain/contentIndex'
 
 /**
  * Regenerates the preparation-migration wording snapshot. Run before moving any content:
@@ -22,12 +21,10 @@ const bodiesOf = (layers: GuidanceLayer[]): string[] => layers.flatMap((layer) =
   ...layer.citations.map((citation) => `citation:${citation.title}|${citation.url}|${citation.locator}`),
 ])
 
-const index = createContentIndex(content.categories, content.assessments)
-
 const snapshot: Record<string, Record<string, string[]>> = {}
-for (const food of content.foods) {
+for (const food of index.foods) {
   const byList: Record<string, string[]> = {}
-  for (const guidanceList of content.guidanceLists) {
+  for (const guidanceList of index.guidanceLists) {
     const resolved = resolveAssessment({ kind: 'food', food }, guidanceList, index)
     byList[guidanceList.id] = [...new Set(bodiesOf(resolved.layers))].sort()
   }
