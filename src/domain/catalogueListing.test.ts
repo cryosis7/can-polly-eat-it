@@ -192,6 +192,7 @@ describe('catalogue listing sections', () => {
     expect(sectionIds(listCatalogue(index, browsing(), expandedCollapse()))).not.toContain('snacks')
   })
 
+  // Validating the 1,000-level fixture dominates this test's time, so it gets the slow-test timeout.
   it('lists a 1,000-level branch without recursion', () => {
     const categories = Array.from({ length: 1000 }, (_, level) =>
       category(`level-${level}`, `Level ${level}`, level === 0 ? null : `level-${level - 1}`))
@@ -202,7 +203,7 @@ describe('catalogue listing sections', () => {
     expect(listing.sections).toHaveLength(1000)
     expect(listing.sections[999]).toMatchObject({ depth: 999, entryCount: 1 })
     expect(listing.sections[0].entryCount).toBe(1)
-  })
+  }, 15_000)
 })
 
 describe('catalogue listing while filtering', () => {
